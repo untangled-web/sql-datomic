@@ -1,10 +1,17 @@
 # sql-datomic
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure library designed to translate basic SQL statements into
+legal Datomic-compatible datalog.
+
+Assumes that the Datomic schema makes use of the `:entity/attribute`
+convention for all attributes.
 
 ## Usage
 
-FIXME
+To use the REPL, run:
+```
+  $ lein run
+```
 
 ## License
 
