@@ -1865,29 +1865,6 @@ condition_information_item_name ::=
    | "MESSAGE_LENGTH"
    | "MESSAGE_OCTET_LENGTH"
 
-embedded_SQL_begin_declare ::=
-    SQL_prefix
-    "BEGIN" "DECLARE" "SECTION"
-    [ SQL_terminator ]
-
-SQL_prefix ::=
-    "EXEC" "SQL"
-  | ampersand "SQL" left_paren
-
-SQL_terminator ::=
-    "END-EXEC" | semicolon | right_paren
-
-embedded_character_set_declaration ::=
-    "SQL" "NAMES" "ARE" character_set_specification
-
-embedded_SQL_end_declare ::=
-    SQL_prefix
-    "END" "DECLARE" "SECTION"
-    [ SQL_terminator ]
-
-embedded_SQL_statement ::=
-    SQL_prefix statement_or_declaration [ SQL_terminator ]
-
 statement_or_declaration ::=
              declare_cursor
      |       dynamic_declare_cursor
