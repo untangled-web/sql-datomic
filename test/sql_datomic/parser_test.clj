@@ -46,7 +46,7 @@
       LEFT OUTER JOIN b_table b ON a.id = b.a_id
       WHERE b.zebra_id > 9000
       ")
-    (parsable?
+    #_(parsable?
      "SELECT *
       FROM a_table
       WHERE a_table.foo IS NOT NULL")

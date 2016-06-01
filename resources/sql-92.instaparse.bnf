@@ -124,15 +124,6 @@ regular_identifier ::= identifier_body
 
 identifier_body ::= #'\w+'
 
-(*
-identifier_body ::= identifier_start [ { underscore | identifier_part } "+" ]
-
-identifier_start ::= !! See the Syntax rules
-
-identifier_part ::= identifier_start | digit
-*)
-
-
 key_word ::= reserved_word | non_reserved_word
 
 reserved_word ::=
@@ -213,9 +204,6 @@ national_character_string_literal ::=
 
 character_representation ::= nonquote_character | quote_symbol
 
-(*
-nonquote_character ::= !! See the Syntax rules
-*)
 nonquote_character ::= #"[^']"
 
 quote_symbol ::= quote quote
@@ -228,18 +216,15 @@ comment_introducer ::= minus_sign minus_sign [minus_sign+]
 
 comment_character ::= nonquote_character | quote
 
-(*
-<newline> ::= !! implementation defined end of line indicator
-*)
 <newline> ::= '\n' | '\r\n'
 
 bit_string_literal ::=
-             "B" quote [ bit+ ] quote [ { separator+ quote [ bit+ ] quote }+ ]
+    "B" quote [ bit+ ] quote [ { separator+ quote [ bit+ ] quote }+ ]
 
 bit ::= "0" | "1"
 
 hex_string_literal ::=
-             "X" quote [ hexit+ ] quote [ { separator+ quote [ hexit+ ] quote }+ ]
+    "X" quote [ hexit+ ] quote [ { separator+ quote [ hexit+ ] quote }+ ]
 
 hexit ::= digit
         | "A" | "B" | "C" | "D" | "E" | "F"
@@ -291,9 +276,6 @@ delimited_identifier_body ::= delimited_identifier_part+
 
 delimited_identifier_part ::= nondoublequote_character | doublequote_symbol
 
-(*
-nondoublequote_character ::= !! See the syntax rules
-*)
 nondoublequote_character ::= #'[^\"]'
 
 doublequote_symbol ::= double_quote double_quote
@@ -301,7 +283,8 @@ doublequote_symbol ::= double_quote double_quote
 unqualified_schema_name ::= identifier
 
 SQL_language_identifier ::=
-             SQL_language_identifier_start [ { underscore | SQL_language_identifier_part }+ ]
+    SQL_language_identifier_start
+    [ { underscore | SQL_language_identifier_part }+ ]
 
 SQL_language_identifier_start ::= simple_Latin_letter
 
