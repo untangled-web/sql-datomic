@@ -670,7 +670,6 @@ unsigned_literal ::= unsigned_numeric_literal | general_literal
 general_value_specification ::=
          parameter_specification
      |   dynamic_parameter_specification
-     |   variable_specification
      |   "USER"
      |   "CURRENT_USER"
      |   "SESSION_USER"
@@ -684,51 +683,6 @@ parameter_name ::= colon identifier
 indicator_parameter ::= [ "INDICATOR" ] parameter_name
 
 dynamic_parameter_specification ::= question_mark
-
-variable_specification ::= embedded_variable_name [ indicator_variable ]
-
-embedded_variable_name ::= colon host_identifier
-
-host_identifier ::=
-             Ada_host_identifier
-     |       C_host_identifier
-     |       Cobol_host_identifier
-     |       Fortran_host_identifier
-     |       MUMPS_host_identifier
-     |       Pascal_host_identifier
-     |       PL_I_host_identifier
-
-(*
-Ada_host_identifier ::= !! See syntax rules
-
-C_host_identifier ::= !! See syntax rules
-
-Cobol_host_identifier ::= !! See syntax rules
-
-Fortran_host_identifier ::= !! See syntax rules
-
-MUMPS_host_identifier ::= !! See syntax rules
-
-Pascal_host_identifier ::= !! See syntax rules
-
-PL_I_host_identifier ::= !! See syntax rules
-*)
-
-Ada_host_identifier ::= do_not_care
-
-C_host_identifier ::= do_not_care
-
-Cobol_host_identifier ::= do_not_care
-
-Fortran_host_identifier ::= do_not_care
-
-MUMPS_host_identifier ::= do_not_care
-
-Pascal_host_identifier ::= do_not_care
-
-PL_I_host_identifier ::= do_not_care
-
-indicator_variable ::= [ "INDICATOR" ] embedded_variable_name
 
 column_reference ::= [ qualifier period ] column_name
 
@@ -1533,14 +1487,12 @@ fetch_orientation ::=
 
 simple_value_specification ::=
     parameter_name
-  | embedded_variable_name
   | literal
 
 fetch_target_list ::= target_specification [ { comma target_specification }+ ]
 
 target_specification ::=
              parameter_specification
-     |       variable_specification
 
 close_statement ::= "CLOSE" cursor_name
 
@@ -1773,7 +1725,7 @@ get_count ::=
 
 simple_target_specification_1 ::= simple_target_specification
 
-simple_target_specification ::= parameter_name | embedded_variable_name
+simple_target_specification ::= parameter_name
 
 get_item_information ::= simple_target_specification_2 equals_operator descriptor_item_name
 
@@ -1913,31 +1865,6 @@ condition_information_item_name ::=
    | "MESSAGE_LENGTH"
    | "MESSAGE_OCTET_LENGTH"
 
-(*
-embedded_SQL_host_program ::=
-             embedded_SQL_Ada_program
-     |       embedded_SQL_C_program
-     |       embedded_SQL_Cobol_program
-     |       embedded_SQL_Fortran_program
-     |       embedded_SQL_MUMPS_program
-     |       embedded_SQL_Pascal_program
-     |       embedded_SQL_PL_I_program
-
-embedded_SQL_Ada_program ::= !! See the syntax rules
-
-embedded_SQL_C_program ::= !! See the syntax rules
-
-embedded_SQL_Cobol_program ::= !! See the syntax rules
-
-embedded_SQL_Fortran_program ::= !! See the syntax rules
-
-embedded_SQL_MUMPS_program ::= !! See the syntax rules
-
-embedded_SQL_Pascal_program ::= !! See the syntax rules
-
-embedded_SQL_PL_I_program ::= !! See the syntax rules
-*)
-
 embedded_SQL_declare_section ::=
              embedded_SQL_begin_declare
                      [ embedded_character_set_declaration ]
@@ -1975,110 +1902,6 @@ embedded_SQL_MUMPS_declare ::=
     "END" "DECLARE" "SECTION"
     SQL_terminator
 
-(*
-host_variable_definition ::=
-             Ada_variable_definition
-     |       C_variable_definition
-     |       Cobol_variable_definition
-     |       Fortran_variable_definition
-     |       MUMPS_variable_definition
-     |       Pascal_variable_definition
-     |       PL_I_variable_definition
-
-
-Ada_variable_definition ::=
-             Ada_host_identifier [ { comma Ada_host_identifier }+ ] colon
-             Ada_type_specification [ Ada_initial_value ]
-
-Ada_type_specification ::= Ada_qualified_type_specification | Ada_unqualified_type_specification
-
-Ada_qualified_type_specification ::=
-             SQL_STANDARD.CHAR [ CHARACTER SET [ IS ] character_set_specification ] left_paren 1 double_period length right_paren
-     |       SQL_STANDARD.BIT left_paren 1 double_period length right_paren
-     |       SQL_STANDARD.SMALLINT
-     |       SQL_STANDARD.INT
-     |       SQL_STANDARD.REAL
-     |       SQL_STANDARD.DOUBLE_PRECISION
-     |       SQL_STANDARD.SQLCODE_TYPE
-     |       SQL_STANDARD.SQLSTATE_TYPE
-     |       SQL_STANDARD.INDICATOR_TYPE
-
-Ada_unqualified_type_specification ::=
-             CHAR left_paren 1 double_period length right_paren
-     |       BIT left_paren 1 double_period length right_paren
-     |       SMALLINT
-     |       INT
-     |       REAL
-     |       DOUBLE_PRECISION
-     |       SQLCODE_TYPE
-     |       SQLSTATE_TYPE
-     |       INDICATOR_TYPE
-
-Ada_initial_value ::= Ada_assignment_operator character_representation
-
-Ada_assignment_operator ::= colonequals_operator
-
-C_variable_definition ::= [ C_storage_class ] [ C_class_modifier ] C_variable_specification semicolon
-
-C_storage_class ::= auto | extern | static
-
-C_class_modifier ::= const | volatile
-
-C_variable_specification ::=
-             C_numeric_variable
-     |       C_character_variable
-     |       C_derived_variable
-
-C_numeric_variable ::=
-             { long | short | float | double }
-                     C_host_identifier [ C_initial_value ]
-                     [ { comma C_host_identifier [ C_initial_value ] }+ ]
-
-C_initial_value ::= equals_operator character_representation
-
-C_character_variable ::=
-             char [ CHARACTER SET [ IS ] character_set_specification ]
-                     C_host_identifier C_array_specification [ C_initial_value ]
-                     [ { comma C_host_identifier C_array_specification [ C_initial_value ] }+ ]
-
-C_array_specification ::= left_bracket length right_bracket
-
-C_derived_variable ::= C_VARCHAR_variable | C_bit_variable
-
-C_VARCHAR_variable ::=
-             VARCHAR [ CHARACTER SET [ IS ] character_set_specification ]
-                     C_host_identifier C_array_specification [ C_initial_value ]
-                     [ { comma C_host_identifier C_array_specification [ C_initial_value ] }+ ]
-
-C_bit_variable ::=
-             BIT C_host_identifier C_array_specification [ C_initial_value ]
-                     [ { comma C_host_identifier C_array_specification [ C_initial_value ] }+ ]
-
-Cobol_variable_definition ::=
-     +omitted+
-
-Fortran_variable_definition ::=
-     +omitted+
-
-MUMPS_variable_definition ::=
-     +omitted+
-
-Pascal_variable_definition ::=
-     +omitted+
-
-PL_I_variable_definition ::=
-     +omitted+
-
-embedded_SQL_end_declare ::= SQL_prefix END DECLARE SECTION [ SQL_terminator ]
-
-embedded_SQL_MUMPS_declare ::=
-     SQL_prefix
-     BEGIN DECLARE SECTION
-             [ embedded_character_set_declaration ]
-             [ host_variable_definition+ ]
-     END DECLARE SECTION
-     SQL_terminator
-*)
 embedded_SQL_statement ::=
     SQL_prefix statement_or_declaration [ SQL_terminator ]
 
