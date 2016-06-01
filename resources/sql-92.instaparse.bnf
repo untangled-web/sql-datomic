@@ -1,5 +1,13 @@
 (* Based off of http://savage.net.au/SQL/sql-92.bnf *)
 
+<direct_SQL_statement> ::=
+             <direct_SQL_data_statement>
+     |       <SQL_schema_statement>
+     |       <SQL_transaction_statement>
+     |       <SQL_connection_statement>
+     |       <SQL_session_statement>
+     |       <direct_implementation_defined_statement>
+
 <SQL_terminal_character> ::=
                          <SQL_language_character>
                        | <SQL_embedded_language_character>
@@ -783,33 +791,38 @@
      |       <explicit_table>
 
 <query_specification> ::=
-             "SELECT" <space> [ <set_quantifier> ] <select_list> <table_expression>
+             "SELECT" <space> [ <set_quantifier> ] <select_list>
+             <space> <table_expression>
 
 <select_list> ::=
              <asterisk>
-     |       <select_sublist> [ { <comma> <select_sublist> }+ ]
+     |       <select_sublist>
+             [ { <zspace> <comma> <zspace> <select_sublist> }+ ]
 
 <select_sublist> ::= <derived_column> | <qualifier> <period> <asterisk>
 
-<derived_column> ::= <value_expression> [ <as_clause> ]
+<derived_column> ::= <value_expression> [ <space> <as_clause> ]
 
-<as_clause> ::= [ <zspace> "AS" <space> ] <column_name>
+<as_clause> ::= [ "AS" <space> ] <column_name>
 
 <table_expression> ::=
              <from_clause>
-             [ <where_clause> ]
-             [ <group_by_clause> ]
-             [ <having_clause> ]
+             [ <space> <where_clause> ]
+             [ <space> <group_by_clause> ]
+             [ <space> <having_clause> ]
 
-<from_clause> ::= "FROM" <space> <table_reference> [ { <comma> <table_reference> }+ ]
+<from_clause> ::=
+    "FROM" <space> <table_reference>
+    [ { <zspace> <comma> <zspace> <table_reference> }+ ]
 
 <table_reference> ::=
-         <table_name> [ <correlation_specification> ]
-     |   <derived_table> <correlation_specification>
+         <table_name> [ <space> <correlation_specification> ]
+     |   <derived_table> <space> <correlation_specification>
      |   <joined_table>
 
 <correlation_specification> ::=
-             [ <zspace> "AS" <space> ] <correlation_name> [ <left_paren> <derived_column_list> <right_paren> ]
+             [ "AS" <space> ] <correlation_name> <zspace>
+             [ <left_paren> <derived_column_list> <right_paren> ]
 
 <derived_column_list> ::= <column_name_list>
 
@@ -824,7 +837,7 @@
 
 <cross_join> ::=
              <table_reference>
-             <zspace> "CROSS" <space> "JOIN" <zspace>
+             <space> "CROSS" <space> "JOIN" <zspace>
              <table_reference>
 
 <qualified_join> ::=
@@ -2166,14 +2179,6 @@
 *)
 
 <preparable_SQL_implementation_defined_statement> ::= <do_not_care>
-
-<direct_SQL_statement> ::=
-             <direct_SQL_data_statement>
-     |       <SQL_schema_statement>
-     |       <SQL_transaction_statement>
-     |       <SQL_connection_statement>
-     |       <SQL_session_statement>
-     |       <direct_implementation_defined_statement>
 
 <direct_SQL_data_statement> ::=
              <delete_statement_searched>
