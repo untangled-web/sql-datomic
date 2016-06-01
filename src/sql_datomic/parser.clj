@@ -2,9 +2,12 @@
   (:require [instaparse.core :as insta]))
 
 (def parser
-  (->> "resources/sql-92.instaparse.bnf"
-       slurp
-       insta/parser))
+  (-> "resources/sql-92.instaparse.bnf"
+      slurp
+      (insta/parser
+       :input-format :ebnf
+       :no-slurp true
+       :auto-whitespace :standard)))
 
 (comment
 

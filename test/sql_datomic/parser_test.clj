@@ -19,4 +19,14 @@
      "SELECT foo AS \"fuu\"
       FROM   a_table
      ")
+    (parsable?
+     "SELECT foo AS \"fuu\",
+		bar,
+             baz AS hmm
+      FROM   a_table
+     ")
+    (parsable?
+     "
+         SELECT foo FROM   a_table
+     ")
     #_(good-stmt? "SELECT name FROM a_table WHERE name = 'foo'")))
