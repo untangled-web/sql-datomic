@@ -5,11 +5,14 @@
 
 (def good-parser? (complement insta/failure?))
 
+(defmacro good-stmt? [stmt]
+  `(is (good-parser? (prs/parser ~stmt))))
+
 (deftest select-tests
   (testing "SELECT statements"
-    (is (good-parser? (prs/parser "SELECT name AS foo FROM a_table")))
-    (is (good-parser? (prs/parser "SELECT name FROM a_table")))
-    (is (good-parser? (prs/parser "SELECT name, age AS bleh FROM a_table")))
-    (is (good-parser? (prs/parser "SELECT * FROM a_table")))
-    (is (good-parser? (prs/parser "SELECT name FROM a_table, b_table")))
-    (is (good-parser? (prs/parser "SELECT name FROM a_table WHERE name = 'foo'")))))
+    (good-stmt? "SELECT name AS foo FROM a_table")
+    (good-stmt? "SELECT name FROM a_table")
+    (good-stmt? "SELECT name, age AS bleh FROM a_table")
+    (good-stmt? "SELECT * FROM a_table")
+    (good-stmt? "SELECT name FROM a_table, b_table")
+    (good-stmt? "SELECT name FROM a_table WHERE name = 'foo'")))
