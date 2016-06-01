@@ -354,21 +354,6 @@ concatenation_operator ::= "||"
 
 double_period ::= ".."
 
-module ::=
-             module_name_clause language_clause module_authorization_clause
-             [ temporary_table_declaration+ ]
-             module_contents+
-
-module_name_clause ::=
-             "MODULE"
-             [ module_name ]
-             [ module_character_set_specification ]
-
-module_name ::= identifier
-
-module_character_set_specification ::=
-     "NAMES" "ARE" character_set_specification
-
 language_clause ::= "LANGUAGE" language_name
 
 language_name ::=
@@ -379,8 +364,8 @@ module_authorization_clause ::=
              "SCHEMA" schema_name
      |       "AUTHORIZATION" module_authorization_identifier
      |       "SCHEMA" schema_name
-              "AUTHORIZATION"
-              module_authorization_identifier
+             "AUTHORIZATION"
+             module_authorization_identifier
 
 module_authorization_identifier ::= authorization_identifier
 
@@ -1121,20 +1106,6 @@ referential_constraint_definition ::=
 
 referencing_columns ::= reference_column_list
 
-module_contents ::=
-             declare_cursor
-     |       dynamic_declare_cursor
-     |       procedure
-
-declare_cursor ::=
-    "DECLARE" cursor_name
-    [ "INSENSITIVE" ]
-    [ "SCROLL" ]
-    "CURSOR" "FOR"
-    cursor_specification
-
-cursor_name ::= identifier
-
 cursor_specification ::= query_expression [ order_by_clause ] [ updatability_clause ]
 
 order_by_clause ::=
@@ -1153,20 +1124,7 @@ updatability_clause ::=
     { "READ" "ONLY"
     | "UPDATE" [ "OF" column_name_list ] }
 
-dynamic_declare_cursor ::=
-    "DECLARE" cursor_name
-    [ "INSENSITIVE" ]
-    [ "SCROLL" ]
-    "CURSOR" "FOR" statement_name
-
 statement_name ::= identifier
-
-procedure ::=
-    "PROCEDURE" procedure_name
-    parameter_declaration_list semicolon
-    SQL_procedure_statement semicolon
-
-procedure_name ::= identifier
 
 parameter_declaration_list ::=
              left_paren parameter_declaration [ { comma parameter_declaration }+ ] right_paren
@@ -1174,15 +1132,6 @@ parameter_declaration_list ::=
 parameter_declaration ::= parameter_name data_type | status_parameter
 
 status_parameter ::= "SQLCODE" | "SQLSTATE"
-
-SQL_procedure_statement ::=
-             SQL_schema_statement
-     |       SQL_data_statement
-     |       SQL_transaction_statement
-     |       SQL_connection_statement
-     |       SQL_session_statement
-     |       SQL_dynamic_statement
-     |       SQL_diagnostics_statement
 
 SQL_schema_statement ::=
              SQL_schema_definition_statement
@@ -1466,24 +1415,8 @@ drop_assertion_statement ::=
     "DROP" "ASSERTION" constraint_name
 
 SQL_data_statement ::=
-             open_statement
-     |       fetch_statement
-     |       close_statement
-     |       select_statement_single_row
+             select_statement_single_row
      |       SQL_data_change_statement
-
-open_statement ::= "OPEN" cursor_name
-
-fetch_statement ::=
-    "FETCH" [ [ fetch_orientation ] "FROM" ]
-     cursor_name "INTO" fetch_target_list
-
-fetch_orientation ::=
-     "NEXT"
-   | "PRIOR"
-   | "FIRST"
-   | "LAST"
-   | { "ABSOLUTE" | "RELATIVE" } simple_value_specification
 
 simple_value_specification ::=
     parameter_name
@@ -1494,8 +1427,6 @@ fetch_target_list ::= target_specification [ { comma target_specification }+ ]
 target_specification ::=
              parameter_specification
 
-close_statement ::= "CLOSE" cursor_name
-
 select_statement_single_row ::=
     "SELECT" [ set_quantifier ] select_list
     "INTO" select_target_list table_expression
@@ -1503,15 +1434,9 @@ select_statement_single_row ::=
 select_target_list ::= target_specification [ { comma target_specification }+ ]
 
 SQL_data_change_statement ::=
-             delete_statement_positioned
-     |       delete_statement_searched
+             delete_statement_searched
      |       insert_statement
-     |       update_statement_positioned
      |       update_statement_searched
-
-delete_statement_positioned ::=
-    "DELETE" "FROM" table_name
-    "WHERE" "CURRENT" "OF" cursor_name
 
 delete_statement_searched ::=
     "DELETE" "FROM" table_name
@@ -1525,10 +1450,6 @@ insert_columns_and_source ::=
    | "DEFAULT" "VALUES"
 
 insert_column_list ::= column_name_list
-
-update_statement_positioned ::=
-     "UPDATE" table_name "SET" set_clause_list
-     "WHERE" "CURRENT" "OF" cursor_name
 
 set_clause_list ::= set_clause [ { comma set_clause } + ]
 
@@ -1648,7 +1569,6 @@ SQL_dynamic_statement ::=
      |       describe_statement
      |       execute_statement
      |       execute_immediate_statement
-     |       SQL_dynamic_data_statement
 
 system_descriptor_statement ::=
              allocate_descriptor_statement
@@ -1777,45 +1697,6 @@ parameter_using_clause ::= using_clause
 execute_immediate_statement ::=
     "EXECUTE" "IMMEDIATE" SQL_statement_variable
 
-SQL_dynamic_data_statement ::=
-             allocate_cursor_statement
-     |       dynamic_open_statement
-     |       dynamic_close_statement
-     |       dynamic_fetch_statement
-     |       dynamic_delete_statement_positioned
-     |       dynamic_update_statement_positioned
-
-allocate_cursor_statement ::=
-     "ALLOCATE" extended_cursor_name
-     [ "INSENSITIVE" ]
-     [ "SCROLL" ]
-     "CURSOR" "FOR" extended_statement_name
-
-extended_cursor_name ::= [ scope_option ] simple_value_specification
-
-dynamic_open_statement ::=
-    "OPEN" dynamic_cursor_name [ using_clause ]
-
-dynamic_cursor_name ::= cursor_name | extended_cursor_name
-
-dynamic_close_statement ::=
-    "CLOSE" dynamic_cursor_name
-
-dynamic_fetch_statement ::=
-    "FETCH"
-    [ [ fetch_orientation ] "FROM" ]
-    dynamic_cursor_name
-
-dynamic_delete_statement_positioned ::=
-    "DELETE" "FROM" table_name
-    "WHERE" "CURRENT" "OF"
-    dynamic_cursor_name
-
-dynamic_update_statement_positioned ::=
-    "UPDATE" table_name
-    "SET" set_clause [ { comma set_clause }+ ]
-    "WHERE" "CURRENT" "OF" dynamic_cursor_name
-
 SQL_diagnostics_statement ::= get_diagnostics_statement
 
 get_diagnostics_statement ::=
@@ -1866,11 +1747,8 @@ condition_information_item_name ::=
    | "MESSAGE_OCTET_LENGTH"
 
 statement_or_declaration ::=
-             declare_cursor
-     |       dynamic_declare_cursor
-     |       temporary_table_declaration
+             temporary_table_declaration
      |       embedded_exception_declaration
-     |       SQL_procedure_statement
 
 embedded_exception_declaration ::=
     "WHENEVER" condition condition_action
