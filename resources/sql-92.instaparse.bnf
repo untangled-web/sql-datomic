@@ -1926,48 +1926,9 @@ goto_target ::=
 
 do_not_care ::= #"\w+"
 
-preparable_statement ::=
-             preparable_SQL_data_statement
-     |       preparable_SQL_schema_statement
-     |       preparable_SQL_transaction_statement
-     |       preparable_SQL_session_statement
-     |       preparable_SQL_implementation_defined_statement
-
-preparable_SQL_data_statement ::=
-             delete_statement_searched
-     |       dynamic_single_row_select_statement
-     |       insert_statement
-     |       dynamic_select_statement
-     |       update_statement_searched
-     |       preparable_dynamic_delete_statement_positioned
-     |       preparable_dynamic_update_statement_positioned
-
 dynamic_single_row_select_statement ::= query_specification
 
 dynamic_select_statement ::= cursor_specification
-
-preparable_dynamic_delete_statement_positioned ::=
-    "DELETE"
-    [ "FROM" table_name ]
-    "WHERE" "CURRENT" "OF" cursor_name
-
-preparable_dynamic_update_statement_positioned ::=
-    "UPDATE"
-    [ table_name ]
-    "SET" set_clause
-    "WHERE" "CURRENT" "OF" cursor_name
-
-preparable_SQL_schema_statement ::= SQL_schema_statement
-
-preparable_SQL_transaction_statement ::= SQL_transaction_statement
-
-preparable_SQL_session_statement ::= SQL_session_statement
-
-(*
-preparable_SQL_implementation_defined_statement ::= !! See the syntax rules
-*)
-
-preparable_SQL_implementation_defined_statement ::= do_not_care
 
 direct_SQL_data_statement ::=
              delete_statement_searched
