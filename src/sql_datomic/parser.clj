@@ -14,7 +14,10 @@
   (parser "SELECT * FROM a_table")
   (parser "SELECT name FROM a_table, b_table")
   (parser "SELECT name FROM a_table WHERE name = 'foo'")
-
+  (parser
+     "SELECT foo AS \"fuu\"
+      FROM   a_table
+     ")
   )
 
 ;; (def transform-operator
