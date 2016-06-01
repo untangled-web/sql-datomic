@@ -10,7 +10,10 @@
 
   (parser "SELECT name AS foo FROM a_table")
   (parser "SELECT name FROM a_table")
+  (parser "SELECT name, age AS bleh FROM a_table")
   (parser "SELECT * FROM a_table")
+  (parser "SELECT name FROM a_table, b_table")
+  (parser "SELECT name FROM a_table WHERE name = 'foo'")
 
   )
 
