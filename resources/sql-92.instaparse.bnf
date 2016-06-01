@@ -217,7 +217,7 @@
 
 <comment> ::= <comment_introducer> [ <comment_character>+ ] <newline>
 
-<comment_introducer> ::= <minus_sign><minus_sign> [<minus_sign>+]
+<comment_introducer> ::= <minus_sign> <minus_sign> [<minus_sign>+]
 
 <comment_character> ::= <nonquote_character> | <quote>
 
@@ -255,7 +255,7 @@
      |       <right_bracket>
 
 <character_string_literal> ::=
-     [ <introducer><character_set_specification> ] <quote> [ <character_representation>+ ] <quote> [ { <separator>+ <quote> [ <character_representation>+ ] <quote> }+ ]
+     [ <introducer> <character_set_specification> ] <quote> [ <character_representation>+ ] <quote> [ { <separator>+ <quote> [ <character_representation>+ ] <quote> }+ ]
 
 <introducer> ::= <underscore>
 
@@ -274,7 +274,7 @@
 
 <catalog_name> ::= <identifier>
 
-<identifier> ::= [ <introducer><character_set_specification> ] <actual_identifier>
+<identifier> ::= [ <introducer> <character_set_specification> ] <actual_identifier>
 
 <actual_identifier> ::= <regular_identifier> | <delimited_identifier>
 
@@ -289,7 +289,7 @@
 *)
 <nondoublequote_character> ::= #'[^\"]'
 
-<doublequote_symbol> ::= <double_quote><double_quote>
+<doublequote_symbol> ::= <double_quote> <double_quote>
 
 <unqualified_schema_name> ::= <identifier>
 
@@ -698,7 +698,7 @@
 
 <variable_specification> ::= <embedded_variable_name> [ <indicator_variable> ]
 
-<embedded_variable_name> ::= <colon><host_identifier>
+<embedded_variable_name> ::= <colon> <host_identifier>
 
 <host_identifier> ::=
              <Ada_host_identifier>
