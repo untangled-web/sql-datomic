@@ -1562,41 +1562,11 @@ set_local_time_zone_statement ::=
 
 set_time_zone_value ::= interval_value_expression | "LOCAL"
 
-SQL_dynamic_statement ::=
-             system_descriptor_statement
-     |       prepare_statement
-     |       deallocate_prepared_statement
-     |       describe_statement
-     |       execute_statement
-     |       execute_immediate_statement
-
-system_descriptor_statement ::=
-             allocate_descriptor_statement
-     |       deallocate_descriptor_statement
-     |       get_descriptor_statement
-     |       set_descriptor_statement
-
-allocate_descriptor_statement ::=
-    "ALLOCATE" "DESCRIPTOR" descriptor_name
-    [ "WITH" "MAX" occurrences ]
-
 descriptor_name ::= [ scope_option ] simple_value_specification
 
 scope_option ::= "GLOBAL" | "LOCAL"
 
 occurrences ::= simple_value_specification
-
-deallocate_descriptor_statement ::=
-    "DEALLOCATE" "DESCRIPTOR" descriptor_name
-
-set_descriptor_statement ::=
-    "SET" "DESCRIPTOR" descriptor_name
-    set_descriptor_information
-
-set_descriptor_information ::=
-     set_count
-   | "VALUE" item_number set_item_information
-     [ { comma set_item_information }+ ]
 
 set_count ::=
     "COUNT" equals_operator simple_value_specification_1
@@ -1631,15 +1601,6 @@ descriptor_item_name ::=
 
 simple_value_specification_2 ::= simple_value_specification
 
-get_descriptor_statement ::=
-    "GET" "DESCRIPTOR" descriptor_name
-    get_descriptor_information
-
-get_descriptor_information ::=
-     get_count
-   | "VALUE" item_number get_item_information
-     [ { comma get_item_information }+ ]
-
 get_count ::=
     simple_target_specification_1 equals_operator "COUNT"
 
@@ -1650,10 +1611,6 @@ simple_target_specification ::= parameter_name
 get_item_information ::= simple_target_specification_2 equals_operator descriptor_item_name
 
 simple_target_specification_2 ::= simple_target_specification
-
-prepare_statement ::=
-    "PREPARE" SQL_statement_name
-    "FROM" SQL_statement_variable
 
 SQL_statement_name ::= statement_name | extended_statement_name
 
@@ -1677,10 +1634,6 @@ using_descriptor ::=
 describe_output_statement ::=
     "DESCRIBE" [ "OUTPUT" ]
     SQL_statement_name using_descriptor
-
-execute_statement ::=
-    "EXECUTE" SQL_statement_name
-    [ result_using_clause ] [ parameter_using_clause ]
 
 result_using_clause ::= using_clause
 
