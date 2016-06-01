@@ -2,10 +2,17 @@
   (:require [instaparse.core :as insta]))
 
 (def parser
-  (->> #_"resources/sql.bnf" #_"resources/sql-92.instaparse.bnf"
-       "resources/sql-92.no-hiddens.instaparse.bnf"
+  (->> "resources/sql-92.instaparse.bnf"
        slurp
        insta/parser))
+
+(comment
+
+  (parser "SELECT name AS foo FROM a_table")
+  (parser "SELECT name FROM a_table")
+  (parser "SELECT * FROM a_table")
+
+  )
 
 ;; (def transform-operator
 ;;   {"+" +
