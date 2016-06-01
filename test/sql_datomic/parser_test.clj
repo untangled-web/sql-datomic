@@ -29,4 +29,30 @@
      "
          SELECT foo FROM   a_table
      ")
-    #_(good-stmt? "SELECT name FROM a_table WHERE name = 'foo'")))
+    (parsable? "SELECT name FROM a_table WHERE name = 'foo'")
+    (parsable?
+     "SELECT a.*, b.zebra_id
+      FROM a_table a
+      JOIN b_table b ON a.id = b.a_id
+      WHERE b.zebra_id > 9000")
+    (parsable?
+     "SELECT a.*, b.zebra_id
+      FROM a_table a
+      LEFT OUTER JOIN b_table b ON a.id = b.a_id
+      ")
+    (parsable?
+     "SELECT a.*, b.zebra_id
+      FROM a_table a
+      LEFT OUTER JOIN b_table b ON a.id = b.a_id
+      WHERE b.zebra_id > 9000
+      ")
+    (parsable?
+     "SELECT *
+      FROM a_table
+      WHERE a_table.foo IS NOT NULL")
+    #_(parsable?
+     "SELECT a.*, b.zebra_id
+      FROM a_table a
+      LEFT OUTER JOIN b_table b ON a.id = b.a_id
+      WHERE b.zebra_id IS NOT NULL
+      ")))

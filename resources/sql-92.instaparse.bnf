@@ -617,22 +617,21 @@ delete_rule ::= "ON" "DELETE" referential_action
 check_constraint_definition ::= "CHECK" left_paren search_condition right_paren
 
 search_condition ::=
-             boolean_term
+         boolean_term
      |   search_condition "OR" boolean_term
 
 boolean_term ::=
-             boolean_factor
+         boolean_factor
      |   boolean_term "AND" boolean_factor
 
 boolean_factor ::= [ "NOT" ] boolean_test
 
-boolean_test ::= boolean_primary [ "IS" [ "NOT" ]
-                                       truth_value ]
+boolean_test ::= boolean_primary [ "IS" [ "NOT" ] truth_value ]
 
 boolean_primary ::= predicate | left_paren search_condition right_paren
 
 predicate ::=
-             comparison_predicate
+         comparison_predicate
      |   between_predicate
      |   in_predicate
      |   like_predicate
@@ -645,28 +644,28 @@ predicate ::=
 comparison_predicate ::= row_value_constructor comp_op row_value_constructor
 
 row_value_constructor ::=
-             row_value_constructor_element
+         row_value_constructor_element
      |   left_paren row_value_constructor_list right_paren
      |   row_subquery
 
 row_value_constructor_element ::=
-             value_expression
+         value_expression
      |   null_specification
      |   default_specification
 
 value_expression ::=
-             numeric_value_expression
+         numeric_value_expression
      |   string_value_expression
      |   datetime_value_expression
      |   interval_value_expression
 
 numeric_value_expression ::=
-             term
+         term
      |   numeric_value_expression plus_sign term
      |   numeric_value_expression minus_sign term
 
 term ::=
-             factor
+         factor
      |   term asterisk factor
      |   term solidus factor
 
@@ -675,7 +674,7 @@ factor ::= [ sign ] numeric_primary
 numeric_primary ::= value_expression_primary | numeric_value_function
 
 value_expression_primary ::=
-             unsigned_value_specification
+         unsigned_value_specification
      |   column_reference
      |   set_function_specification
      |   scalar_subquery
@@ -688,7 +687,7 @@ unsigned_value_specification ::= unsigned_literal | general_value_specification
 unsigned_literal ::= unsigned_numeric_literal | general_literal
 
 general_value_specification ::=
-             parameter_specification
+         parameter_specification
      |   dynamic_parameter_specification
      |   variable_specification
      |   "USER"
@@ -831,13 +830,13 @@ derived_table ::= table_subquery
 table_subquery ::= subquery
 
 joined_table ::=
-             cross_join
+         cross_join
      |   qualified_join
      |   left_paren joined_table right_paren
 
 cross_join ::=
              table_reference
-              "CROSS" "JOIN"
+             "CROSS" "JOIN"
              table_reference
 
 qualified_join ::=
@@ -848,12 +847,11 @@ qualified_join ::=
              table_reference [ join_specification ]
 
 join_type ::=
-             "INNER"
+         "INNER"
      |   outer_join_type [ "OUTER" ]
      |   "UNION"
 
-outer_join_type ::=
-                  "LEFT" | "RIGHT" | "FULL"
+outer_join_type ::= "LEFT" | "RIGHT" | "FULL"
 
 join_specification ::= join_condition | named_columns_join
 
@@ -1118,7 +1116,7 @@ in_value_list ::= value_expression { comma value_expression } +
 
 like_predicate ::=
     match_value
-     [ "NOT" ] "LIKE"
+    [ "NOT" ] "LIKE"
     pattern [ "ESCAPE" escape_character ]
 
 match_value ::= character_value_expression

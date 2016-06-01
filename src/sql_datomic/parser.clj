@@ -21,6 +21,17 @@
      "SELECT foo AS \"fuu\"
       FROM   a_table
      ")
+  (parser
+   "SELECT a.*, b.zebra_id
+      FROM a_table a
+      LEFT OUTER JOIN b_table b ON a.id = b.a_id
+      WHERE b.zebra_id IS NOT NULL
+      ")
+  (parser
+   "SELECT *
+      FROM a_table a
+      WHERE a.foo IS NOT NULL
+      ")
   )
 
 ;; (def transform-operator
