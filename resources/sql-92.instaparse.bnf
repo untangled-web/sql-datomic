@@ -1865,13 +1865,6 @@ condition_information_item_name ::=
    | "MESSAGE_LENGTH"
    | "MESSAGE_OCTET_LENGTH"
 
-embedded_SQL_declare_section ::=
-             embedded_SQL_begin_declare
-                     [ embedded_character_set_declaration ]
-                     [ host_variable_definition + ]
-                     embedded_SQL_end_declare
-     |       embedded_SQL_MUMPS_declare
-
 embedded_SQL_begin_declare ::=
     SQL_prefix
     "BEGIN" "DECLARE" "SECTION"
@@ -1887,20 +1880,10 @@ SQL_terminator ::=
 embedded_character_set_declaration ::=
     "SQL" "NAMES" "ARE" character_set_specification
 
-host_variable_definition ::= do_not_care
-
 embedded_SQL_end_declare ::=
     SQL_prefix
     "END" "DECLARE" "SECTION"
     [ SQL_terminator ]
-
-embedded_SQL_MUMPS_declare ::=
-    SQL_prefix
-    "BEGIN" "DECLARE" "SECTION"
-    [ embedded_character_set_declaration ]
-    [ host_variable_definition+ ]
-    "END" "DECLARE" "SECTION"
-    SQL_terminator
 
 embedded_SQL_statement ::=
     SQL_prefix statement_or_declaration [ SQL_terminator ]
@@ -1923,8 +1906,6 @@ go_to ::= { "GOTO" | "GO" "TO" } goto_target
 
 goto_target ::=
              unsigned_integer
-
-do_not_care ::= #"\w+"
 
 dynamic_single_row_select_statement ::= query_specification
 
