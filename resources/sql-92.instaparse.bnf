@@ -1,13 +1,11 @@
 (* Based off of http://savage.net.au/SQL/sql-92.bnf *)
 
 direct_SQL_statement ::=
-     {       direct_SQL_data_statement
+             direct_SQL_data_statement
      |       SQL_schema_statement
      |       SQL_transaction_statement
      |       SQL_connection_statement
      |       SQL_session_statement
-     |       direct_implementation_defined_statement
-     }
 
 SQL_terminal_character ::=
                          SQL_language_character
@@ -2187,12 +2185,6 @@ direct_SQL_data_statement ::=
 
 direct_select_statement_multiple_rows ::=
     query_expression [ order_by_clause ]
-
-(*
-direct_implementation_defined_statement ::= !! See the syntax rules
-*)
-
-direct_implementation_defined_statement ::= do_not_care
 
 SQL_object_identifier ::= SQL_provenance SQL_variant
 

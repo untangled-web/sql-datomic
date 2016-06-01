@@ -25,7 +25,7 @@
    "SELECT a.*, b.zebra_id
       FROM a_table a
       LEFT OUTER JOIN b_table b ON a.id = b.a_id
-      WHERE b.zebra_id IS NOT NULL
+      WHERE b.zebra_id > 9000
       ")
   (parser
    "SELECT *
