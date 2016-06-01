@@ -39,7 +39,7 @@ simple_Latin_lower_case_letter ::=
 digit ::= #'\d'
 
 SQL_special_character ::=
-                space
+                <space>
         |       double_quote
         |       percent
         |       ampersand
@@ -61,8 +61,8 @@ SQL_special_character ::=
         |       underscore
         |       vertical_bar
 
-space ::= #'\s+'
-zspace ::= #'\s*'
+<space> ::= #'\s+'
+<zspace> ::= #'\s*'
 
 double_quote ::= "\""
 
@@ -222,18 +222,18 @@ nonquote_character ::= #"[^']"
 
 quote_symbol ::= quote quote
 
-separator ::= { comment | space | newline }+
+separator ::= { comment | <space> | <newline> }+
 
-comment ::= comment_introducer [ comment_character+ ] newline
+comment ::= comment_introducer [ comment_character+ ] <newline>
 
 comment_introducer ::= minus_sign minus_sign [minus_sign+]
 
 comment_character ::= nonquote_character | quote
 
 (*
-newline ::= !! implementation defined end of line indicator
+<newline> ::= !! implementation defined end of line indicator
 *)
-newline ::= '\n' | '\r\n'
+<newline> ::= '\n' | '\r\n'
 
 bit_string_literal ::=
              "B" quote [ bit+ ] quote [ { separator+ quote [ bit+ ] quote }+ ]
@@ -345,7 +345,7 @@ seconds_fraction ::= unsigned_integer
 
 time_zone_interval ::= sign hours_value colon minutes_value
 
-timestamp_string ::= quote date_value space time_value [ time_zone_interval ] quote
+timestamp_string ::= quote date_value <space> time_value [ time_zone_interval ] quote
 
 interval_string ::= quote { year_month_literal | day_time_literal } quote
 
@@ -356,7 +356,7 @@ year_month_literal ::=
 day_time_literal ::= day_time_interval | time_interval
 
 day_time_interval ::=
-             days_value [ space hours_value [ colon minutes_value [ colon seconds_value ] ] ]
+             days_value [ <space> hours_value [ colon minutes_value [ colon seconds_value ] ] ]
 
 time_interval ::=
              hours_value [ colon minutes_value [ colon seconds_value ] ]
@@ -379,27 +379,27 @@ module ::=
              module_contents+
 
 module_name_clause ::=
-             "MODULE" space
-             [ module_name ] space
+             "MODULE" <space>
+             [ module_name ] <space>
              [ module_character_set_specification ]
 
 module_name ::= identifier
 
 module_character_set_specification ::=
-     "NAMES" space "ARE" space character_set_specification
+     "NAMES" <space> "ARE" <space> character_set_specification
 
-language_clause ::= "LANGUAGE" space language_name
+language_clause ::= "LANGUAGE" <space> language_name
 
 language_name ::=
                   "ADA" | "C" | "COBOL" | "FORTRAN"
                 | "MUMPS" | "PASCAL" | "PLI"
 
 module_authorization_clause ::=
-             "SCHEMA" space schema_name
-     |       "AUTHORIZATION" space module_authorization_identifier
-     |       "SCHEMA" space schema_name
-             space "AUTHORIZATION"
-             space module_authorization_identifier
+             "SCHEMA" <space> schema_name
+     |       "AUTHORIZATION" <space> module_authorization_identifier
+     |       "SCHEMA" <space> schema_name
+             <space> "AUTHORIZATION"
+             <space> module_authorization_identifier
 
 module_authorization_identifier ::= authorization_identifier
 
@@ -407,15 +407,15 @@ authorization_identifier ::= identifier
 
 temporary_table_declaration ::=
      "DECLARE"
-     space "LOCAL"
-     space "TEMPORARY"
-     space "TABLE"
+     <space> "LOCAL"
+     <space> "TEMPORARY"
+     <space> "TABLE"
      qualified_local_table_name
      table_element_list
-     [ zspace "ON" space "COMMIT" space
-       { "PRESERVE" | "DELETE" } space "ROWS" ]
+     [ <zspace> "ON" <space> "COMMIT" <space>
+       { "PRESERVE" | "DELETE" } <space> "ROWS" ]
 
-qualified_local_table_name ::= "MODULE" zspace period local_table_name
+qualified_local_table_name ::= "MODULE" <zspace> period local_table_name
 
 local_table_name ::= qualified_identifier
 
@@ -432,7 +432,7 @@ column_name ::= identifier
 
 data_type ::=
              character_string_type
-             [ "CHARACTER" space "SET" space
+             [ "CHARACTER" <space> "SET" <space>
                character_set_specification ]
      |       national_character_string_type
      |       bit_string_type
@@ -441,34 +441,34 @@ data_type ::=
      |       interval_type
 
 character_string_type ::=
-             "CHARACTER" zspace [ left_paren length right_paren ]
-     |       "CHAR" zspace [ left_paren length right_paren ]
-     |       "CHARACTER" space "VARYING" zspace [ left_paren length right_paren ]
-     |       "CHAR" space "VARYING" zspace [ left_paren length right_paren ]
-     |       "VARCHAR" zspace [ left_paren length right_paren ]
+             "CHARACTER" <zspace> [ left_paren length right_paren ]
+     |       "CHAR" <zspace> [ left_paren length right_paren ]
+     |       "CHARACTER" <space> "VARYING" <zspace> [ left_paren length right_paren ]
+     |       "CHAR" <space> "VARYING" <zspace> [ left_paren length right_paren ]
+     |       "VARCHAR" <zspace> [ left_paren length right_paren ]
 
 length ::= unsigned_integer
 
 national_character_string_type ::=
-             "NATIONAL" space "CHARACTER" zspace [ left_paren length right_paren ]
-     |       "NATIONAL" space "CHAR" zspace [ left_paren length right_paren ]
-     |       "NCHAR" zspace [ left_paren length right_paren ]
-     |       "NATIONAL" space "CHARACTER" space "VARYING" zspace [ left_paren length right_paren ]
-     |       "NATIONAL" space "CHAR" space "VARYING" zspace [ left_paren length right_paren ]
-     |       "NCHAR" space "VARYING" zspace [ left_paren length right_paren ]
+             "NATIONAL" <space> "CHARACTER" <zspace> [ left_paren length right_paren ]
+     |       "NATIONAL" <space> "CHAR" <zspace> [ left_paren length right_paren ]
+     |       "NCHAR" <zspace> [ left_paren length right_paren ]
+     |       "NATIONAL" <space> "CHARACTER" <space> "VARYING" <zspace> [ left_paren length right_paren ]
+     |       "NATIONAL" <space> "CHAR" <space> "VARYING" <zspace> [ left_paren length right_paren ]
+     |       "NCHAR" <space> "VARYING" <zspace> [ left_paren length right_paren ]
 
 bit_string_type ::=
-             "BIT" zspace [ left_paren length right_paren ]
-     |       "BIT" space "VARYING" zspace [ left_paren length right_paren ]
+             "BIT" <zspace> [ left_paren length right_paren ]
+     |       "BIT" <space> "VARYING" <zspace> [ left_paren length right_paren ]
 
 numeric_type ::=
              exact_numeric_type
      |       approximate_numeric_type
 
 exact_numeric_type ::=
-             "NUMERIC" zspace [ left_paren precision [ comma scale ] right_paren ]
-     |       "DECIMAL" zspace [ left_paren precision [ comma scale ] right_paren ]
-     |       "DEC" zspace [ left_paren precision [ comma scale ] right_paren ]
+             "NUMERIC" <zspace> [ left_paren precision [ comma scale ] right_paren ]
+     |       "DECIMAL" <zspace> [ left_paren precision [ comma scale ] right_paren ]
+     |       "DEC" <zspace> [ left_paren precision [ comma scale ] right_paren ]
      |       "INTEGER"
      |       "INT"
      |       "SMALLINT"
@@ -478,16 +478,16 @@ precision ::= unsigned_integer
 scale ::= unsigned_integer
 
 approximate_numeric_type ::=
-             "FLOAT" zspace [ left_paren precision right_paren ]
+             "FLOAT" <zspace> [ left_paren precision right_paren ]
      |       "REAL"
-     |       "DOUBLE" space "PRECISION"
+     |       "DOUBLE" <space> "PRECISION"
 
 datetime_type ::=
              "DATE"
-     |   "TIME" zspace [ left_paren time_precision right_paren ]
-         [ "WITH" space "TIME" space "ZONE" ]
-     |   "TIMESTAMP" zspace [ left_paren timestamp_precision right_paren ]
-         [ "WITH" space "TIME" space "ZONE" ]
+     |   "TIME" <zspace> [ left_paren time_precision right_paren ]
+         [ "WITH" <space> "TIME" <space> "ZONE" ]
+     |   "TIMESTAMP" <zspace> [ left_paren timestamp_precision right_paren ]
+         [ "WITH" <space> "TIME" <space> "ZONE" ]
 
 time_precision ::= time_fractional_seconds_precision
 
@@ -495,10 +495,10 @@ time_fractional_seconds_precision ::= unsigned_integer
 
 timestamp_precision ::= time_fractional_seconds_precision
 
-interval_type ::= "INTERVAL" space interval_qualifier
+interval_type ::= "INTERVAL" <space> interval_qualifier
 
 interval_qualifier ::=
-             start_field space "TO" space end_field
+             start_field <space> "TO" <space> end_field
      |   single_datetime_field
 
 start_field ::=
@@ -511,19 +511,19 @@ interval_leading_field_precision ::= unsigned_integer
 
 end_field ::=
              non_second_datetime_field
-     |   "SECOND" zspace [ left_paren interval_fractional_seconds_precision right_paren ]
+     |   "SECOND" <zspace> [ left_paren interval_fractional_seconds_precision right_paren ]
 
 interval_fractional_seconds_precision ::= unsigned_integer
 
 single_datetime_field ::=
              non_second_datetime_field [ left_paren interval_leading_field_precision right_paren ]
-     |   "SECOND" zspace [ left_paren interval_leading_field_precision [ comma left_paren interval_fractional_seconds_precision ] right_paren ]
+     |   "SECOND" <zspace> [ left_paren interval_leading_field_precision [ comma left_paren interval_fractional_seconds_precision ] right_paren ]
 
 domain_name ::= qualified_name
 
 qualified_name ::= [ schema_name period ] qualified_identifier
 
-default_clause ::= "DEFAULT" space default_option
+default_clause ::= "DEFAULT" <space> default_option
 
 default_option ::=
              literal
@@ -551,13 +551,13 @@ datetime_literal ::=
      |       time_literal
      |       timestamp_literal
 
-date_literal ::= "DATE" space date_string
+date_literal ::= "DATE" <space> date_string
 
-time_literal ::= "TIME" space time_string
+time_literal ::= "TIME" <space> time_string
 
-timestamp_literal ::= "TIMESTAMP" space timestamp_string
+timestamp_literal ::= "TIMESTAMP" <space> timestamp_string
 
-interval_literal ::= "INTERVAL" space [ sign ] zspace interval_string zspace interval_qualifier
+interval_literal ::= "INTERVAL" <space> [ sign ] <zspace> interval_string <zspace> interval_qualifier
 
 datetime_value_function ::=
              current_date_value_function
@@ -566,31 +566,31 @@ datetime_value_function ::=
 
 current_date_value_function ::= "CURRENT_DATE"
 
-current_time_value_function ::= "CURRENT_TIME" zspace [ left_paren time_precision right_paren ]
+current_time_value_function ::= "CURRENT_TIME" <zspace> [ left_paren time_precision right_paren ]
 
-current_timestamp_value_function ::= "CURRENT_TIMESTAMP" zspace [ left_paren timestamp_precision right_paren ]
+current_timestamp_value_function ::= "CURRENT_TIMESTAMP" <zspace> [ left_paren timestamp_precision right_paren ]
 
 column_constraint_definition ::=
              [ constraint_name_definition ] column_constraint [ constraint_attributes ]
 
-constraint_name_definition ::= "CONSTRAINT" space constraint_name
+constraint_name_definition ::= "CONSTRAINT" <space> constraint_name
 
 constraint_name ::= qualified_name
 
 column_constraint ::=
-             "NOT" space "NULL"
+             "NOT" <space> "NULL"
      |       unique_specification
      |       references_specification
      |       check_constraint_definition
 
-unique_specification ::= "UNIQUE" | "PRIMARY" space "KEY"
+unique_specification ::= "UNIQUE" | "PRIMARY" <space> "KEY"
 
 references_specification ::=
-             "REFERENCES" space referenced_table_and_columns
-             [ "MATCH" space match_type ]
+             "REFERENCES" <space> referenced_table_and_columns
+             [ "MATCH" <space> match_type ]
              [ referential_triggered_action ]
 
-referenced_table_and_columns ::= table_name zspace [ left_paren reference_column_list right_paren ]
+referenced_table_and_columns ::= table_name <zspace> [ left_paren reference_column_list right_paren ]
 
 table_name ::= qualified_name | qualified_local_table_name
 
@@ -604,29 +604,29 @@ referential_triggered_action ::=
              update_rule [ delete_rule ]
      |       delete_rule [ update_rule ]
 
-update_rule ::= "ON" space "UPDATE" zspace referential_action
+update_rule ::= "ON" <space> "UPDATE" <zspace> referential_action
 
 referential_action ::=
                        "CASCADE"
-                     | "SET" space "NULL"
-                     | "SET" space "DEFAULT"
-                     | "NO" space "ACTION"
+                     | "SET" <space> "NULL"
+                     | "SET" <space> "DEFAULT"
+                     | "NO" <space> "ACTION"
 
-delete_rule ::= "ON" space "DELETE" zspace referential_action
+delete_rule ::= "ON" <space> "DELETE" <zspace> referential_action
 
-check_constraint_definition ::= "CHECK" zspace left_paren search_condition right_paren
+check_constraint_definition ::= "CHECK" <zspace> left_paren search_condition right_paren
 
 search_condition ::=
              boolean_term
-     |   search_condition zspace "OR" zspace boolean_term
+     |   search_condition <zspace> "OR" <zspace> boolean_term
 
 boolean_term ::=
              boolean_factor
-     |   boolean_term zspace "AND" zspace boolean_factor
+     |   boolean_term <zspace> "AND" <zspace> boolean_factor
 
-boolean_factor ::= [ "NOT" space ] boolean_test
+boolean_factor ::= [ "NOT" <space> ] boolean_test
 
-boolean_test ::= boolean_primary [ "IS" space [ "NOT" space ]
+boolean_test ::= boolean_primary [ "IS" <space> [ "NOT" <space> ]
                                        truth_value ]
 
 boolean_primary ::= predicate | left_paren search_condition right_paren
@@ -670,7 +670,7 @@ term ::=
      |   term asterisk factor
      |   term solidus factor
 
-factor ::= [ sign zspace ] numeric_primary
+factor ::= [ sign <zspace> ] numeric_primary
 
 numeric_primary ::= value_expression_primary | numeric_value_function
 
@@ -701,7 +701,7 @@ parameter_specification ::= parameter_name [ indicator_parameter ]
 
 parameter_name ::= colon identifier
 
-indicator_parameter ::= [ "INDICATOR" space ] parameter_name
+indicator_parameter ::= [ "INDICATOR" <space> ] parameter_name
 
 dynamic_parameter_specification ::= question_mark
 
@@ -748,7 +748,7 @@ Pascal_host_identifier ::= do_not_care
 
 PL_I_host_identifier ::= do_not_care
 
-indicator_variable ::= [ "INDICATOR" space ] embedded_variable_name
+indicator_variable ::= [ "INDICATOR" <space> ] embedded_variable_name
 
 column_reference ::= [ qualifier period ] column_name
 
@@ -757,7 +757,7 @@ qualifier ::= table_name | correlation_name
 correlation_name ::= identifier
 
 set_function_specification ::=
-             "COUNT" zspace left_paren asterisk right_paren
+             "COUNT" <zspace> left_paren asterisk right_paren
      |   general_set_function
 
 general_set_function ::=
@@ -777,12 +777,12 @@ query_expression ::= non_join_query_expression | joined_table
 
 non_join_query_expression ::=
              non_join_query_term
-     |       query_expression "UNION" [ space "ALL" ] space [ corresponding_spec ] query_term
-     |       query_expression "EXCEPT" [ space "ALL" ] space [ corresponding_spec ] query_term
+     |       query_expression "UNION" [ <space> "ALL" ] <space> [ corresponding_spec ] query_term
+     |       query_expression "EXCEPT" [ <space> "ALL" ] <space> [ corresponding_spec ] query_term
 
 non_join_query_term ::=
              non_join_query_primary
-     |       query_term "INTERSECT" [ space "ALL" ] space [ corresponding_spec ] query_primary
+     |       query_term "INTERSECT" [ <space> "ALL" ] <space> [ corresponding_spec ] query_primary
 
 non_join_query_primary ::= simple_table | left_paren non_join_query_expression right_paren
 
@@ -792,36 +792,36 @@ simple_table ::=
      |       explicit_table
 
 query_specification ::=
-             "SELECT" space [ set_quantifier ] select_list
-             space table_expression
+             "SELECT" <space> [ set_quantifier ] select_list
+             <space> table_expression
 
 select_list ::=
              asterisk
-     |       select_sublist [ { zspace comma zspace select_sublist }+ ]
+     |       select_sublist [ { <zspace> comma <zspace> select_sublist }+ ]
 
 select_sublist ::= derived_column | qualifier period asterisk
 
-derived_column ::= value_expression [ space as_clause ]
+derived_column ::= value_expression [ <space> as_clause ]
 
-as_clause ::= [ "AS" space ] column_name
+as_clause ::= [ "AS" <space> ] column_name
 
 table_expression ::=
              from_clause
-             [ space where_clause ]
-             [ space group_by_clause ]
-             [ space having_clause ]
+             [ <space> where_clause ]
+             [ <space> group_by_clause ]
+             [ <space> having_clause ]
 
 from_clause ::=
-    "FROM" space table_reference
-    [ { zspace comma zspace table_reference }+ ]
+    "FROM" <space> table_reference
+    [ { <zspace> comma <zspace> table_reference }+ ]
 
 table_reference ::=
-         table_name [ space correlation_specification ]
-     |   derived_table space correlation_specification
+         table_name [ <space> correlation_specification ]
+     |   derived_table <space> correlation_specification
      |   joined_table
 
 correlation_specification ::=
-             [ "AS" space ] correlation_name zspace
+             [ "AS" <space> ] correlation_name <zspace>
              [ left_paren derived_column_list right_paren ]
 
 derived_column_list ::= column_name_list
@@ -837,19 +837,19 @@ joined_table ::=
 
 cross_join ::=
              table_reference
-             space "CROSS" space "JOIN" zspace
+             <space> "CROSS" <space> "JOIN" <zspace>
              table_reference
 
 qualified_join ::=
              table_reference
-             [ "NATURAL" space ]
+             [ "NATURAL" <space> ]
              [ join_type ]
-             "JOIN" space
+             "JOIN" <space>
              table_reference [ join_specification ]
 
 join_type ::=
-             "INNER" zspace
-     |   outer_join_type [ "OUTER" zspace ]
+             "INNER" <zspace>
+     |   outer_join_type [ "OUTER" <zspace> ]
      |   "UNION"
 
 outer_join_type ::=
@@ -857,36 +857,36 @@ outer_join_type ::=
 
 join_specification ::= join_condition | named_columns_join
 
-join_condition ::= "ON" space search_condition
+join_condition ::= "ON" <space> search_condition
 
-named_columns_join ::= "USING" zspace left_paren join_column_list right_paren
+named_columns_join ::= "USING" <zspace> left_paren join_column_list right_paren
 
 join_column_list ::= column_name_list
 
-where_clause ::= "WHERE" space search_condition
+where_clause ::= "WHERE" <space> search_condition
 
-group_by_clause ::= "GROUP" space "BY" zspace grouping_column_reference_list
+group_by_clause ::= "GROUP" <space> "BY" <zspace> grouping_column_reference_list
 
 grouping_column_reference_list ::=
              grouping_column_reference [ { comma grouping_column_reference }+ ]
 
 grouping_column_reference ::= column_reference [ collate_clause ]
 
-collate_clause ::= "COLLATE" space collation_name
+collate_clause ::= "COLLATE" <space> collation_name
 
 collation_name ::= qualified_name
 
-having_clause ::= "HAVING" space search_condition
+having_clause ::= "HAVING" <space> search_condition
 
-table_value_constructor ::= "VALUES" zspace table_value_constructor_list
+table_value_constructor ::= "VALUES" <zspace> table_value_constructor_list
 
 table_value_constructor_list ::= row_value_constructor [ { comma row_value_constructor }+ ]
 
-explicit_table ::= "TABLE" space table_name
+explicit_table ::= "TABLE" <space> table_name
 
 query_term ::= non_join_query_term | joined_table
 
-corresponding_spec ::= "CORRESPONDING" [ space "BY" zspace left_paren corresponding_column_list right_paren ]
+corresponding_spec ::= "CORRESPONDING" [ <space> "BY" <zspace> left_paren corresponding_column_list right_paren ]
 
 corresponding_column_list ::= column_name_list
 
@@ -895,21 +895,21 @@ query_primary ::= non_join_query_primary | joined_table
 case_expression ::= case_abbreviation | case_specification
 
 case_abbreviation ::=
-             "NULLIF" zspace left_paren value_expression comma value_expression right_paren
-     |       "COALESCE" zspace left_paren value_expression { comma value_expression }+  right_paren
+             "NULLIF" <zspace> left_paren value_expression comma value_expression right_paren
+     |       "COALESCE" <zspace> left_paren value_expression { comma value_expression }+  right_paren
 
 case_specification ::= simple_case | searched_case
 
 simple_case ::=
-             "CASE" zspace case_operand
+             "CASE" <zspace> case_operand
                      simple_when_clause+
                      [ else_clause ]
-             zspace "END"
+             <zspace> "END"
 
 case_operand ::= value_expression
 
-simple_when_clause ::= "WHEN" zspace when_operand
-                         space "THEN" zspace result
+simple_when_clause ::= "WHEN" <zspace> when_operand
+                         <space> "THEN" <zspace> result
 
 when_operand ::= value_expression
 
@@ -917,19 +917,19 @@ result ::= result_expression | "NULL"
 
 result_expression ::= value_expression
 
-else_clause ::= "ELSE" space result
+else_clause ::= "ELSE" <space> result
 
 searched_case ::=
-             "CASE" space
+             "CASE" <space>
              searched_when_clause+
              [ else_clause ]
-             space "END"
+             <space> "END"
 
-searched_when_clause ::= "WHEN" space search_condition
-                           space "THEN" zspace result
+searched_when_clause ::= "WHEN" <space> search_condition
+                           <space> "THEN" <zspace> result
 
-cast_specification ::= "CAST" space left_paren cast_operand
-                         space "AS" space cast_target right_paren
+cast_specification ::= "CAST" <space> left_paren cast_operand
+                         <space> "AS" <space> cast_target right_paren
 
 cast_operand ::= value_expression | "NULL"
 
@@ -938,8 +938,8 @@ cast_target ::= domain_name | data_type
 numeric_value_function ::= position_expression | extract_expression |  length_expression
 
 position_expression ::=
-     "POSITION" space left_paren character_value_expression
-     space "IN" space character_value_expression right_paren
+     "POSITION" <space> left_paren character_value_expression
+     <space> "IN" <space> character_value_expression right_paren
 
 character_value_expression ::= concatenation | character_factor
 
@@ -959,39 +959,39 @@ character_value_function ::=
      |   trim_function
 
 character_substring_function ::=
-             "SUBSTRING" zspace
+             "SUBSTRING" <zspace>
              left_paren character_value_expression
-             space "FROM" space start_position
-             [ space "FOR" space string_length ] right_paren
+             <space> "FROM" <space> start_position
+             [ <space> "FOR" <space> string_length ] right_paren
 
 start_position ::= numeric_value_expression
 
 string_length ::= numeric_value_expression
 
-fold ::= { "UPPER" | "LOWER" } zspace
+fold ::= { "UPPER" | "LOWER" } <zspace>
            left_paren character_value_expression right_paren
 
 form_of_use_conversion ::=
-             "CONVERT" zspace
+             "CONVERT" <zspace>
              left_paren character_value_expression
-             space "USING" space
+             <space> "USING" <space>
              form_of_use_conversion_name right_paren
 
 form_of_use_conversion_name ::= qualified_name
 
 character_translation ::=
-    "TRANSLATE" zspace
+    "TRANSLATE" <zspace>
     left_paren character_value_expression
-    space "USING" space translation_name right_paren
+    <space> "USING" <space> translation_name right_paren
 
 translation_name ::= qualified_name
 
-trim_function ::= "TRIM" zspace
+trim_function ::= "TRIM" <zspace>
                     left_paren trim_operands right_paren
 
 trim_operands ::=
     [ [ trim_specification ]
-      [ trim_character ] space "FROM" space ] trim_source
+      [ trim_character ] <space> "FROM" <space> ] trim_source
 
 trim_specification ::=
     "LEADING" | "TRAILING" | "BOTH"
@@ -1003,11 +1003,11 @@ trim_source ::= character_value_expression
 bit_value_function ::= bit_substring_function
 
 bit_substring_function ::=
-    "SUBSTRING" zspace
+    "SUBSTRING" <zspace>
     left_paren bit_value_expression
-    space "FROM" space
+    <space> "FROM" <space>
     start_position
-    [ space "FOR" space string_length ] right_paren
+    [ <space> "FOR" <space> string_length ] right_paren
 
 bit_value_expression ::= bit_concatenation | bit_factor
 
@@ -1018,9 +1018,9 @@ bit_factor ::= bit_primary
 bit_primary ::= value_expression_primary | string_value_function
 
 extract_expression ::=
-    "EXTRACT" zspace
+    "EXTRACT" <zspace>
     left_paren extract_field
-    space "FROM" space extract_source right_paren
+    <space> "FROM" <space> extract_source right_paren
 
 extract_field ::= datetime_field | time_zone_field
 
@@ -1064,26 +1064,26 @@ datetime_factor ::= datetime_primary [ time_zone ]
 
 datetime_primary ::= value_expression_primary | datetime_value_function
 
-time_zone ::= "AT" space time_zone_specifier
+time_zone ::= "AT" <space> time_zone_specifier
 
 time_zone_specifier ::=
       "LOCAL"
-    | "TIME" space "ZONE" space interval_value_expression
+    | "TIME" <space> "ZONE" <space> interval_value_expression
 
 length_expression ::= char_length_expression | octet_length_expression | bit_length_expression
 
 char_length_expression ::=
-    { "CHAR_LENGTH" | "CHARACTER_LENGTH" } zspace
+    { "CHAR_LENGTH" | "CHARACTER_LENGTH" } <zspace>
     left_paren string_value_expression right_paren
 
 string_value_expression ::= character_value_expression | bit_value_expression
 
 octet_length_expression ::=
-    "OCTET_LENGTH" zspace
+    "OCTET_LENGTH" <zspace>
     left_paren string_value_expression right_paren
 
 bit_length_expression ::=
-    "BIT_LENGTH" zspace
+    "BIT_LENGTH" <zspace>
     left_paren string_value_expression right_paren
 
 null_specification ::= "NULL"
@@ -1104,13 +1104,13 @@ comp_op ::=
 
 between_predicate ::=
     row_value_constructor
-    zspace [ "NOT" space ]
-    "BETWEEN" space
-    row_value_constructor space "AND" space row_value_constructor
+    <zspace> [ "NOT" <space> ]
+    "BETWEEN" <space>
+    row_value_constructor <space> "AND" <space> row_value_constructor
 
 in_predicate ::=
     row_value_constructor
-    zspace [ "NOT" space ] "IN" space in_predicate_value
+    <zspace> [ "NOT" <space> ] "IN" <space> in_predicate_value
 
 in_predicate_value ::= table_subquery | left_paren in_value_list right_paren
 
@@ -1118,8 +1118,8 @@ in_value_list ::= value_expression { comma value_expression } +
 
 like_predicate ::=
     match_value
-    zspace [ "NOT" space ] "LIKE" space
-    pattern [ space "ESCAPE" zspace escape_character ]
+    <zspace> [ "NOT" <space> ] "LIKE" <space>
+    pattern [ <space> "ESCAPE" <zspace> escape_character ]
 
 match_value ::= character_value_expression
 
@@ -1127,7 +1127,7 @@ pattern ::= character_value_expression
 
 escape_character ::= character_value_expression
 
-null_predicate ::= "IS" space [ "NOT" space ] "NULL"
+null_predicate ::= "IS" <space> [ "NOT" <space> ] "NULL"
 
 quantified_comparison_predicate ::= row_value_constructor comp_op quantifier table_subquery
 
@@ -1137,20 +1137,20 @@ all ::= "ALL"
 
 some ::= "SOME" | "ANY"
 
-exists_predicate ::= "EXISTS" space table_subquery
+exists_predicate ::= "EXISTS" <space> table_subquery
 
-unique_predicate ::= "UNIQUE" space table_subquery
+unique_predicate ::= "UNIQUE" <space> table_subquery
 
 match_predicate ::=
     row_value_constructor
-    zspace "MATCH" space
-    [ "UNIQUE" space ]
-    [ "PARTIAL" | "FULL" ] zspace
+    <zspace> "MATCH" <space>
+    [ "UNIQUE" <space> ]
+    [ "PARTIAL" | "FULL" ] <zspace>
     table_subquery
 
 overlaps_predicate ::=
     row_value_constructor_1
-    space "OVERLAPS" space row_value_constructor_2
+    <space> "OVERLAPS" <space> row_value_constructor_2
 
 row_value_constructor_1 ::= row_value_constructor
 
@@ -1162,13 +1162,13 @@ truth_value ::=
 
 constraint_attributes ::=
      constraint_check_time
-     [ space [ "NOT" space ] "DEFERRABLE" zspace ]
-  |  space [ "NOT" space ] "DEFERRABLE" zspace
+     [ <space> [ "NOT" <space> ] "DEFERRABLE" <zspace> ]
+  |  <space> [ "NOT" <space> ] "DEFERRABLE" <zspace>
      [ constraint_check_time ]
 
 constraint_check_time ::=
-    "INITIALLY" space "DEFERRED"
-  | "INITIALLY" space "IMMEDIATE"
+    "INITIALLY" <space> "DEFERRED"
+  | "INITIALLY" <space> "IMMEDIATE"
 
 table_constraint_definition ::= [ constraint_name_definition ] table_constraint [ constraint_check_time ]
 
@@ -1182,7 +1182,7 @@ unique_constraint_definition ::= unique_specification left_paren unique_column_l
 unique_column_list ::= column_name_list
 
 referential_constraint_definition ::=
-    "FOREIGN" space "KEY" zspace
+    "FOREIGN" <space> "KEY" <zspace>
     left_paren referencing_columns right_paren
     references_specification
 
@@ -1194,10 +1194,10 @@ module_contents ::=
      |       procedure
 
 declare_cursor ::=
-    "DECLARE" space cursor_name
-    [ space "INSENSITIVE" ]
-    [ space "SCROLL" ]
-    space "CURSOR" space "FOR" zspace
+    "DECLARE" <space> cursor_name
+    [ <space> "INSENSITIVE" ]
+    [ <space> "SCROLL" ]
+    <space> "CURSOR" <space> "FOR" <zspace>
     cursor_specification
 
 cursor_name ::= identifier
@@ -1205,7 +1205,7 @@ cursor_name ::= identifier
 cursor_specification ::= query_expression [ order_by_clause ] [ updatability_clause ]
 
 order_by_clause ::=
-    "ORDER" space "BY" space sort_specification_list
+    "ORDER" <space> "BY" <space> sort_specification_list
 
 sort_specification_list ::= sort_specification [ { comma sort_specification }+ ]
 
@@ -1216,20 +1216,20 @@ sort_key ::= column_name | unsigned_integer
 ordering_specification ::= "ASC" | "DESC"
 
 updatability_clause ::=
-    "FOR" space
-    { "READ" space "ONLY"
-    | "UPDATE" [ space "OF" zspace column_name_list ] }
+    "FOR" <space>
+    { "READ" <space> "ONLY"
+    | "UPDATE" [ <space> "OF" <zspace> column_name_list ] }
 
 dynamic_declare_cursor ::=
-    "DECLARE" space cursor_name space
-    [ "INSENSITIVE" space ]
-    [ "SCROLL" space ]
-    "CURSOR" space "FOR" zspace statement_name
+    "DECLARE" <space> cursor_name <space>
+    [ "INSENSITIVE" <space> ]
+    [ "SCROLL" <space> ]
+    "CURSOR" <space> "FOR" <zspace> statement_name
 
 statement_name ::= identifier
 
 procedure ::=
-    "PROCEDURE" space procedure_name
+    "PROCEDURE" <space> procedure_name
     parameter_declaration_list semicolon
     SQL_procedure_statement semicolon
 
@@ -1267,21 +1267,21 @@ SQL_schema_definition_statement ::=
      |       assertion_definition
 
 schema_definition ::=
-    "CREATE" space "SCHEMA" space schema_name_clause
+    "CREATE" <space> "SCHEMA" <space> schema_name_clause
     [ schema_character_set_specification ]
     [ schema_element+ ]
 
 schema_name_clause ::=
      schema_name
-   | "AUTHORIZATION" zspace schema_authorization_identifier
-   | schema_name space
-     "AUTHORIZATION" zspace schema_authorization_identifier
+   | "AUTHORIZATION" <zspace> schema_authorization_identifier
+   | schema_name <space>
+     "AUTHORIZATION" <zspace> schema_authorization_identifier
 
 schema_authorization_identifier ::= authorization_identifier
 
 schema_character_set_specification ::=
-    "DEFAULT" space "CHARACTER" space "SET"
-    space character_set_specification
+    "DEFAULT" <space> "CHARACTER" <space> "SET"
+    <space> character_set_specification
 
 schema_element ::=
              domain_definition
@@ -1294,76 +1294,76 @@ schema_element ::=
      |       translation_definition
 
 domain_definition ::=
-     "CREATE" space "DOMAIN" space domain_name zspace
-     [ "AS" space ] data_type
+     "CREATE" <space> "DOMAIN" <space> domain_name <zspace>
+     [ "AS" <space> ] data_type
      [ default_clause ] [ domain_constraint ] [ collate_clause ]
 
 domain_constraint ::=
              [ constraint_name_definition ] check_constraint_definition [ constraint_attributes ]
 
 table_definition ::=
-    "CREATE" space
-    [ { "GLOBAL" | "LOCAL" } space "TEMPORARY" space ]
-    "TABLE" space table_name
+    "CREATE" <space>
+    [ { "GLOBAL" | "LOCAL" } <space> "TEMPORARY" <space> ]
+    "TABLE" <space> table_name
     table_element_list
-    [ "ON" space "COMMIT" space
-      { "DELETE" space | "PRESERVE" space } "ROWS" ]
+    [ "ON" <space> "COMMIT" <space>
+      { "DELETE" <space> | "PRESERVE" <space> } "ROWS" ]
 
 view_definition ::=
-    "CREATE" space "VIEW" space table_name zspace
-    [ left_paren view_column_list right_paren zspace ]
-    "AS" space query_expression
-    [ "WITH" space [ levels_clause ]
-      "CHECK" space "OPTION" ]
+    "CREATE" <space> "VIEW" <space> table_name <zspace>
+    [ left_paren view_column_list right_paren <zspace> ]
+    "AS" <space> query_expression
+    [ "WITH" <space> [ levels_clause ]
+      "CHECK" <space> "OPTION" ]
 
 view_column_list ::= column_name_list
 
 levels_clause ::= "CASCADED" | "LOCAL"
 
 grant_statement ::=
-    "GRANT" space privileges space
-    "ON" space object_name space
-    "TO" space grantee
+    "GRANT" <space> privileges <space>
+    "ON" <space> object_name <space>
+    "TO" <space> grantee
     [ { comma grantee }+ ]
-    [ space "WITH" space "GRANT" space "OPTION" ]
+    [ <space> "WITH" <space> "GRANT" <space> "OPTION" ]
 
 privileges ::=
-    "ALL" space "PRIVILEGES" | action_list
+    "ALL" <space> "PRIVILEGES" | action_list
 
 action_list ::= action [ { comma action }+ ]
 
 action ::=
     "SELECT"
   | "DELETE"
-  | "INSERT" zspace [ left_paren privilege_column_list right_paren ]
-  | "UPDATE" zspace [ left_paren privilege_column_list right_paren ]
-  | "REFERENCES" zspace [ left_paren privilege_column_list right_paren ]
+  | "INSERT" <zspace> [ left_paren privilege_column_list right_paren ]
+  | "UPDATE" <zspace> [ left_paren privilege_column_list right_paren ]
+  | "REFERENCES" <zspace> [ left_paren privilege_column_list right_paren ]
   | "USAGE"
 
 privilege_column_list ::= column_name_list
 
 object_name ::=
-    [ "TABLE" space ] table_name
-  | "DOMAIN" space domain_name
-  | "COLLATION" space collation_name
-  | "CHARACTER" space "SET" space character_set_name
-  | "TRANSLATION" space translation_name
+    [ "TABLE" <space> ] table_name
+  | "DOMAIN" <space> domain_name
+  | "COLLATION" <space> collation_name
+  | "CHARACTER" <space> "SET" <space> character_set_name
+  | "TRANSLATION" <space> translation_name
 
 grantee ::= "PUBLIC" | authorization_identifier
 
 assertion_definition ::=
-    "CREATE" space "ASSERTION" space
+    "CREATE" <space> "ASSERTION" <space>
     constraint_name assertion_check [ constraint_attributes ]
 
 assertion_check ::=
-    "CHECK" zspace left_paren search_condition right_paren
+    "CHECK" <zspace> left_paren search_condition right_paren
 
 character_set_definition ::=
-    "CREATE" space "CHARACTER" space "SET" space character_set_name
-    space [ "AS" space ] character_set_source
+    "CREATE" <space> "CHARACTER" <space> "SET" <space> character_set_name
+    <space> [ "AS" <space> ] character_set_source
     [ collate_clause | limited_collation_definition ]
 
-character_set_source ::= "GET" space existing_character_set_name
+character_set_source ::= "GET" <space> existing_character_set_name
 
 existing_character_set_name ::=
              standard_character_repertoire_name
@@ -1373,18 +1373,18 @@ existing_character_set_name ::=
 schema_character_set_name ::= character_set_name
 
 limited_collation_definition ::=
-    "COLLATION" space "FROM" space collation_source
+    "COLLATION" <space> "FROM" <space> collation_source
 
 collation_source ::= collating_sequence_definition | translation_collation
 
 collating_sequence_definition ::=
      external_collation
    | schema_collation_name
-   | "DESC" zspace left_paren collation_name right_paren
+   | "DESC" <zspace> left_paren collation_name right_paren
    | "DEFAULT"
 
 external_collation ::=
-    "EXTERNAL" zspace
+    "EXTERNAL" <zspace>
     left_paren quote external_collation_name quote right_paren
 
 external_collation_name ::= standard_collation_name | implementation_defined_collation_name
@@ -1396,21 +1396,21 @@ implementation_defined_collation_name ::= collation_name
 schema_collation_name ::= collation_name
 
 translation_collation ::=
-    "TRANSLATION" space translation_name
-    [ space "THEN" space "COLLATION" space collation_name ]
+    "TRANSLATION" <space> translation_name
+    [ <space> "THEN" <space> "COLLATION" <space> collation_name ]
 
 collation_definition ::=
-    "CREATE" space "COLLATION" space collation_name
-    space "FOR" space character_set_specification
-    space "FROM" space collation_source [ pad_attribute ]
+    "CREATE" <space> "COLLATION" <space> collation_name
+    <space> "FOR" <space> character_set_specification
+    <space> "FROM" <space> collation_source [ pad_attribute ]
 
 pad_attribute ::= #"NO\s+PAD|PAD\s+SPACE"
 
 translation_definition ::=
-    "CREATE" space "TRANSLATION" space translation_name
-    space "FOR" space source_character_set_specification
-    space "TO" space target_character_set_specification
-    space "FROM" space translation_source
+    "CREATE" <space> "TRANSLATION" <space> translation_name
+    <space> "FOR" <space> source_character_set_specification
+    <space> "TO" <space> target_character_set_specification
+    <space> "FROM" <space> translation_source
 
 source_character_set_specification ::= character_set_specification
 
@@ -1424,7 +1424,7 @@ translation_specification ::=
      |       schema_translation_name
 
 external_translation ::=
-    "EXTERNAL" space
+    "EXTERNAL" <space>
     left_paren quote external_translation_name quote right_paren
 
 external_translation_name ::=
@@ -1451,12 +1451,12 @@ SQL_schema_manipulation_statement ::=
      |       drop_assertion_statement
 
 drop_schema_statement ::=
-    "DROP" space "SCHEMA" space schema_name drop_behaviour
+    "DROP" <space> "SCHEMA" <space> schema_name drop_behaviour
 
 drop_behaviour ::= "CASCADE" | "RESTRICT"
 
 alter_table_statement ::=
-    "ALTER" space "TABLE" space table_name alter_table_action
+    "ALTER" <space> "TABLE" <space> table_name alter_table_action
 
 alter_table_action ::=
              add_column_definition
@@ -1466,41 +1466,41 @@ alter_table_action ::=
      |       drop_table_constraint_definition
 
 add_column_definition ::=
-     "ADD" space [ "COLUMN" space ] column_definition
+     "ADD" <space> [ "COLUMN" <space> ] column_definition
 
 alter_column_definition ::=
-    "ALTER" space [ "COLUMN" space ] column_name alter_column_action
+    "ALTER" <space> [ "COLUMN" <space> ] column_name alter_column_action
 
 alter_column_action ::= set_column_default_clause | drop_column_default_clause
 
-set_column_default_clause ::= "SET" space default_clause
+set_column_default_clause ::= "SET" <space> default_clause
 
-drop_column_default_clause ::= "DROP" space "DEFAULT"
+drop_column_default_clause ::= "DROP" <space> "DEFAULT"
 
 drop_column_definition ::=
-    "DROP" space [ "COLUMN" space ] column_name drop_behaviour
+    "DROP" <space> [ "COLUMN" <space> ] column_name drop_behaviour
 
 add_table_constraint_definition ::=
-    "ADD" space table_constraint_definition
+    "ADD" <space> table_constraint_definition
 
 drop_table_constraint_definition ::=
-    "DROP" space "CONSTRAINT" space constraint_name drop_behaviour
+    "DROP" <space> "CONSTRAINT" <space> constraint_name drop_behaviour
 
 drop_table_statement ::=
-    "DROP" space "TABLE" space table_name drop_behaviour
+    "DROP" <space> "TABLE" <space> table_name drop_behaviour
 
 drop_view_statement ::=
-    "DROP" space "VIEW" space table_name drop_behaviour
+    "DROP" <space> "VIEW" <space> table_name drop_behaviour
 
 revoke_statement ::=
-    "REVOKE" space
-    [ "GRANT" space "OPTION" space "FOR" space ]
-    privileges space "ON" space object_name
-    space "FROM" space grantee
+    "REVOKE" <space>
+    [ "GRANT" <space> "OPTION" <space> "FOR" <space> ]
+    privileges <space> "ON" <space> object_name
+    <space> "FROM" <space> grantee
     [ { comma grantee }+ ] drop_behaviour
 
 alter_domain_statement ::=
-    "ALTER" space "DOMAIN" space domain_name alter_domain_action
+    "ALTER" <space> "DOMAIN" <space> domain_name alter_domain_action
 
 alter_domain_action ::=
              set_domain_default_clause
@@ -1508,29 +1508,29 @@ alter_domain_action ::=
      |       add_domain_constraint_definition
      |       drop_domain_constraint_definition
 
-set_domain_default_clause ::= "SET" space default_clause
+set_domain_default_clause ::= "SET" <space> default_clause
 
-drop_domain_default_clause ::= "DROP" space "DEFAULT"
+drop_domain_default_clause ::= "DROP" <space> "DEFAULT"
 
-add_domain_constraint_definition ::= "ADD" space domain_constraint
+add_domain_constraint_definition ::= "ADD" <space> domain_constraint
 
 drop_domain_constraint_definition ::=
-    "DROP" space "CONSTRAINT" space constraint_name
+    "DROP" <space> "CONSTRAINT" <space> constraint_name
 
 drop_domain_statement ::=
-    "DROP" space "DOMAIN" space domain_name drop_behaviour
+    "DROP" <space> "DOMAIN" <space> domain_name drop_behaviour
 
 drop_character_set_statement ::=
-    "DROP" space "CHARACTER" space "SET" space character_set_name
+    "DROP" <space> "CHARACTER" <space> "SET" <space> character_set_name
 
 drop_collation_statement ::=
-    "DROP" space "COLLATION" space collation_name
+    "DROP" <space> "COLLATION" <space> collation_name
 
 drop_translation_statement ::=
-    "DROP" space "TRANSLATION" space translation_name
+    "DROP" <space> "TRANSLATION" <space> translation_name
 
 drop_assertion_statement ::=
-    "DROP" space "ASSERTION" space constraint_name
+    "DROP" <space> "ASSERTION" <space> constraint_name
 
 SQL_data_statement ::=
              open_statement
@@ -1539,18 +1539,18 @@ SQL_data_statement ::=
      |       select_statement_single_row
      |       SQL_data_change_statement
 
-open_statement ::= "OPEN" space cursor_name
+open_statement ::= "OPEN" <space> cursor_name
 
 fetch_statement ::=
-    "FETCH" [ space [ fetch_orientation space ] "FROM" ]
-    space cursor_name space "INTO" space fetch_target_list
+    "FETCH" [ <space> [ fetch_orientation <space> ] "FROM" ]
+    <space> cursor_name <space> "INTO" <space> fetch_target_list
 
 fetch_orientation ::=
      "NEXT"
    | "PRIOR"
    | "FIRST"
    | "LAST"
-   | { "ABSOLUTE" space | "RELATIVE" space } simple_value_specification
+   | { "ABSOLUTE" <space> | "RELATIVE" <space> } simple_value_specification
 
 simple_value_specification ::=
     parameter_name
@@ -1563,11 +1563,11 @@ target_specification ::=
              parameter_specification
      |       variable_specification
 
-close_statement ::= "CLOSE" space cursor_name
+close_statement ::= "CLOSE" <space> cursor_name
 
 select_statement_single_row ::=
-    "SELECT" space [ set_quantifier ] select_list
-    space "INTO" space select_target_list table_expression
+    "SELECT" <space> [ set_quantifier ] select_list
+    <space> "INTO" <space> select_target_list table_expression
 
 select_target_list ::= target_specification [ { comma target_specification }+ ]
 
@@ -1579,25 +1579,25 @@ SQL_data_change_statement ::=
      |       update_statement_searched
 
 delete_statement_positioned ::=
-    "DELETE" space "FROM" space table_name
-    "WHERE" space "CURRENT" space "OF" space cursor_name
+    "DELETE" <space> "FROM" <space> table_name
+    "WHERE" <space> "CURRENT" <space> "OF" <space> cursor_name
 
 delete_statement_searched ::=
-    "DELETE" space "FROM" space table_name
-    [ space "WHERE" space search_condition ]
+    "DELETE" <space> "FROM" <space> table_name
+    [ <space> "WHERE" <space> search_condition ]
 
 insert_statement ::=
-    "INSERT" space "INTO" table_name insert_columns_and_source
+    "INSERT" <space> "INTO" table_name insert_columns_and_source
 
 insert_columns_and_source ::=
      [ left_paren insert_column_list right_paren ] query_expression
-   | "DEFAULT" space "VALUES"
+   | "DEFAULT" <space> "VALUES"
 
 insert_column_list ::= column_name_list
 
 update_statement_positioned ::=
-     "UPDATE" space table_name space "SET" space set_clause_list
-     space "WHERE" space "CURRENT" space "OF" space cursor_name
+     "UPDATE" <space> table_name <space> "SET" <space> set_clause_list
+     <space> "WHERE" <space> "CURRENT" <space> "OF" <space> cursor_name
 
 set_clause_list ::= set_clause [ { comma set_clause } + ]
 
@@ -1608,8 +1608,8 @@ object_column ::= column_name
 update_source ::= value_expression | null_specification | "DEFAULT"
 
 update_statement_searched ::=
-    "UPDATE" space table_name space "SET" space set_clause_list
-    [ space "WHERE" space search_condition ]
+    "UPDATE" <space> table_name <space> "SET" <space> set_clause_list
+    [ <space> "WHERE" <space> search_condition ]
 
 SQL_transaction_statement ::=
              set_transaction_statement
@@ -1618,7 +1618,7 @@ SQL_transaction_statement ::=
      |       rollback_statement
 
 set_transaction_statement ::=
-     "SET" space "TRANSACTION" space transaction_mode
+     "SET" <space> "TRANSACTION" <space> transaction_mode
      [ { comma transaction_mode }+ ]
 
 transaction_mode ::=
@@ -1627,32 +1627,32 @@ transaction_mode ::=
      |       diagnostics_size
 
 isolation_level ::=
-    "ISOLATION" space "LEVEL" space level_of_isolation
+    "ISOLATION" <space> "LEVEL" <space> level_of_isolation
 
 level_of_isolation ::=
-             "READ" space "UNCOMMITTED"
-     |       "READ" space "COMMITTED"
-     |       "REPEATABLE" space "READ"
+             "READ" <space> "UNCOMMITTED"
+     |       "READ" <space> "COMMITTED"
+     |       "REPEATABLE" <space> "READ"
      |       "SERIALIZABLE"
 
 transaction_access_mode ::=
-    "READ" space "ONLY" | "READ" space "WRITE"
+    "READ" <space> "ONLY" | "READ" <space> "WRITE"
 
 diagnostics_size ::=
-    "DIAGNOSTICS" space "SIZE" space number_of_conditions
+    "DIAGNOSTICS" <space> "SIZE" <space> number_of_conditions
 
 number_of_conditions ::= simple_value_specification
 
 set_constraints_mode_statement ::=
-     "SET" space "CONSTRAINTS" space constraint_name_list
-     { space "DEFERRED" | space "IMMEDIATE" }
+     "SET" <space> "CONSTRAINTS" <space> constraint_name_list
+     { <space> "DEFERRED" | <space> "IMMEDIATE" }
 
 constraint_name_list ::=
     "ALL" | constraint_name [ { comma constraint_name }+ ]
 
-commit_statement ::= "COMMIT" [ space "WORK" ]
+commit_statement ::= "COMMIT" [ <space> "WORK" ]
 
-rollback_statement ::= "ROLLBACK" [ space "WORK" ]
+rollback_statement ::= "ROLLBACK" [ <space> "WORK" ]
 
 SQL_connection_statement ::=
              connect_statement
@@ -1660,12 +1660,12 @@ SQL_connection_statement ::=
      |       disconnect_statement
 
 connect_statement ::=
-     "CONNECT" space "TO" space connection_target
+     "CONNECT" <space> "TO" <space> connection_target
 
 connection_target ::=
      SQL_server_name
-     [ space "AS" space connection_name ]
-     [ space "USER" space user_name ]
+     [ <space> "AS" <space> connection_name ]
+     [ <space> "USER" <space> user_name ]
    | "DEFAULT"
 
 SQL_server_name ::= simple_value_specification
@@ -1675,11 +1675,11 @@ connection_name ::= simple_value_specification
 user_name ::= simple_value_specification
 
 set_connection_statement ::=
-     "SET" space "CONNECTION" space connection_object
+     "SET" <space> "CONNECTION" <space> connection_object
 
 connection_object ::= "DEFAULT" | connection_name
 
-disconnect_statement ::= "DISCONNECT" space disconnect_object
+disconnect_statement ::= "DISCONNECT" <space> disconnect_object
 
 disconnect_object ::= connection_object | "ALL" | "CURRENT"
 
@@ -1691,22 +1691,22 @@ SQL_session_statement ::=
      |       set_local_time_zone_statement
 
 set_catalog_statement ::=
-     "SET" space "CATALOG" space value_specification
+     "SET" <space> "CATALOG" <space> value_specification
 
 value_specification ::= literal | general_value_specification
 
 set_schema_statement ::=
-    "SET" space "SCHEMA" space value_specification
+    "SET" <space> "SCHEMA" <space> value_specification
 
 set_names_statement ::=
-    "SET" space "NAMES" space value_specification
+    "SET" <space> "NAMES" <space> value_specification
 
 set_session_authorization_identifier_statement ::=
-    "SET" space "SESSION" space "AUTHORIZATION" space
+    "SET" <space> "SESSION" <space> "AUTHORIZATION" <space>
     value_specification
 
 set_local_time_zone_statement ::=
-    "SET" space "TIME" space "ZONE" space set_time_zone_value
+    "SET" <space> "TIME" <space> "ZONE" <space> set_time_zone_value
 
 set_time_zone_value ::= interval_value_expression | "LOCAL"
 
@@ -1726,8 +1726,8 @@ system_descriptor_statement ::=
      |       set_descriptor_statement
 
 allocate_descriptor_statement ::=
-     "ALLOCATE" space "DESCRIPTOR" space descriptor_name
-     [ space "WITH" space "MAX" space occurrences ]
+     "ALLOCATE" <space> "DESCRIPTOR" <space> descriptor_name
+     [ <space> "WITH" <space> "MAX" <space> occurrences ]
 
 descriptor_name ::= [ scope_option ] simple_value_specification
 
@@ -1736,19 +1736,19 @@ scope_option ::= "GLOBAL" | "LOCAL"
 occurrences ::= simple_value_specification
 
 deallocate_descriptor_statement ::=
-    "DEALLOCATE" space "DESCRIPTOR" space descriptor_name
+    "DEALLOCATE" <space> "DESCRIPTOR" <space> descriptor_name
 
 set_descriptor_statement ::=
-     "SET" space "DESCRIPTOR" space descriptor_name
+     "SET" <space> "DESCRIPTOR" <space> descriptor_name
      set_descriptor_information
 
 set_descriptor_information ::=
      set_count
-   | "VALUE" space item_number set_item_information
+   | "VALUE" <space> item_number set_item_information
      [ { comma set_item_information }+ ]
 
 set_count ::=
-     "COUNT" space equals_operator simple_value_specification_1
+     "COUNT" <space> equals_operator simple_value_specification_1
 
 simple_value_specification_1 ::= simple_value_specification
 
@@ -1781,16 +1781,16 @@ descriptor_item_name ::=
 simple_value_specification_2 ::= simple_value_specification
 
 get_descriptor_statement ::=
-    "GET" space "DESCRIPTOR" space descriptor_name
+    "GET" <space> "DESCRIPTOR" <space> descriptor_name
     get_descriptor_information
 
 get_descriptor_information ::=
      get_count
-   | "VALUE" space item_number get_item_information
+   | "VALUE" <space> item_number get_item_information
      [ { comma get_item_information }+ ]
 
 get_count ::=
-    simple_target_specification_1 equals_operator space "COUNT"
+    simple_target_specification_1 equals_operator <space> "COUNT"
 
 simple_target_specification_1 ::= simple_target_specification
 
@@ -1801,8 +1801,8 @@ get_item_information ::= simple_target_specification_2 equals_operator descripto
 simple_target_specification_2 ::= simple_target_specification
 
 prepare_statement ::=
-    "PREPARE" space SQL_statement_name
-    space "FROM" space SQL_statement_variable
+    "PREPARE" <space> SQL_statement_name
+    <space> "FROM" <space> SQL_statement_variable
 
 SQL_statement_name ::= statement_name | extended_statement_name
 
@@ -1811,24 +1811,24 @@ extended_statement_name ::= [ scope_option ] simple_value_specification
 SQL_statement_variable ::= simple_value_specification
 
 deallocate_prepared_statement ::=
-    "DEALLOCATE" space "PREPARE" space SQL_statement_name
+    "DEALLOCATE" <space> "PREPARE" <space> SQL_statement_name
 
 describe_statement ::= describe_input_statement | describe_output_statement
 
 describe_input_statement ::=
-    "DESCRIBE" space "INPUT" space SQL_statement_name
+    "DESCRIBE" <space> "INPUT" <space> SQL_statement_name
     using_descriptor
 
 using_descriptor ::=
-    { "USING" space | "INTO" space }
-    "SQL" space "DESCRIPTOR" space descriptor_name
+    { "USING" <space> | "INTO" <space> }
+    "SQL" <space> "DESCRIPTOR" <space> descriptor_name
 
 describe_output_statement ::=
-    "DESCRIBE" [ space "OUTPUT" ]
-    space SQL_statement_name using_descriptor
+    "DESCRIBE" [ <space> "OUTPUT" ]
+    <space> SQL_statement_name using_descriptor
 
 execute_statement ::=
-    "EXECUTE" space SQL_statement_name
+    "EXECUTE" <space> SQL_statement_name
     [ result_using_clause ] [ parameter_using_clause ]
 
 result_using_clause ::= using_clause
@@ -1836,7 +1836,7 @@ result_using_clause ::= using_clause
 using_clause ::= using_arguments | using_descriptor
 
 using_arguments ::=
-    { "USING" space | "INTO" space }
+    { "USING" <space> | "INTO" <space> }
     argument [ { comma argument }+ ]
 
 argument ::= target_specification
@@ -1844,7 +1844,7 @@ argument ::= target_specification
 parameter_using_clause ::= using_clause
 
 execute_immediate_statement ::=
-    "EXECUTE" space "IMMEDIATE" space SQL_statement_variable
+    "EXECUTE" <space> "IMMEDIATE" <space> SQL_statement_variable
 
 SQL_dynamic_data_statement ::=
              allocate_cursor_statement
@@ -1855,40 +1855,40 @@ SQL_dynamic_data_statement ::=
      |       dynamic_update_statement_positioned
 
 allocate_cursor_statement ::=
-     "ALLOCATE" space extended_cursor_name
-     [ space "INSENSITIVE" ]
-     [ space "SCROLL" ]
-     space "CURSOR" space "FOR" space extended_statement_name
+     "ALLOCATE" <space> extended_cursor_name
+     [ <space> "INSENSITIVE" ]
+     [ <space> "SCROLL" ]
+     <space> "CURSOR" <space> "FOR" <space> extended_statement_name
 
 extended_cursor_name ::= [ scope_option ] simple_value_specification
 
 dynamic_open_statement ::=
-    "OPEN" space dynamic_cursor_name [ using_clause ]
+    "OPEN" <space> dynamic_cursor_name [ using_clause ]
 
 dynamic_cursor_name ::= cursor_name | extended_cursor_name
 
 dynamic_close_statement ::=
-    "CLOSE" space dynamic_cursor_name
+    "CLOSE" <space> dynamic_cursor_name
 
 dynamic_fetch_statement ::=
-    "FETCH" space
-    [ [ fetch_orientation space ] "FROM" space ]
+    "FETCH" <space>
+    [ [ fetch_orientation <space> ] "FROM" <space> ]
     dynamic_cursor_name
 
 dynamic_delete_statement_positioned ::=
-    "DELETE" space "FROM" space table_name
-    space "WHERE" space "CURRENT" space "OF" space
+    "DELETE" <space> "FROM" <space> table_name
+    <space> "WHERE" <space> "CURRENT" <space> "OF" <space>
     dynamic_cursor_name
 
 dynamic_update_statement_positioned ::=
-    "UPDATE" space table_name space
-    "SET" space set_clause [ { comma set_clause }+ ]
-    "WHERE" space "CURRENT" space "OF" space dynamic_cursor_name
+    "UPDATE" <space> table_name <space>
+    "SET" <space> set_clause [ { comma set_clause }+ ]
+    "WHERE" <space> "CURRENT" <space> "OF" <space> dynamic_cursor_name
 
 SQL_diagnostics_statement ::= get_diagnostics_statement
 
 get_diagnostics_statement ::=
-    "GET" space "DIAGNOSTICS" space sql_diagnostics_information
+    "GET" <space> "DIAGNOSTICS" <space> sql_diagnostics_information
 
 sql_diagnostics_information ::= statement_information | condition_information
 
@@ -1904,7 +1904,7 @@ statement_information_item_name ::=
     "NUMBER" | "MORE" | "COMMAND_FUNCTION" | "DYNAMIC_FUNCTION" | "ROW_COUNT"
 
 condition_information ::=
-    "EXCEPTION" space condition_number
+    "EXCEPTION" <space> condition_number
     condition_information_item
     [ { comma condition_information_item }+ ]
 
@@ -1967,33 +1967,33 @@ embedded_SQL_declare_section ::=
      |       embedded_SQL_MUMPS_declare
 
 embedded_SQL_begin_declare ::=
-    SQL_prefix space
-    "BEGIN" space "DECLARE" space "SECTION"
-    [ space SQL_terminator ]
+    SQL_prefix <space>
+    "BEGIN" <space> "DECLARE" <space> "SECTION"
+    [ <space> SQL_terminator ]
 
 SQL_prefix ::=
-    "EXEC" space "SQL"
+    "EXEC" <space> "SQL"
   | ampersand "SQL" left_paren
 
 SQL_terminator ::=
     "END-EXEC" | semicolon | right_paren
 
 embedded_character_set_declaration ::=
-    "SQL" space "NAMES" space "ARE" space character_set_specification
+    "SQL" <space> "NAMES" <space> "ARE" <space> character_set_specification
 
 host_variable_definition ::= do_not_care
 
 embedded_SQL_end_declare ::=
-    SQL_prefix space
-    "END" space "DECLARE" space "SECTION"
-    [ space SQL_terminator ]
+    SQL_prefix <space>
+    "END" <space> "DECLARE" <space> "SECTION"
+    [ <space> SQL_terminator ]
 
 embedded_SQL_MUMPS_declare ::=
-    SQL_prefix space
-    "BEGIN" space "DECLARE" space "SECTION" space
+    SQL_prefix <space>
+    "BEGIN" <space> "DECLARE" <space> "SECTION" <space>
     [ embedded_character_set_declaration ]
     [ host_variable_definition+ ]
-    "END" space "DECLARE" space "SECTION" space
+    "END" <space> "DECLARE" <space> "SECTION" <space>
     SQL_terminator
 
 (*
@@ -2111,13 +2111,13 @@ statement_or_declaration ::=
      |       SQL_procedure_statement
 
 embedded_exception_declaration ::=
-    "WHENEVER" space condition condition_action
+    "WHENEVER" <space> condition condition_action
 
-condition ::= "SQLERROR" | "NOT" space "FOUND"
+condition ::= "SQLERROR" | "NOT" <space> "FOUND"
 
 condition_action ::= "CONTINUE" | go_to
 
-go_to ::= { "GOTO" | "GO" space "TO" } space goto_target
+go_to ::= { "GOTO" | "GO" <space> "TO" } <space> goto_target
 
 goto_target ::=
              host_label_identifier
@@ -2158,15 +2158,15 @@ dynamic_single_row_select_statement ::= query_specification
 dynamic_select_statement ::= cursor_specification
 
 preparable_dynamic_delete_statement_positioned ::=
-    "DELETE" space
-    [ "FROM" space table_name space ]
-    "WHERE" space "CURRENT" space "OF" space cursor_name
+    "DELETE" <space>
+    [ "FROM" <space> table_name <space> ]
+    "WHERE" <space> "CURRENT" <space> "OF" <space> cursor_name
 
 preparable_dynamic_update_statement_positioned ::=
-    "UPDATE" space
-    [ table_name space ]
-    "SET" space set_clause
-    "WHERE" space "CURRENT" space "OF" space cursor_name
+    "UPDATE" <space>
+    [ table_name <space> ]
+    "SET" <space> set_clause
+    "WHERE" <space> "CURRENT" <space> "OF" <space> cursor_name
 
 preparable_SQL_schema_statement ::= SQL_schema_statement
 
@@ -2203,12 +2203,12 @@ SQL_provenance ::= arc1 arc2 arc3
 arc1 ::=
     "iso"
   | "1"
-  | "iso" zspace left_paren zspace "1" zspace right_paren
+  | "iso" <zspace> left_paren <zspace> "1" <zspace> right_paren
 
 arc2 ::=
     "standard"
   | "0"
-  | "standard" zspace left_paren zspace "0" zspace right_paren
+  | "standard" <zspace> left_paren <zspace> "0" <zspace> right_paren
 
 arc3 ::= "9075"
 
@@ -2218,38 +2218,38 @@ SQL_edition ::= 1987 | 1989 | 1992
 
 1987 ::=
     "0"
-  | "edition1987" zspace left_paren zspace "0" zspace right_paren
+  | "edition1987" <zspace> left_paren <zspace> "0" <zspace> right_paren
 
 1989 ::= 1989_base 1989_package
 
 1989_base ::=
     "1"
-  | "edition1989" zspace left_paren zspace "1" zspace right_paren
+  | "edition1989" <zspace> left_paren <zspace> "1" <zspace> right_paren
 
 1989_package ::= integrity_no | integrity_yes
 
 integrity_no ::=
     "0"
-  | "IntegrityNo" zspace left_paren zspace "0" zspace right_paren
+  | "IntegrityNo" <zspace> left_paren <zspace> "0" <zspace> right_paren
 
 integrity_yes ::=
     "1"
-  | "IntegrityYes" zspace left_paren zspace "1" zspace right_paren
+  | "IntegrityYes" <zspace> left_paren <zspace> "1" <zspace> right_paren
 
 1992 ::=
     "2"
-  | "edition1992" zspace left_paren zspace "2" zspace right_paren
+  | "edition1992" <zspace> left_paren <zspace> "2" <zspace> right_paren
 
 SQL_conformance ::= low | intermediate | high
 
 low ::=
     "0"
-  | "Low" zspace left_paren zspace "0" zspace right_paren
+  | "Low" <zspace> left_paren <zspace> "0" <zspace> right_paren
 
 intermediate ::=
     "1"
-  | "Intermediate" zspace left_paren zspace "1" zspace right_paren
+  | "Intermediate" <zspace> left_paren <zspace> "1" <zspace> right_paren
 
 high ::=
     "2"
-  | "High" zspace left_paren zspace "2" zspace right_paren
+  | "High" <zspace> left_paren <zspace> "2" <zspace> right_paren
