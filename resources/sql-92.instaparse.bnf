@@ -1923,14 +1923,8 @@ go_to ::= { "GOTO" | "GO" "TO" } goto_target
 
 goto_target ::=
              unsigned_integer
-     |       host_PL_I_label_variable
 
 do_not_care ::= #"\w+"
-
-(*
-host_PL_I_label_variable ::= !! See the syntax rules
-*)
-host_PL_I_label_variable ::= do_not_care
 
 preparable_statement ::=
              preparable_SQL_data_statement
