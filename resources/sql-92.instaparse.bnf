@@ -1922,17 +1922,10 @@ condition_action ::= "CONTINUE" | go_to
 go_to ::= { "GOTO" | "GO" "TO" } goto_target
 
 goto_target ::=
-             host_label_identifier
-     |       unsigned_integer
+             unsigned_integer
      |       host_PL_I_label_variable
 
 do_not_care ::= #"\w+"
-
-(*
-host_label_identifier ::= !! See the syntax rules
-*)
-
-host_label_identifier ::= do_not_care
 
 (*
 host_PL_I_label_variable ::= !! See the syntax rules
