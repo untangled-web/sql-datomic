@@ -1,0 +1,9 @@
+#!/bin/bash
+set -eu
+
+sed -n '2,$p' resources/sql-92.instaparse.bnf \
+    |perl -ple 's{(?:\+|\*)}{}g' \
+    |perl -nle 'my @s = split /\s+/, $_; print for grep { /^[a-z0-9_]+$/ } @s' \
+    |sort \
+    |uniq -c \
+    |grep '^  *1 '
