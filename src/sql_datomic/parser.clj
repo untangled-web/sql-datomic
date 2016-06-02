@@ -7,6 +7,7 @@
       (insta/parser
        :input-format :ebnf
        :no-slurp true
+       :string-ci true
        :auto-whitespace :standard)))
 
 (comment
@@ -31,6 +32,18 @@
    "SELECT *
       FROM a_table a
       WHERE a.foo IS NOT NULL
+      ")
+  (parser
+   "SELECT a.*, b.zebra_id
+      FROM a_table a
+      LEFT OUTER JOIN b_table b ON a.id = b.a_id
+      WHERE b.zebra_id IS NOT NULL
+      ")
+  (parser
+   "select a.*, b.zebra_id
+      from a_table a
+      left outer join b_table b on a.id = b.a_id
+      where b.zebra_id is not null
       ")
   )
 

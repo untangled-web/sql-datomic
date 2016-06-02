@@ -1030,7 +1030,7 @@ pattern ::= character_value_expression
 
 escape_character ::= character_value_expression
 
-null_predicate ::= "IS" [ "NOT" ] "NULL"
+null_predicate ::= row_value_constructor "IS" [ "NOT" ] "NULL"
 
 quantified_comparison_predicate ::= row_value_constructor comp_op quantifier table_subquery
 

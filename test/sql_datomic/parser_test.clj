@@ -46,13 +46,25 @@
       LEFT OUTER JOIN b_table b ON a.id = b.a_id
       WHERE b.zebra_id > 9000
       ")
-    #_(parsable?
+    (parsable?
      "SELECT *
       FROM a_table
       WHERE a_table.foo IS NOT NULL")
-    #_(parsable?
+    (parsable?
      "SELECT a.*, b.zebra_id
       FROM a_table a
       LEFT OUTER JOIN b_table b ON a.id = b.a_id
       WHERE b.zebra_id IS NOT NULL
+      ")
+    (parsable?
+     "select
+                        a.*
+                      , b.zebra_id
+      from
+                        a_table a
+      left outer join
+                        b_table b
+                  on    a.id = b.a_id
+      where
+                        b.zebra_id is not null
       ")))
