@@ -354,21 +354,6 @@ concatenation_operator ::= "||"
 
 double_period ::= ".."
 
-language_clause ::= "LANGUAGE" language_name
-
-language_name ::=
-                  "ADA" | "C" | "COBOL" | "FORTRAN"
-                | "MUMPS" | "PASCAL" | "PLI"
-
-module_authorization_clause ::=
-             "SCHEMA" schema_name
-     |       "AUTHORIZATION" module_authorization_identifier
-     |       "SCHEMA" schema_name
-             "AUTHORIZATION"
-             module_authorization_identifier
-
-module_authorization_identifier ::= authorization_identifier
-
 authorization_identifier ::= identifier
 
 temporary_table_declaration ::=
@@ -1057,8 +1042,6 @@ some ::= "SOME" | "ANY"
 
 exists_predicate ::= "EXISTS" table_subquery
 
-unique_predicate ::= "UNIQUE" table_subquery
-
 match_predicate ::=
     row_value_constructor
     "MATCH"
@@ -1106,8 +1089,6 @@ referential_constraint_definition ::=
 
 referencing_columns ::= reference_column_list
 
-cursor_specification ::= query_expression [ order_by_clause ] [ updatability_clause ]
-
 order_by_clause ::=
     "ORDER" "BY" sort_specification_list
 
@@ -1119,19 +1100,7 @@ sort_key ::= column_name | unsigned_integer
 
 ordering_specification ::= "ASC" | "DESC"
 
-updatability_clause ::=
-    "FOR"
-    { "READ" "ONLY"
-    | "UPDATE" [ "OF" column_name_list ] }
-
 statement_name ::= identifier
-
-parameter_declaration_list ::=
-             left_paren parameter_declaration [ { comma parameter_declaration }+ ] right_paren
-
-parameter_declaration ::= parameter_name data_type | status_parameter
-
-status_parameter ::= "SQLCODE" | "SQLSTATE"
 
 SQL_schema_statement ::=
              SQL_schema_definition_statement
@@ -1422,8 +1391,6 @@ simple_value_specification ::=
     parameter_name
   | literal
 
-fetch_target_list ::= target_specification [ { comma target_specification }+ ]
-
 target_specification ::=
              parameter_specification
 
@@ -1562,93 +1529,15 @@ set_local_time_zone_statement ::=
 
 set_time_zone_value ::= interval_value_expression | "LOCAL"
 
-descriptor_name ::= [ scope_option ] simple_value_specification
-
 scope_option ::= "GLOBAL" | "LOCAL"
 
-occurrences ::= simple_value_specification
-
-set_count ::=
-    "COUNT" equals_operator simple_value_specification_1
-
-simple_value_specification_1 ::= simple_value_specification
-
-item_number ::= simple_value_specification
-
-set_item_information ::= descriptor_item_name equals_operator simple_value_specification_2
-
-descriptor_item_name ::=
-     "TYPE"
-   | "LENGTH"
-   | "OCTET_LENGTH"
-   | "RETURNED_LENGTH"
-   | "RETURNED_OCTET_LENGTH"
-   | "PRECISION"
-   | "SCALE"
-   | "DATETIME_INTERVAL_CODE"
-   | "DATETIME_INTERVAL_PRECISION"
-   | "NULLABLE"
-   | "INDICATOR"
-   | "DATA"
-   | "NAME"
-   | "UNNAMED"
-   | "COLLATION_CATALOG"
-   | "COLLATION_SCHEMA"
-   | "COLLATION_NAME"
-   | "CHARACTER_SET_CATALOG"
-   | "CHARACTER_SET_SCHEMA"
-   | "CHARACTER_SET_NAME"
-
-simple_value_specification_2 ::= simple_value_specification
-
-get_count ::=
-    simple_target_specification_1 equals_operator "COUNT"
-
-simple_target_specification_1 ::= simple_target_specification
-
 simple_target_specification ::= parameter_name
-
-get_item_information ::= simple_target_specification_2 equals_operator descriptor_item_name
-
-simple_target_specification_2 ::= simple_target_specification
 
 SQL_statement_name ::= statement_name | extended_statement_name
 
 extended_statement_name ::= [ scope_option ] simple_value_specification
 
 SQL_statement_variable ::= simple_value_specification
-
-deallocate_prepared_statement ::=
-    "DEALLOCATE" "PREPARE" SQL_statement_name
-
-describe_statement ::= describe_input_statement | describe_output_statement
-
-describe_input_statement ::=
-    "DESCRIBE" "INPUT" SQL_statement_name
-    using_descriptor
-
-using_descriptor ::=
-    { "USING" | "INTO" }
-    "SQL" "DESCRIPTOR" descriptor_name
-
-describe_output_statement ::=
-    "DESCRIBE" [ "OUTPUT" ]
-    SQL_statement_name using_descriptor
-
-result_using_clause ::= using_clause
-
-using_clause ::= using_arguments | using_descriptor
-
-using_arguments ::=
-    { "USING" | "INTO" }
-    argument [ { comma argument }+ ]
-
-argument ::= target_specification
-
-parameter_using_clause ::= using_clause
-
-execute_immediate_statement ::=
-    "EXECUTE" "IMMEDIATE" SQL_statement_variable
 
 SQL_diagnostics_statement ::= get_diagnostics_statement
 
@@ -1698,26 +1587,6 @@ condition_information_item_name ::=
    | "MESSAGE_TEXT"
    | "MESSAGE_LENGTH"
    | "MESSAGE_OCTET_LENGTH"
-
-statement_or_declaration ::=
-             temporary_table_declaration
-     |       embedded_exception_declaration
-
-embedded_exception_declaration ::=
-    "WHENEVER" condition condition_action
-
-condition ::= "SQLERROR" | "NOT" "FOUND"
-
-condition_action ::= "CONTINUE" | go_to
-
-go_to ::= { "GOTO" | "GO" "TO" } goto_target
-
-goto_target ::=
-             unsigned_integer
-
-dynamic_single_row_select_statement ::= query_specification
-
-dynamic_select_statement ::= cursor_specification
 
 direct_SQL_data_statement ::=
              delete_statement_searched
