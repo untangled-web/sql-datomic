@@ -45,6 +45,16 @@
       left outer join b_table b on a.id = b.a_id
       where b.zebra_id is not null
       ")
+  (parser
+   "SELECT a.*, b.zebra_id
+      FROM a_table a
+      INNER JOIN b_table b ON a.id = b.a_id
+      WHERE b.zebra_id > 9000")
+  (parser
+   "SELECT *
+      FROM a_table a
+      WHERE a.created_on BETWEEN DATE '2007-02-01'
+                             AND DATE '2010-10-10'")
   )
 
 ;; (def transform-operator
