@@ -55,6 +55,15 @@
       FROM a_table a
       WHERE a.created_on BETWEEN DATE '2007-02-01'
                              AND DATE '2010-10-10'")
+  (parser
+   "insert into customers (
+        firstname, lastname, address1, address2,
+        city, state, zip, country
+    ) values (
+        'Foo', 'Bar', '123 Some Place', '',
+        'Thousand Oaks', 'CA', '91362', 'USA'
+    )
+    ")
   )
 
 ;; (def transform-operator

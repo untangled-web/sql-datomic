@@ -41,7 +41,7 @@ SQL_special_character ::=
         |       double_quote
         |       percent
         |       ampersand
-        |       quote
+        |       <quote>
         |       left_paren
         |       right_paren
         |       asterisk
@@ -68,7 +68,7 @@ percent ::= "%"
 
 ampersand ::= "&"
 
-quote ::= "'"
+<quote> ::= "'"
 
 left_paren ::= "("
 
@@ -200,13 +200,13 @@ signed_integer ::= [ sign ] unsigned_integer
 sign ::= plus_sign | minus_sign
 
 national_character_string_literal ::=
-             "N" quote [ character_representation+ ] quote [ { separator+ quote [ character_representation+ ] quote }+ ]
+             "N" <quote> [ character_representation+ ] <quote> [ { separator+ <quote> [ character_representation+ ] <quote> }+ ]
 
-character_representation ::= nonquote_character | quote_symbol
+character_representation ::= <nonquote_character> | quote_symbol
 
-nonquote_character ::= #"[^']"
+<nonquote_character> ::= #"[^']"
 
-quote_symbol ::= quote quote
+quote_symbol ::= <quote> <quote>
 
 separator ::= { comment | <space> | <newline> }+
 
@@ -214,17 +214,17 @@ comment ::= comment_introducer [ comment_character+ ] <newline>
 
 comment_introducer ::= minus_sign minus_sign [minus_sign+]
 
-comment_character ::= nonquote_character | quote
+comment_character ::= <nonquote_character> | <quote>
 
 <newline> ::= '\n' | '\r\n'
 
 bit_string_literal ::=
-    "B" quote [ bit+ ] quote [ { separator+ quote [ bit+ ] quote }+ ]
+    "B" <quote> [ bit+ ] <quote> [ { separator+ <quote> [ bit+ ] <quote> }+ ]
 
 bit ::= "0" | "1"
 
 hex_string_literal ::=
-    "X" quote [ hexit+ ] quote [ { separator+ quote [ hexit+ ] quote }+ ]
+    "X" <quote> [ hexit+ ] <quote> [ { separator+ <quote> [ hexit+ ] <quote> }+ ]
 
 hexit ::= digit
         | "A" | "B" | "C" | "D" | "E" | "F"
@@ -247,7 +247,9 @@ delimiter_token ::=
      |       right_bracket
 
 character_string_literal ::=
-     [ introducer character_set_specification ] quote [ character_representation+ ] quote [ { separator+ quote [ character_representation+ ] quote }+ ]
+     [ introducer character_set_specification ]
+     <quote> #"[^'\"]*" <quote>
+     [ { <quote> #"[^'\"]*" <quote> }+ ]
 
 introducer ::= underscore
 
@@ -298,7 +300,7 @@ standard_universal_character_form_of_use_name ::= character_set_name
 
 implementation_defined_universal_character_form_of_use_name ::= character_set_name
 
-date_string ::= quote date_value quote
+date_string ::= <quote> date_value <quote>
 
 date_value ::= years_value minus_sign months_value minus_sign days_value
 
@@ -310,7 +312,7 @@ months_value ::= datetime_value
 
 days_value ::= datetime_value
 
-time_string ::= quote time_value [ time_zone_interval ] quote
+time_string ::= <quote> time_value [ time_zone_interval ] <quote>
 
 time_value ::= hours_value colon minutes_value colon seconds_value
 
@@ -326,9 +328,9 @@ seconds_fraction ::= unsigned_integer
 
 time_zone_interval ::= sign hours_value colon minutes_value
 
-timestamp_string ::= quote date_value time_value [ time_zone_interval ] quote
+timestamp_string ::= <quote> date_value time_value [ time_zone_interval ] <quote>
 
-interval_string ::= quote { year_month_literal | day_time_literal } quote
+interval_string ::= <quote> { year_month_literal | day_time_literal } <quote>
 
 year_month_literal ::=
              years_value
@@ -1236,7 +1238,7 @@ collating_sequence_definition ::=
 
 external_collation ::=
     "EXTERNAL"
-    left_paren quote external_collation_name quote right_paren
+    left_paren <quote> external_collation_name <quote> right_paren
 
 external_collation_name ::= standard_collation_name | implementation_defined_collation_name
 
@@ -1276,7 +1278,7 @@ translation_specification ::=
 
 external_translation ::=
     "EXTERNAL"
-    left_paren quote external_translation_name quote right_paren
+    left_paren <quote> external_translation_name <quote> right_paren
 
 external_translation_name ::=
              standard_translation_name
