@@ -10,6 +10,10 @@ convention for all attributes.
 
 To use the REPL, run:
 ```
+  $ bin/repl
+```
+or even
+```
   $ rlwrap lein run
 ```
 
