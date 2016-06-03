@@ -248,8 +248,8 @@ delimiter_token ::=
 
 character_string_literal ::=
      [ introducer character_set_specification ]
-     <quote> #"[^'\"]*" <quote>
-     [ { <quote> #"[^'\"]*" <quote> }+ ]
+     <quote> #"[^']*" <quote>
+     [ { <quote> #"[^']*" <quote> }+ ]
 
 introducer ::= underscore
 
