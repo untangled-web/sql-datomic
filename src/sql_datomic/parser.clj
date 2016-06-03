@@ -70,6 +70,8 @@
               , state = 'VA'
               , zip = '22150'
     where       id = 123454321")
+  (parser
+   "delete from products where actor = 'homer simpson'")
   )
 
 ;; (def transform-operator

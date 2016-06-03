@@ -92,4 +92,6 @@
       set         city = 'Springfield'
                 , state = 'VA'
                 , zip = '22150'
-      where       id = 123454321")))
+      where       id = 123454321")
+    (parsable?
+     "delete from products where actor = 'homer simpson'")))
