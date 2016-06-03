@@ -35,5 +35,5 @@ sub gather_rule_nonterms {
     }
     my @nts = $rule =~ /([-\w]+|<[-\w]+>)/xmsg;
     my %uni = map { $_ => 1 } @nts;
-    return keys(%uni);
+    return sort { $a cmp $b } keys(%uni);
 }
