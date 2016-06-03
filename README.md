@@ -12,7 +12,7 @@ To use the REPL, run:
 ```
   $ bin/repl
 ```
-or even
+or even:
 ```
   $ rlwrap lein run
 ```
