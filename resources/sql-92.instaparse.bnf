@@ -1,5 +1,11 @@
 (* Based off of http://savage.net.au/SQL/sql-92.bnf *)
 
+direct_SQL_data_statement ::=
+             delete_statement_searched
+     |       direct_select_statement_multiple_rows
+     |       insert_statement
+     |       update_statement_searched
+
 direct_SQL_statement ::=
              direct_SQL_data_statement
      |       SQL_schema_statement
@@ -60,6 +66,7 @@ SQL_special_character ::=
         |       vertical_bar
 
 <space> ::= #'\s+'
+
 <zspace> ::= #'\s*'
 
 double_quote ::= "\""
@@ -1589,13 +1596,6 @@ condition_information_item_name ::=
    | "MESSAGE_TEXT"
    | "MESSAGE_LENGTH"
    | "MESSAGE_OCTET_LENGTH"
-
-direct_SQL_data_statement ::=
-             delete_statement_searched
-     |       direct_select_statement_multiple_rows
-     |       insert_statement
-     |       update_statement_searched
-     |       temporary_table_declaration
 
 direct_select_statement_multiple_rows ::=
     query_expression [ order_by_clause ]

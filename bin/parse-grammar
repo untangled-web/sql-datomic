@@ -1,0 +1,39 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use JSON qw( to_json );
+
+my $grammar = do { local $/; <> };
+
+my @productions = grep { /\S/xms }
+    grep { !/^\s*\(\*/xms }
+    split(/(\n|\r\n){2,}/xms, $grammar, -1);
+
+my %graph;
+for my $p (@productions) {
+    my ($t, $r) = split_nonterm($p);
+    my @nts = gather_rule_nonterms($r);
+    $graph{$t} = { to => \@nts, text => $p };
+}
+print to_json(\%graph, { pretty => 1 }), "\n";
+
+exit;
+
+sub split_nonterm {
+    my ($production) = @_;
+    my ($nonterm, $rule) = split(/\s*::=\s*/xms, $production, 2);
+    return ($nonterm, $rule);
+}
+
+sub gather_rule_nonterms {
+    my ($rule) = @_;
+    for ($rule) {
+        s{#'[^']+'}{}msg;
+        s{#"[^"]+"}{}msg;
+        s{'[^']+'}{}xmsg;
+        s{"[^"]+"}{}xmsg;
+    }
+    my @nts = $rule =~ /([-\w]+|<[-\w]+>)/xmsg;
+    my %uni = map { $_ => 1 } @nts;
+    return keys(%uni);
+}

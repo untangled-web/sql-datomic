@@ -1,0 +1,24 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use JSON qw( from_json );
+
+my $start = $ENV{start} || 'direct_SQL_data_statement';
+
+my $json_text = do { local $/; <> };
+my $grammar = from_json($json_text);
+
+# breadth-first walk
+my %seen;
+my @todo = ($start);
+while (@todo) {
+    my $term = shift(@todo);
+    next if $seen{$term};
+    my $node = $grammar->{$term};
+    die "unknown term: $term\n" unless $node;
+    $seen{$term} = 1;
+    my $text = $node->{text};
+    print $text, "\n\n";
+    my @nexties = @{$node->{to}};
+    push @todo, @nexties if @nexties;
+}
