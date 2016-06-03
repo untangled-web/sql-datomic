@@ -1,5 +1,6 @@
 (ns sql-datomic.repl
-  (:require [sql-datomic.parser :as parser]))
+  (:require [sql-datomic.parser :as parser]
+            [clojure.pprint :as pp]))
 
 (def ^:dynamic *prompt* "sql> ")
 
@@ -7,7 +8,7 @@
   (print *prompt*)
   (flush)
   (when-let [input (read-line)]
-    (prn (parser/parser input))
+    (pp/pprint (parser/parser input))
     (recur)))
 
 (defn -main [& args]

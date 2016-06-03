@@ -2,8 +2,7 @@
   (:require [instaparse.core :as insta]))
 
 (def parser
-  (-> #_"resources/sql-92.instaparse.bnf"
-      "resources/sql.bnf"
+  (-> "resources/sql.bnf"
       slurp
       (insta/parser
        :input-format :ebnf

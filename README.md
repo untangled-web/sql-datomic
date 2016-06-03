@@ -10,7 +10,7 @@ convention for all attributes.
 
 To use the REPL, run:
 ```
-  $ lein run
+  $ rlwrap lein run
 ```
 
 ## License
