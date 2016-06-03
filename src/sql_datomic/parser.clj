@@ -64,6 +64,12 @@
         'Thousand Oaks', 'CA', '91362', 'USA'
     )
     ")
+  (parser
+   "update      customers
+    set         city = 'Springfield'
+              , state = 'VA'
+              , zip = '22150'
+    where       id = 123454321")
   )
 
 ;; (def transform-operator

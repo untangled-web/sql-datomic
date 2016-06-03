@@ -86,4 +86,10 @@
           'Foo', 'Bar', '123 Some Place', '',
           'Thousand Oaks', 'CA', '91362', 'USA'
       )
-      ")))
+      ")
+    (parsable?
+     "update      customers
+      set         city = 'Springfield'
+                , state = 'VA'
+                , zip = '22150'
+      where       id = 123454321")))
