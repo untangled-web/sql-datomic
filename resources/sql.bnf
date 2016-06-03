@@ -1,3 +1,893 @@
-expr ::= something
+direct_SQL_data_statement ::=
+             delete_statement_searched
+     |       direct_select_statement_multiple_rows
+     |       insert_statement
+     |       update_statement_searched
 
-something ::= #'.*'
+update_statement_searched ::=
+    "UPDATE" table_name "SET" set_clause_list
+    [ "WHERE" search_condition ]
+
+insert_statement ::=
+    "INSERT" "INTO" table_name insert_columns_and_source
+
+direct_select_statement_multiple_rows ::=
+    query_expression [ order_by_clause ]
+
+delete_statement_searched ::=
+    "DELETE" "FROM" table_name
+    [ "WHERE" search_condition ]
+
+set_clause_list ::= set_clause [ { comma set_clause } + ]
+
+table_name ::= qualified_name | qualified_local_table_name
+
+search_condition ::=
+         boolean_term
+     |   search_condition "OR" boolean_term
+
+insert_columns_and_source ::=
+     [ left_paren insert_column_list right_paren ] query_expression
+   | "DEFAULT" "VALUES"
+
+query_expression ::= non_join_query_expression | joined_table
+
+order_by_clause ::=
+    "ORDER" "BY" sort_specification_list
+
+comma ::= ","
+
+set_clause ::= object_column equals_operator update_source
+
+qualified_name ::= [ schema_name period ] qualified_identifier
+
+qualified_local_table_name ::= "MODULE" period local_table_name
+
+boolean_term ::=
+         boolean_factor
+     |   boolean_term "AND" boolean_factor
+
+right_paren ::= ")"
+
+left_paren ::= "("
+
+insert_column_list ::= column_name_list
+
+joined_table ::=
+         cross_join
+     |   qualified_join
+     |   left_paren joined_table right_paren
+
+non_join_query_expression ::=
+             non_join_query_term
+     |       query_expression "UNION" [ "ALL" ] [ corresponding_spec ] query_term
+     |       query_expression "EXCEPT" [ "ALL" ] [ corresponding_spec ] query_term
+
+sort_specification_list ::= sort_specification [ { comma sort_specification }+ ]
+
+equals_operator ::= "="
+
+object_column ::= column_name
+
+update_source ::= value_expression | null_specification | "DEFAULT"
+
+qualified_identifier ::= identifier
+
+period ::= "."
+
+schema_name ::= [ catalog_name period ] unqualified_schema_name
+
+local_table_name ::= qualified_identifier
+
+boolean_factor ::= [ "NOT" ] boolean_test
+
+column_name_list ::= column_name [ { comma column_name }+ ]
+
+qualified_join ::=
+             table_reference
+             [ "NATURAL" ]
+             [ join_type ]
+             "JOIN"
+             table_reference [ join_specification ]
+
+cross_join ::=
+             table_reference
+             "CROSS" "JOIN"
+             table_reference
+
+query_term ::= non_join_query_term | joined_table
+
+non_join_query_term ::=
+             non_join_query_primary
+     |       query_term "INTERSECT" [ "ALL" ] [ corresponding_spec ] query_primary
+
+corresponding_spec ::= "CORRESPONDING" [ "BY" left_paren corresponding_column_list right_paren ]
+
+sort_specification ::= sort_key [ collate_clause ] [ ordering_specification ]
+
+column_name ::= identifier
+
+value_expression ::=
+         numeric_value_expression
+     |   string_value_expression
+     |   datetime_value_expression
+     |   interval_value_expression
+
+null_specification ::= "NULL"
+
+identifier ::= [ introducer character_set_specification ] actual_identifier
+
+unqualified_schema_name ::= identifier
+
+catalog_name ::= identifier
+
+boolean_test ::= boolean_primary [ "IS" [ "NOT" ] truth_value ]
+
+join_type ::=
+         "INNER"
+     |   outer_join_type [ "OUTER" ]
+     |   "UNION"
+
+table_reference ::=
+         table_name [ correlation_specification ]
+     |   derived_table correlation_specification
+     |   joined_table
+
+join_specification ::= join_condition | named_columns_join
+
+query_primary ::= non_join_query_primary | joined_table
+
+non_join_query_primary ::= simple_table | left_paren non_join_query_expression right_paren
+
+corresponding_column_list ::= column_name_list
+
+collate_clause ::= "COLLATE" collation_name
+
+ordering_specification ::= "ASC" | "DESC"
+
+sort_key ::= column_name | unsigned_integer
+
+interval_value_expression ::=
+             interval_term
+     |       interval_value_expression_1 plus_sign interval_term_1
+     |       interval_value_expression_1 minus_sign interval_term_1
+     |       left_paren datetime_value_expression minus_sign datetime_term right_paren interval_qualifier
+
+numeric_value_expression ::=
+         term
+     |   numeric_value_expression plus_sign term
+     |   numeric_value_expression minus_sign term
+
+datetime_value_expression ::=
+             datetime_term
+     |       interval_value_expression plus_sign datetime_term
+     |       datetime_value_expression plus_sign interval_term
+     |       datetime_value_expression minus_sign interval_term
+
+string_value_expression ::= character_value_expression | bit_value_expression
+
+introducer ::= underscore
+
+actual_identifier ::= regular_identifier | delimited_identifier
+
+character_set_specification ::=
+             standard_character_repertoire_name
+     |       implementation_defined_character_repertoire_name
+     |       user_defined_character_repertoire_name
+     |       standard_universal_character_form_of_use_name
+     |       implementation_defined_universal_character_form_of_use_name
+
+boolean_primary ::= predicate | left_paren search_condition right_paren
+
+truth_value ::=
+    "TRUE" | "FALSE" | "UNKNOWN"
+
+outer_join_type ::= "LEFT" | "RIGHT" | "FULL"
+
+derived_table ::= table_subquery
+
+correlation_specification ::=
+             [ "AS" ] correlation_name
+             [ left_paren derived_column_list right_paren ]
+
+join_condition ::= "ON" search_condition
+
+named_columns_join ::= "USING" left_paren join_column_list right_paren
+
+simple_table ::=
+             query_specification
+     |       table_value_constructor
+     |       explicit_table
+
+collation_name ::= qualified_name
+
+unsigned_integer ::= digit+
+
+interval_qualifier ::=
+             start_field "TO" end_field
+     |   single_datetime_field
+
+datetime_term ::= datetime_factor
+
+minus_sign ::= "-"
+
+plus_sign ::= "+"
+
+interval_term ::=
+             interval_factor
+     |       interval_term_2 asterisk factor
+     |       interval_term_2 solidus factor
+     |       term asterisk interval_factor
+
+interval_value_expression_1 ::= interval_value_expression
+
+interval_term_1 ::= interval_term
+
+term ::=
+         factor
+     |   term asterisk factor
+     |   term solidus factor
+
+bit_value_expression ::= bit_concatenation | bit_factor
+
+character_value_expression ::= concatenation | character_factor
+
+underscore ::= "_"
+
+regular_identifier ::= identifier_body
+
+delimited_identifier ::= double_quote delimited_identifier_body double_quote
+
+standard_universal_character_form_of_use_name ::= character_set_name
+
+user_defined_character_repertoire_name ::= character_set_name
+
+implementation_defined_character_repertoire_name ::= character_set_name
+
+standard_character_repertoire_name ::= character_set_name
+
+implementation_defined_universal_character_form_of_use_name ::= character_set_name
+
+predicate ::=
+         comparison_predicate
+     |   between_predicate
+     |   in_predicate
+     |   like_predicate
+     |   null_predicate
+     |   quantified_comparison_predicate
+     |   exists_predicate
+     |   match_predicate
+     |   overlaps_predicate
+
+table_subquery ::= subquery
+
+derived_column_list ::= column_name_list
+
+correlation_name ::= identifier
+
+join_column_list ::= column_name_list
+
+table_value_constructor ::= "VALUES" table_value_constructor_list
+
+query_specification ::=
+             "SELECT" [ set_quantifier ] select_list
+              table_expression
+
+explicit_table ::= "TABLE" table_name
+
+digit ::= #'\d'
+
+start_field ::=
+             non_second_datetime_field [ left_paren interval_leading_field_precision right_paren ]
+
+end_field ::=
+             non_second_datetime_field
+     |   "SECOND" [ left_paren interval_fractional_seconds_precision right_paren ]
+
+single_datetime_field ::=
+             non_second_datetime_field [ left_paren interval_leading_field_precision right_paren ]
+     |   "SECOND" [ left_paren interval_leading_field_precision [ comma left_paren interval_fractional_seconds_precision ] right_paren ]
+
+datetime_factor ::= datetime_primary [ time_zone ]
+
+interval_factor ::= [ sign ] interval_primary
+
+interval_term_2 ::= interval_term
+
+solidus ::= "/"
+
+asterisk ::= "*"
+
+factor ::= [ sign ] numeric_primary
+
+bit_factor ::= bit_primary
+
+bit_concatenation ::= bit_value_expression concatenation_operator bit_factor
+
+concatenation ::= character_value_expression concatenation_operator character_factor
+
+character_factor ::= character_primary [ collate_clause ]
+
+identifier_body ::= #'\w+'
+
+double_quote ::= "\""
+
+delimited_identifier_body ::= delimited_identifier_part+
+
+character_set_name ::= [ schema_name period ] SQL_language_identifier
+
+like_predicate ::=
+    match_value
+    [ "NOT" ] "LIKE"
+    pattern [ "ESCAPE" escape_character ]
+
+quantified_comparison_predicate ::= row_value_constructor comp_op quantifier table_subquery
+
+overlaps_predicate ::=
+    row_value_constructor_1
+    "OVERLAPS" row_value_constructor_2
+
+null_predicate ::= row_value_constructor "IS" [ "NOT" ] "NULL"
+
+between_predicate ::=
+    row_value_constructor
+     [ "NOT" ]
+    "BETWEEN"
+    row_value_constructor "AND" row_value_constructor
+
+comparison_predicate ::= row_value_constructor comp_op row_value_constructor
+
+match_predicate ::=
+    row_value_constructor
+    "MATCH"
+    [ "UNIQUE" ]
+    [ "PARTIAL" | "FULL" ]
+    table_subquery
+
+in_predicate ::=
+    row_value_constructor
+     [ "NOT" ] "IN" in_predicate_value
+
+exists_predicate ::= "EXISTS" table_subquery
+
+subquery ::= left_paren query_expression right_paren
+
+table_value_constructor_list ::= row_value_constructor [ { comma row_value_constructor }+ ]
+
+table_expression ::=
+             from_clause
+             [ where_clause ]
+             [ group_by_clause ]
+             [ having_clause ]
+
+set_quantifier ::=
+                 "DISTINCT" | "ALL"
+
+select_list ::=
+             asterisk
+     |       select_sublist [ { comma select_sublist }+ ]
+
+non_second_datetime_field ::=
+                            "YEAR" | "MONTH" | "DAY" | "HOUR" | "MINUTE"
+
+interval_leading_field_precision ::= unsigned_integer
+
+interval_fractional_seconds_precision ::= unsigned_integer
+
+datetime_primary ::= value_expression_primary | datetime_value_function
+
+time_zone ::= "AT" time_zone_specifier
+
+interval_primary ::= value_expression_primary [ interval_qualifier ]
+
+sign ::= plus_sign | minus_sign
+
+numeric_primary ::= value_expression_primary | numeric_value_function
+
+bit_primary ::= value_expression_primary | string_value_function
+
+concatenation_operator ::= "||"
+
+character_primary ::= value_expression_primary | string_value_function
+
+delimited_identifier_part ::= nondoublequote_character | doublequote_symbol
+
+SQL_language_identifier ::=
+    SQL_language_identifier_start
+    [ { underscore | SQL_language_identifier_part }+ ]
+
+match_value ::= character_value_expression
+
+escape_character ::= character_value_expression
+
+pattern ::= character_value_expression
+
+quantifier ::= all | some
+
+row_value_constructor ::=
+         row_value_constructor_element
+     |   left_paren row_value_constructor_list right_paren
+     |   row_subquery
+
+comp_op ::=
+             equals_operator
+     |   not_equals_operator
+     |   less_than_operator
+     |   greater_than_operator
+     |   less_than_or_equals_operator
+     |   greater_than_or_equals_operator
+
+row_value_constructor_2 ::= row_value_constructor
+
+row_value_constructor_1 ::= row_value_constructor
+
+in_predicate_value ::= table_subquery | left_paren in_value_list right_paren
+
+where_clause ::= "WHERE" search_condition
+
+having_clause ::= "HAVING" search_condition
+
+from_clause ::=
+    "FROM" table_reference
+    [ { comma table_reference }+ ]
+
+group_by_clause ::= "GROUP" "BY" grouping_column_reference_list
+
+select_sublist ::= derived_column | qualifier period asterisk
+
+value_expression_primary ::=
+         unsigned_value_specification
+     |   column_reference
+     |   set_function_specification
+     |   scalar_subquery
+     |   case_expression
+     |   left_paren value_expression right_paren
+     |   cast_specification
+
+datetime_value_function ::=
+             current_date_value_function
+     |       current_time_value_function
+     |       current_timestamp_value_function
+
+time_zone_specifier ::=
+      "LOCAL"
+    | "TIME" "ZONE" interval_value_expression
+
+numeric_value_function ::= position_expression | extract_expression | length_expression
+
+string_value_function ::= character_value_function | bit_value_function
+
+doublequote_symbol ::= double_quote double_quote
+
+nondoublequote_character ::= #'[^\"]'
+
+SQL_language_identifier_part ::= simple_Latin_letter | digit
+
+SQL_language_identifier_start ::= simple_Latin_letter
+
+all ::= "ALL"
+
+some ::= "SOME" | "ANY"
+
+row_value_constructor_list ::= row_value_constructor_element [ { comma row_value_constructor_element } + ]
+
+row_value_constructor_element ::=
+         value_expression
+     |   null_specification
+     |   default_specification
+
+row_subquery ::= subquery
+
+less_than_operator ::= "<"
+
+greater_than_operator ::= ">"
+
+greater_than_or_equals_operator ::= ">="
+
+not_equals_operator ::= "<>"
+
+less_than_or_equals_operator ::= "<="
+
+in_value_list ::= value_expression { comma value_expression } +
+
+grouping_column_reference_list ::=
+             grouping_column_reference [ { comma grouping_column_reference }+ ]
+
+derived_column ::= value_expression [ as_clause ]
+
+qualifier ::= table_name | correlation_name
+
+scalar_subquery ::= subquery
+
+set_function_specification ::=
+             "COUNT" left_paren asterisk right_paren
+     |   general_set_function
+
+cast_specification ::= "CAST" left_paren cast_operand
+                          "AS" cast_target right_paren
+
+case_expression ::= case_abbreviation | case_specification
+
+column_reference ::= [ qualifier period ] column_name
+
+unsigned_value_specification ::= unsigned_literal | general_value_specification
+
+current_time_value_function ::= "CURRENT_TIME" [ left_paren time_precision right_paren ]
+
+current_date_value_function ::= "CURRENT_DATE"
+
+current_timestamp_value_function ::= "CURRENT_TIMESTAMP" [ left_paren timestamp_precision right_paren ]
+
+position_expression ::=
+     "POSITION" left_paren character_value_expression
+      "IN" character_value_expression right_paren
+
+length_expression ::= char_length_expression | octet_length_expression | bit_length_expression
+
+extract_expression ::=
+    "EXTRACT"
+    left_paren extract_field
+     "FROM" extract_source right_paren
+
+bit_value_function ::= bit_substring_function
+
+character_value_function ::=
+             character_substring_function
+     |   fold
+     |   form_of_use_conversion
+     |   character_translation
+     |   trim_function
+
+simple_Latin_letter ::=
+                simple_Latin_upper_case_letter
+        |       simple_Latin_lower_case_letter
+
+default_specification ::= "DEFAULT"
+
+grouping_column_reference ::= column_reference [ collate_clause ]
+
+as_clause ::= [ "AS" ] column_name
+
+general_set_function ::=
+             set_function_type left_paren [ set_quantifier ] value_expression right_paren
+
+cast_operand ::= value_expression | "NULL"
+
+cast_target ::= domain_name | data_type
+
+case_abbreviation ::=
+             "NULLIF" left_paren value_expression comma value_expression right_paren
+     |       "COALESCE" left_paren value_expression { comma value_expression }+ right_paren
+
+case_specification ::= simple_case | searched_case
+
+unsigned_literal ::= unsigned_numeric_literal | general_literal
+
+general_value_specification ::=
+         parameter_specification
+     |   dynamic_parameter_specification
+     |   "USER"
+     |   "CURRENT_USER"
+     |   "SESSION_USER"
+     |   "SYSTEM_USER"
+     |   "VALUE"
+
+time_precision ::= time_fractional_seconds_precision
+
+timestamp_precision ::= time_fractional_seconds_precision
+
+octet_length_expression ::=
+    "OCTET_LENGTH"
+    left_paren string_value_expression right_paren
+
+bit_length_expression ::=
+    "BIT_LENGTH"
+    left_paren string_value_expression right_paren
+
+char_length_expression ::=
+    { "CHAR_LENGTH" | "CHARACTER_LENGTH" }
+    left_paren string_value_expression right_paren
+
+extract_field ::= datetime_field | time_zone_field
+
+extract_source ::= datetime_value_expression | interval_value_expression
+
+bit_substring_function ::=
+    "SUBSTRING"
+    left_paren bit_value_expression
+     "FROM"
+    start_position
+    [ "FOR" string_length ] right_paren
+
+fold ::= { "UPPER" | "LOWER" }
+           left_paren character_value_expression right_paren
+
+character_translation ::=
+    "TRANSLATE"
+    left_paren character_value_expression
+     "USING" translation_name right_paren
+
+character_substring_function ::=
+             "SUBSTRING"
+             left_paren character_value_expression
+              "FROM" start_position
+             [ "FOR" string_length ] right_paren
+
+form_of_use_conversion ::=
+             "CONVERT"
+             left_paren character_value_expression
+              "USING"
+             form_of_use_conversion_name right_paren
+
+trim_function ::= "TRIM"
+                    left_paren trim_operands right_paren
+
+simple_Latin_lower_case_letter ::=
+                                   "a" | "b" | "c" | "d" | "e" | "f"
+                                 | "g" | "h" | "i" | "j" | "k" | "l"
+                                 | "m" | "n" | "o" | "p" | "q" | "r"
+                                 | "s" | "t" | "u" | "v" | "w" | "x"
+                                 | "y" | "z"
+
+simple_Latin_upper_case_letter ::=
+                                   "A" | "B" | "C" | "D" | "E" | "F"
+                                 | "G" | "H" | "I" | "J" | "K" | "L"
+                                 | "M" | "N" | "O" | "P" | "Q" | "R"
+                                 | "S" | "T" | "U" | "V" | "W" | "X"
+                                 | "Y" | "Z"
+
+set_function_type ::=
+                    "AVG" | "MAX" | "MIN" | "SUM" | "COUNT"
+
+domain_name ::= qualified_name
+
+data_type ::=
+             character_string_type
+             [ "CHARACTER" "SET"
+               character_set_specification ]
+     |       national_character_string_type
+     |       bit_string_type
+     |       numeric_type
+     |       datetime_type
+     |       interval_type
+
+simple_case ::=
+             "CASE" case_operand
+                     simple_when_clause+
+                     [ else_clause ]
+              "END"
+
+searched_case ::=
+             "CASE"
+             searched_when_clause+
+             [ else_clause ]
+              "END"
+
+general_literal ::=
+             character_string_literal
+     |       national_character_string_literal
+     |       bit_string_literal
+     |       hex_string_literal
+     |       datetime_literal
+     |       interval_literal
+
+unsigned_numeric_literal ::=
+             exact_numeric_literal
+     |       approximate_numeric_literal
+
+dynamic_parameter_specification ::= question_mark
+
+parameter_specification ::= parameter_name [ indicator_parameter ]
+
+time_fractional_seconds_precision ::= unsigned_integer
+
+datetime_field ::= non_second_datetime_field | "SECOND"
+
+time_zone_field ::= "TIMEZONE_HOUR" | "TIMEZONE_MINUTE"
+
+start_position ::= numeric_value_expression
+
+string_length ::= numeric_value_expression
+
+translation_name ::= qualified_name
+
+form_of_use_conversion_name ::= qualified_name
+
+trim_operands ::=
+    [ [ trim_specification ]
+      [ trim_character ] "FROM" ] trim_source
+
+numeric_type ::=
+             exact_numeric_type
+     |       approximate_numeric_type
+
+datetime_type ::=
+             "DATE"
+     |   "TIME" [ left_paren time_precision right_paren ]
+         [ "WITH" "TIME" "ZONE" ]
+     |   "TIMESTAMP" [ left_paren timestamp_precision right_paren ]
+         [ "WITH" "TIME" "ZONE" ]
+
+interval_type ::= "INTERVAL" interval_qualifier
+
+character_string_type ::=
+             "CHARACTER" [ left_paren length right_paren ]
+     |       "CHAR" [ left_paren length right_paren ]
+     |       "CHARACTER" "VARYING" [ left_paren length right_paren ]
+     |       "CHAR" "VARYING" [ left_paren length right_paren ]
+     |       "VARCHAR" [ left_paren length right_paren ]
+
+bit_string_type ::=
+             "BIT" [ left_paren length right_paren ]
+     |       "BIT" "VARYING" [ left_paren length right_paren ]
+
+national_character_string_type ::=
+             "NATIONAL" "CHARACTER" [ left_paren length right_paren ]
+     |       "NATIONAL" "CHAR" [ left_paren length right_paren ]
+     |       "NCHAR" [ left_paren length right_paren ]
+     |       "NATIONAL" "CHARACTER" "VARYING" [ left_paren length right_paren ]
+     |       "NATIONAL" "CHAR" "VARYING" [ left_paren length right_paren ]
+     |       "NCHAR" "VARYING" [ left_paren length right_paren ]
+
+else_clause ::= "ELSE" result
+
+simple_when_clause ::= "WHEN" when_operand
+                          "THEN" result
+
+case_operand ::= value_expression
+
+searched_when_clause ::= "WHEN" search_condition
+                            "THEN" result
+
+character_string_literal ::=
+     [ introducer character_set_specification ]
+     <quote> #"[^']*" <quote>
+     [ { <quote> #"[^']*" <quote> }+ ]
+
+hex_string_literal ::=
+    "X" <quote> [ hexit+ ] <quote> [ { separator+ <quote> [ hexit+ ] <quote> }+ ]
+
+datetime_literal ::=
+             date_literal
+     |       time_literal
+     |       timestamp_literal
+
+interval_literal ::= "INTERVAL" [ sign ] interval_string interval_qualifier
+
+national_character_string_literal ::=
+             "N" <quote> [ character_representation+ ] <quote> [ { separator+ <quote> [ character_representation+ ] <quote> }+ ]
+
+bit_string_literal ::=
+    "B" <quote> [ bit+ ] <quote> [ { separator+ <quote> [ bit+ ] <quote> }+ ]
+
+approximate_numeric_literal ::=
+             mantissa "E" exponent
+
+exact_numeric_literal ::=
+             unsigned_integer [ period [ unsigned_integer ] ]
+     |       period unsigned_integer
+
+question_mark ::= "?"
+
+indicator_parameter ::= [ "INDICATOR" ] parameter_name
+
+parameter_name ::= colon identifier
+
+trim_specification ::=
+    "LEADING" | "TRAILING" | "BOTH"
+
+trim_source ::= character_value_expression
+
+trim_character ::= character_value_expression
+
+approximate_numeric_type ::=
+             "FLOAT" [ left_paren precision right_paren ]
+     |       "REAL"
+     |       "DOUBLE" "PRECISION"
+
+exact_numeric_type ::=
+             "NUMERIC" [ left_paren precision [ comma scale ] right_paren ]
+     |       "DECIMAL" [ left_paren precision [ comma scale ] right_paren ]
+     |       "DEC" [ left_paren precision [ comma scale ] right_paren ]
+     |       "INTEGER"
+     |       "INT"
+     |       "SMALLINT"
+
+length ::= unsigned_integer
+
+result ::= result_expression | "NULL"
+
+when_operand ::= value_expression
+
+<quote> ::= "'"
+
+hexit ::= digit
+        | "A" | "B" | "C" | "D" | "E" | "F"
+        | "a" | "b" | "c" | "d" | "e" | "f"
+
+separator ::= { comment | <space> | <newline> }+
+
+date_literal ::= "DATE" date_string
+
+time_literal ::= "TIME" time_string
+
+timestamp_literal ::= "TIMESTAMP" timestamp_string
+
+interval_string ::= <quote> { year_month_literal | day_time_literal } <quote>
+
+character_representation ::= <nonquote_character> | quote_symbol
+
+bit ::= "0" | "1"
+
+mantissa ::= exact_numeric_literal
+
+exponent ::= signed_integer
+
+colon ::= ":"
+
+precision ::= unsigned_integer
+
+scale ::= unsigned_integer
+
+result_expression ::= value_expression
+
+<newline> ::= '\n' | '\r\n'
+
+<space> ::= #'\s+'
+
+comment ::= comment_introducer [ comment_character+ ] <newline>
+
+date_string ::= <quote> date_value <quote>
+
+time_string ::= <quote> time_value [ time_zone_interval ] <quote>
+
+timestamp_string ::= <quote> date_value time_value [ time_zone_interval ] <quote>
+
+year_month_literal ::=
+             years_value
+     |       [ years_value minus_sign ] months_value
+
+day_time_literal ::= day_time_interval | time_interval
+
+<nonquote_character> ::= #"[^']"
+
+quote_symbol ::= <quote> <quote>
+
+signed_integer ::= [ sign ] unsigned_integer
+
+comment_introducer ::= minus_sign minus_sign [minus_sign+]
+
+comment_character ::= <nonquote_character> | <quote>
+
+date_value ::= years_value minus_sign months_value minus_sign days_value
+
+time_value ::= hours_value colon minutes_value colon seconds_value
+
+time_zone_interval ::= sign hours_value colon minutes_value
+
+months_value ::= datetime_value
+
+years_value ::= datetime_value
+
+time_interval ::=
+             hours_value [ colon minutes_value [ colon seconds_value ] ]
+     |       minutes_value [ colon seconds_value ]
+     |       seconds_value
+
+day_time_interval ::=
+             days_value [ hours_value [ colon minutes_value [ colon seconds_value ] ] ]
+
+days_value ::= datetime_value
+
+hours_value ::= datetime_value
+
+seconds_value ::= seconds_integer_value [ period [ seconds_fraction ] ]
+
+minutes_value ::= datetime_value
+
+datetime_value ::= unsigned_integer
+
+seconds_integer_value ::= unsigned_integer
+
+seconds_fraction ::= unsigned_integer
+
