@@ -315,7 +315,7 @@ delimited_identifier_body ::= delimited_identifier_part+
 
 double_quote ::= "\""
 
-identifier_body ::= #'\w+'
+identifier_body ::= #'[_A-Za-z]\w+'
 
 character_set_name ::= [ schema_name period ] SQL_language_identifier
 
