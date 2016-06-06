@@ -38,12 +38,12 @@
     (parsable?
      "SELECT a.*, b.zebra_id
       FROM a_table a
-      LEFT OUTER JOIN b_table b ON a.id = b.a_id
+      INNER JOIN b_table b ON a.id = b.a_id
       ")
     (parsable?
      "SELECT a.*, b.zebra_id
       FROM a_table a
-      LEFT OUTER JOIN b_table b ON a.id = b.a_id
+      INNER JOIN b_table b ON a.id = b.a_id
       WHERE b.zebra_id > 9000
       ")
     (parsable?
@@ -53,7 +53,7 @@
     (parsable?
      "SELECT a.*, b.zebra_id
       FROM a_table a
-      LEFT OUTER JOIN b_table b ON a.id = b.a_id
+      JOIN b_table b ON a.id = b.a_id
       WHERE b.zebra_id IS NOT NULL
       ")
     (parsable?
@@ -62,7 +62,7 @@
                       , b.zebra_id
       from
                         a_table a
-      left outer join
+      inner join
                         b_table b
                   on    a.id = b.a_id
       where
