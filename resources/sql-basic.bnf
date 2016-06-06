@@ -233,8 +233,6 @@ select_list ::=
 table_expression ::=
              from_clause
              [ where_clause ]
-             [ group_by_clause ]
-             [ having_clause ]
 
 table_value_constructor_list ::= row_value_constructor [ { comma row_value_constructor }+ ]
 
@@ -298,10 +296,6 @@ from_clause ::=
     <"FROM"> table_reference
     [ { comma table_reference }+ ]
 
-group_by_clause ::= "GROUP" "BY" grouping_column_reference_list
-
-having_clause ::= "HAVING" search_condition
-
 where_clause ::= "WHERE" search_condition
 
 datetime_primary ::= value_expression_primary | datetime_value_function
@@ -353,9 +347,6 @@ derived_column ::= value_expression
 
 qualifier ::= table_name | correlation_name
 
-grouping_column_reference_list ::=
-             grouping_column_reference [ { comma grouping_column_reference }+ ]
-
 datetime_value_function ::=
              current_date_value_function
      |       current_time_value_function
@@ -372,8 +363,6 @@ value_expression_primary ::=
 time_zone_specifier ::=
       "LOCAL"
     | "TIME" "ZONE" interval_value_expression
-
-grouping_column_reference ::= column_reference
 
 current_date_value_function ::= "CURRENT_DATE"
 
