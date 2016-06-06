@@ -132,6 +132,38 @@
 
   )
 
+(declare simplify-select
+         simplify-delete
+         simplify-update
+         simplify-insert)
+
+(defn simplify-ast [ast]
+  {:pre [(vector? ast)
+         (seq ast)
+         (= :direct_SQL_data_statement (get-in ast [0]))
+         (#{:direct_select_statement_multiple_rows
+            :delete_statement_searched
+            :insert_statement
+            :update_statement_searched} (get-in ast [1 0]))]}
+  (let [statement_type (get-in ast [1 0])
+        root (get-in ast [1 1])]
+    (case statement_type
+      :direct_select_statement_multiple_rows (simplify-select root)
+      :delete_statement_searched (simplify-delete root)
+      :insert_statement (simplify-insert root)
+      :update_statement_searched (simplify-update root)
+      (ex-info "unknown statement type" {:statement_type statement_type
+                                         :ast ast}))))
+
+(defn simplify-select [ast]
+  :select)
+(defn simplify-delete [ast]
+  :delete)
+(defn simplify-update [ast]
+  :update)
+(defn simplify-insert [ast]
+  :insert)
+
 ;; (def transform-operator
 ;;   {"+" +
 ;;    "-" -
