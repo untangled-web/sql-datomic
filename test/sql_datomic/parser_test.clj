@@ -10,19 +10,19 @@
 
 (deftest select-tests
   (testing "SELECT statements"
-    (parsable? "SELECT name AS foo FROM a_table")
     (parsable? "SELECT name FROM a_table")
-    (parsable? "SELECT name, age AS bleh FROM a_table")
+    (parsable? "SELECT name FROM a_table")
+    (parsable? "SELECT name, age FROM a_table")
     (parsable? "SELECT * FROM a_table")
     (parsable? "SELECT name FROM a_table, b_table")
     (parsable?
-     "SELECT foo AS \"fuu\"
+     "SELECT foo
       FROM   a_table
      ")
     (parsable?
-     "SELECT foo AS \"fuu\",
+     "SELECT foo,
 		bar,
-             baz AS hmm
+             baz
       FROM   a_table
      ")
     (parsable?
@@ -31,53 +31,55 @@
      ")
     (parsable? "SELECT name FROM a_table WHERE name = 'foo'")
     (parsable?
-     "SELECT a.*, b.zebra_id
-      FROM a_table a
-      JOIN b_table b ON a.id = b.a_id
-      WHERE b.zebra_id > 9000")
+     "SELECT a_table.*, b_table.zebra_id
+      FROM a_table
+      JOIN b_table ON a_table.id = b_table.a_id
+      WHERE b_table.zebra_id > 9000")
     (parsable?
-     "SELECT a.*, b.zebra_id
-      FROM a_table a
-      INNER JOIN b_table b ON a.id = b.a_id
+     "SELECT a_table.*, b_table.zebra_id
+      FROM a_table
+      INNER JOIN b_table ON a_table.id = b_table.a_id
       ")
     (parsable?
-     "SELECT a.*, b.zebra_id
-      FROM a_table a
-      INNER JOIN b_table b ON a.id = b.a_id
-      WHERE b.zebra_id > 9000
+     "SELECT a_table.*, b_table.zebra_id
+      FROM a_table
+      INNER JOIN b_table ON a_table.id = b_table.a_id
+      WHERE b_table.zebra_id > 9000
       ")
     (parsable?
      "SELECT *
       FROM a_table
       WHERE a_table.foo IS NOT NULL")
     (parsable?
-     "SELECT a.*, b.zebra_id
-      FROM a_table a
-      JOIN b_table b ON a.id = b.a_id
-      WHERE b.zebra_id IS NOT NULL
+     "SELECT a_table.*, b_table.zebra_id
+      FROM a_table
+      JOIN b_table ON a_table.id = b_table.a_id
+      WHERE b_table.zebra_id IS NOT NULL
       ")
     (parsable?
      "select
-                        a.*
-                      , b.zebra_id
+                        a_table.*
+                      , b_table.zebra_id
       from
-                        a_table a
+                        a_table
       inner join
-                        b_table b
-                  on    a.id = b.a_id
+                        b_table
+                  on    a_table.id = b_table.a_id
       where
-                        b.zebra_id is not null
+                        b_table.zebra_id is not null
       ")
     (parsable?
-     "SELECT a.*, b.zebra_id
-      FROM a_table a
-      INNER JOIN b_table b ON a.id = b.a_id
-      WHERE b.zebra_id > 9000")
+     "SELECT a_table.*, b_table.zebra_id
+      FROM a_table
+      INNER JOIN b_table ON a_table.id = b_table.a_id
+      WHERE b_table.zebra_id > 9000")
     (parsable?
      "SELECT *
-      FROM a_table a
-      WHERE a.created_on BETWEEN DATE '2007-02-01'
-                             AND DATE '2010-10-10'")
+      FROM a_table
+      WHERE a_table.created_on BETWEEN DATE '2007-02-01'
+                                   AND DATE '2010-10-10'"))
+
+  (testing "INSERT"
     (parsable?
      "insert into customers (
           firstname, lastname, address1, address2,
@@ -86,12 +88,16 @@
           'Foo', 'Bar', '123 Some Place', '',
           'Thousand Oaks', 'CA', '91362', 'USA'
       )
-      ")
+      "))
+
+  (testing "UPDATE"
     (parsable?
      "update      customers
       set         city = 'Springfield'
                 , state = 'VA'
                 , zip = '22150'
-      where       id = 123454321")
+      where       id = 123454321"))
+
+  (testing "DELETE"
     (parsable?
      "delete from products where actor = 'homer simpson'")))
