@@ -91,7 +91,7 @@ join_specification ::= join_condition
 
 corresponding_column_list ::= column_name_list
 
-non_join_query_primary ::= simple_table | left_paren non_join_query_expression right_paren
+non_join_query_primary ::= simple_table
 
 query_primary ::= non_join_query_primary | joined_table
 
@@ -125,7 +125,6 @@ join_condition ::= "ON" search_condition
 simple_table ::=
              query_specification
      |       table_value_constructor
-     |       explicit_table
 
 datetime_value_expression ::=
              datetime_term
@@ -167,11 +166,9 @@ derived_column_list ::= column_name_list
 
 table_subquery ::= subquery
 
-explicit_table ::= "TABLE" table_name
-
 query_specification ::=
-             "SELECT" [ set_quantifier ] select_list
-              table_expression
+             <"SELECT"> select_list
+             table_expression
 
 table_value_constructor ::= "VALUES" table_value_constructor_list
 
@@ -232,8 +229,6 @@ subquery ::= left_paren query_expression right_paren
 select_list ::=
              asterisk
      |       select_sublist [ { comma select_sublist }+ ]
-
-set_quantifier ::= "DISTINCT" | "ALL"
 
 table_expression ::=
              from_clause
@@ -300,7 +295,7 @@ SQL_language_identifier ::= #"\w+"
 select_sublist ::= derived_column | qualifier period asterisk
 
 from_clause ::=
-    "FROM" table_reference
+    <"FROM"> table_reference
     [ { comma table_reference }+ ]
 
 group_by_clause ::= "GROUP" "BY" grouping_column_reference_list
@@ -408,7 +403,7 @@ cast_operand ::= value_expression | "NULL"
 cast_target ::= data_type
 
 general_set_function ::=
-             set_function_type left_paren [ set_quantifier ] value_expression right_paren
+             set_function_type left_paren value_expression right_paren
 
 general_value_specification ::=
          parameter_specification

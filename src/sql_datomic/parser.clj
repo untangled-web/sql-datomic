@@ -15,71 +15,6 @@
 
 (comment
 
-  (parser "SELECT name AS foo FROM a_table")
-  (parser "SELECT name FROM a_table")
-  (parser "SELECT name, age AS bleh FROM a_table")
-  (parser "SELECT * FROM a_table")
-  (parser "SELECT name FROM a_table, b_table")
-  (parser "SELECT name FROM a_table WHERE name = 'foo'")
-  (parser
-     "SELECT foo AS \"fuu\"
-      FROM   a_table
-     ")
-  (parser
-   "SELECT a.*, b.zebra_id
-      FROM a_table a
-      LEFT OUTER JOIN b_table b ON a.id = b.a_id
-      WHERE b.zebra_id > 9000
-      ")
-  (parser
-   "SELECT *
-      FROM a_table a
-      WHERE a.foo IS NOT NULL
-      ")
-  (parser
-   "SELECT a.*, b.zebra_id
-      FROM a_table a
-      LEFT OUTER JOIN b_table b ON a.id = b.a_id
-      WHERE b.zebra_id IS NOT NULL
-      ")
-  (parser
-   "select a.*, b.zebra_id
-      from a_table a
-      left outer join b_table b on a.id = b.a_id
-      where b.zebra_id is not null
-      ")
-  (parser
-   "SELECT a.*, b.zebra_id
-      FROM a_table a
-      INNER JOIN b_table b ON a.id = b.a_id
-      WHERE b.zebra_id > 9000")
-  (parser
-   "SELECT *
-      FROM a_table a
-      WHERE a.created_on BETWEEN DATE '2007-02-01'
-                             AND DATE '2010-10-10'")
-  (parser
-   "insert into customers (
-        firstname, lastname, address1, address2,
-        city, state, zip, country
-    ) values (
-        'Foo', 'Bar', '123 Some Place', '',
-        'Thousand Oaks', 'CA', '91362', 'USA'
-    )
-    ")
-  (parser
-   "update      customers
-    set         city = 'Springfield'
-              , state = 'VA'
-              , zip = '22150'
-    where       id = 123454321")
-  (parser
-   "delete from products where actor = 'homer simpson'")
-
-  )
-
-(comment
-
   ;; Such AST ...
   ;; Do not want.  Trim please.
   (->> "delete from products where actor = 'homer simpson'"
@@ -143,18 +78,18 @@
 (defn simplify-ast [ast]
   {:pre [(vector? ast)
          (seq ast)
-         (= :direct_SQL_data_statement (get-in ast [0]))
-         (#{:direct_select_statement_multiple_rows
-            :delete_statement_searched
+         (= :sql_data_statement (get-in ast [0]))
+         (#{:select_statement
+            :delete_statement
             :insert_statement
-            :update_statement_searched} (get-in ast [1 0]))]}
+            :update_statement} (get-in ast [1 0]))]}
   (let [statement_type (get-in ast [1 0])
         root (get-in ast [1 1])]
     (case statement_type
-      :direct_select_statement_multiple_rows (simplify-select root)
-      :delete_statement_searched (simplify-delete root)
+      :select_statement (simplify-select root)
+      :delete_statement (simplify-delete root)
       :insert_statement (simplify-insert root)
-      :update_statement_searched (simplify-update root)
+      :update_statement (simplify-update root)
       (ex-info "unknown statement type" {:statement_type statement_type
                                          :ast ast}))))
 
@@ -169,9 +104,7 @@
 
 (defn start-of-select? [node]
   (and (vector? node)
-       (= (first node) :query_specification)
-       (string? (second node))
-       (= (str/lower-case (second node)) "select")))
+       (= (first node) :query_specification)))
 
 (defn descend-to-value-expression [node]
   (descend-to (fn [n]
