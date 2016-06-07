@@ -33,18 +33,19 @@
     (parsable?
      "SELECT a_table.*, b_table.zebra_id
       FROM a_table
-      JOIN b_table ON a_table.id = b_table.a_id
-      WHERE b_table.zebra_id > 9000")
+         , b_table
+      WHERE a_table.id = b_table.a_id
+        AND b_table.zebra_id > 9000")
     (parsable?
      "SELECT a_table.*, b_table.zebra_id
-      FROM a_table
-      INNER JOIN b_table ON a_table.id = b_table.a_id
+      FROM a_table, b_table
+      WHERE a_table.id = b_table.a_id
       ")
     (parsable?
      "SELECT a_table.*, b_table.zebra_id
-      FROM a_table
-      INNER JOIN b_table ON a_table.id = b_table.a_id
-      WHERE b_table.zebra_id > 9000
+      FROM a_table, b_table
+      WHERE a_table.id = b_table.a_id
+        AND b_table.zebra_id > 9000
       ")
     (parsable?
      "SELECT *
@@ -53,8 +54,9 @@
     (parsable?
      "SELECT a_table.*, b_table.zebra_id
       FROM a_table
-      JOIN b_table ON a_table.id = b_table.a_id
-      WHERE b_table.zebra_id IS NOT NULL
+         , b_table
+      WHERE a_table.id = b_table.a_id
+        AND b_table.zebra_id IS NOT NULL
       ")
     (parsable?
      "select
@@ -62,24 +64,23 @@
                       , b_table.zebra_id
       from
                         a_table
-      inner join
-                        b_table
-                  on    a_table.id = b_table.a_id
+                      , b_table
       where
-                        b_table.zebra_id is not null
+                        a_table.id = b_table.a_id
+                 and    b_table.zebra_id is not null
       ")
     (parsable?
      "SELECT a_table.*, b_table.zebra_id
-      FROM a_table
-      INNER JOIN b_table ON a_table.id = b_table.a_id
-      WHERE b_table.zebra_id > 9000")
+      FROM a_table, b_table
+      WHERE  a_table.id = b_table.a_id
+        AND  b_table.zebra_id > 9000")
     (parsable?
      "SELECT *
       FROM a_table
       WHERE a_table.created_on BETWEEN DATE '2007-02-01'
                                    AND DATE '2010-10-10'"))
 
-  (testing "INSERT"
+  (testing "INSERT statements"
     (parsable?
      "insert into customers (
           firstname, lastname, address1, address2,
@@ -90,7 +91,7 @@
       )
       "))
 
-  (testing "UPDATE"
+  (testing "UPDATE statements"
     (parsable?
      "update      customers
       set         city = 'Springfield'
@@ -98,6 +99,6 @@
                 , zip = '22150'
       where       id = 123454321"))
 
-  (testing "DELETE"
+  (testing "DELETE statements"
     (parsable?
      "delete from products where actor = 'homer simpson'")))

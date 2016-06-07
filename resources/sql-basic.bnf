@@ -91,8 +91,6 @@ _verbose_table_reference ::=
 
 table_reference ::=
          table_name [ correlation_specification ]
-     |   derived_table correlation_specification
-     |   joined_table
 
 join_specification ::= join_condition
 
@@ -237,18 +235,24 @@ _verbose_select_list ::=
              asterisk
      |       select_sublist [ { comma select_sublist }+ ]
 
-select_list ::= asterisk
-            | ( ( column_name
+qualified_asterisk ::= #'("[^\"]+"|[_A-Za-z]\w*)' <"."> asterisk
+
+select_list ::=
+                ( column_name
+                | asterisk
+                | qualified_asterisk
                 | character_string_literal
                 | exact_numeric_literal
                 | approximate_numeric_literal )
                 [ {
                   <comma>
                   ( column_name
+                  | asterisk
+                  | qualified_asterisk
                   | character_string_literal
                   | exact_numeric_literal
                   | approximate_numeric_literal )
-                  }+ ] )
+                  }+ ]
 
 table_expression ::=
              from_clause
@@ -317,6 +321,7 @@ select_sublist ::= column_name
                | exact_numeric_literal
 
 column_name ::= #'("[^\"]+"|[_A-Za-z]\w*)'
+            [ <"."> #'("[^\"]+"|[_A-Za-z]\w*)' ]
 
 from_clause ::=
     <"FROM"> table_reference
