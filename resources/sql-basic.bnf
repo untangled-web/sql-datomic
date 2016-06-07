@@ -8,8 +8,9 @@ delete_statement ::=
     "DELETE" "FROM" table_name
     [ "WHERE" search_condition ]
 
-select_statement ::=
-    query_expression
+_verbose_select_statement ::= query_expression
+
+select_statement ::= <"SELECT"> select_list from_clause [ where_clause ]
 
 insert_statement ::=
     "INSERT" "INTO" table_name insert_columns_and_source
@@ -39,8 +40,7 @@ joined_table ::=
          qualified_join
      |   left_paren joined_table right_paren
 
-non_join_query_expression ::=
-             non_join_query_term
+non_join_query_expression ::= non_join_query_term
 
 insert_column_list ::= column_name_list
 
@@ -70,11 +70,11 @@ non_join_query_term ::=
 
 query_term ::= non_join_query_term | joined_table
 
-column_name_list ::= column_name [ { comma column_name }+ ]
+column_name_list ::= _verbose_column_name [ { comma _verbose_column_name }+ ]
 
 equals_operator ::= "="
 
-object_column ::= column_name
+object_column ::= _verbose_column_name
 
 update_source ::= value_expression | null_specification
 
@@ -95,7 +95,7 @@ non_join_query_primary ::= simple_table
 
 query_primary ::= non_join_query_primary | joined_table
 
-column_name ::= identifier
+_verbose_column_name ::= identifier
 
 null_specification ::= "NULL"
 
@@ -226,9 +226,20 @@ identifier_body ::= #"[_a-zA-Z]\w+"
 
 subquery ::= left_paren query_expression right_paren
 
-select_list ::=
+_verbose_select_list ::=
              asterisk
      |       select_sublist [ { comma select_sublist }+ ]
+
+select_list ::= asterisk
+            | ( ( column_name
+                | character_string_literal
+                | exact_numeric_literal )
+                [ {
+                  <comma>
+                  ( column_name
+                  | character_string_literal
+                  | exact_numeric_literal )
+                  }+ ] )
 
 table_expression ::=
              from_clause
@@ -288,9 +299,15 @@ row_value_constructor_2 ::= row_value_constructor
 
 quantifier ::= all | some
 
-SQL_language_identifier ::= #"\w+"
+SQL_language_identifier ::= #"[_A-Za-z]\w*"
 
-select_sublist ::= derived_column | qualifier period asterisk
+_verbose_select_sublist ::= derived_column | qualifier period asterisk
+
+select_sublist ::= column_name
+               | character_string_literal
+               | exact_numeric_literal
+
+column_name ::= #'("[^\"]+"|[_A-Za-z]\w*)'
 
 from_clause ::=
     <"FROM"> table_reference
@@ -373,7 +390,7 @@ current_timestamp_value_function ::= "CURRENT_TIMESTAMP" [ left_paren timestamp_
 cast_specification ::= "CAST" left_paren cast_operand
                        "AS" cast_target right_paren
 
-column_reference ::= [ qualifier period ] column_name
+column_reference ::= [ qualifier period ] _verbose_column_name
 
 scalar_subquery ::= subquery
 
