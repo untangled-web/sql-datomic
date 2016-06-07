@@ -10,7 +10,7 @@ delete_statement ::=
 
 _verbose_select_statement ::= query_expression
 
-select_statement ::= <"SELECT"> select_list from_clause [ where_clause ]
+select_statement ::= <"SELECT"> select_list from_clause [ wee_where_clause ]
 
 insert_statement ::=
     "INSERT" "INTO" table_name insert_columns_and_source
@@ -89,8 +89,9 @@ _verbose_table_reference ::=
      |   derived_table correlation_specification
      |   joined_table
 
-table_reference ::=
-         table_name [ correlation_specification ]
+table_reference ::= table_name [ table_alias ]
+
+table_alias ::= [ <"AS"> ] #"'[^']+'|[_A-Za-z]\w*"
 
 join_specification ::= join_condition
 
@@ -245,7 +246,7 @@ select_list ::=
                 | exact_numeric_literal
                 | approximate_numeric_literal )
                 [ {
-                  <comma>
+                  <",">
                   ( column_name
                   | asterisk
                   | qualified_asterisk
@@ -325,9 +326,44 @@ column_name ::= #'("[^\"]+"|[_A-Za-z]\w*)'
 
 from_clause ::=
     <"FROM"> table_reference
-    [ { <comma> table_reference }+ ]
+    [ { <","> table_reference }+ ]
 
 where_clause ::= "WHERE" search_condition
+
+wee_where_clause ::= <"WHERE">
+                 ( something_between_dates
+                 | something_compare_something )
+                 [ { <"AND">
+                     ( something_between_dates
+                     | something_compare_something )
+                   }+ ]
+
+something_between_dates ::= column_name <"BETWEEN">
+                        something_datetime <"AND"> something_datetime
+
+something_date_literal ::= <"date"> <"'"> #"\d{4}-\d{2}-\d{2}" <"'">
+
+something_datetime_literal ::= <"datetime">
+                           <"'">
+                           #"\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}"
+                           <"'">
+
+something_epochal_literal ::= <"time"> <"'"> #"\d+" <"'">
+
+something_datetime ::= column_name
+                   | something_date_literal
+                   | something_datetime_literal
+                   | something_epochal_literal
+
+something_compare_something ::= column_name
+                            #'(=|!=|<>|<|<=|>|>=)'
+                            something_value
+
+something_value ::= column_name
+                | something_datetime
+                | exact_numeric_literal
+                | approximate_numeric_literal
+                | character_string_literal
 
 datetime_primary ::= value_expression_primary | datetime_value_function
 
@@ -404,7 +440,7 @@ current_timestamp_value_function ::= "CURRENT_TIMESTAMP" [ left_paren timestamp_
 cast_specification ::= "CAST" left_paren cast_operand
                        "AS" cast_target right_paren
 
-column_reference ::= [ qualifier period ] _verbose_column_name
+column_reference ::= [ qualifier <period> ] _verbose_column_name
 
 scalar_subquery ::= subquery
 
