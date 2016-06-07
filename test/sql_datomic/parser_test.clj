@@ -50,13 +50,13 @@
     (parsable?
      "SELECT *
       FROM a_table
-      WHERE a_table.foo IS NOT NULL")
+      WHERE a_table.foo <> 0")
     (parsable?
      "SELECT a_table.*, b_table.zebra_id
       FROM a_table
          , b_table
       WHERE a_table.id = b_table.a_id
-        AND b_table.zebra_id IS NOT NULL
+        AND b_table.zebra_id != 0
       ")
     (parsable?
      "select
@@ -67,7 +67,7 @@
                       , b_table
       where
                         a_table.id = b_table.a_id
-                 and    b_table.zebra_id is not null
+                 and    b_table.zebra_id > 0
       ")
     (parsable?
      "SELECT a_table.*, b_table.zebra_id
