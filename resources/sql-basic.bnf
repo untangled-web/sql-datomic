@@ -23,7 +23,9 @@ search_condition ::=
          boolean_term
      |   search_condition "OR" boolean_term
 
-table_name ::= identifier
+_verbose_table_name ::= identifier
+
+table_name ::= #"[_A-Za-z]\w*"
 
 query_expression ::= non_join_query_expression | joined_table
 
@@ -81,6 +83,11 @@ update_source ::= value_expression | null_specification
 boolean_test ::= boolean_primary [ "IS" [ "NOT" ] truth_value ]
 
 identifier ::= actual_identifier
+
+_verbose_table_reference ::=
+         table_name [ correlation_specification ]
+     |   derived_table correlation_specification
+     |   joined_table
 
 table_reference ::=
          table_name [ correlation_specification ]
@@ -313,7 +320,7 @@ column_name ::= #'("[^\"]+"|[_A-Za-z]\w*)'
 
 from_clause ::=
     <"FROM"> table_reference
-    [ { comma table_reference }+ ]
+    [ { <comma> table_reference }+ ]
 
 where_clause ::= "WHERE" search_condition
 
@@ -364,7 +371,7 @@ nondoublequote_character ::= #'[^\"]'
 
 derived_column ::= value_expression
 
-qualifier ::= table_name | correlation_name
+qualifier ::= _verbose_table_name | correlation_name
 
 datetime_value_function ::=
              current_date_value_function
