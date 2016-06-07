@@ -233,12 +233,14 @@ _verbose_select_list ::=
 select_list ::= asterisk
             | ( ( column_name
                 | character_string_literal
-                | exact_numeric_literal )
+                | exact_numeric_literal
+                | approximate_numeric_literal )
                 [ {
                   <comma>
                   ( column_name
                   | character_string_literal
-                  | exact_numeric_literal )
+                  | exact_numeric_literal
+                  | approximate_numeric_literal )
                   }+ ] )
 
 table_expression ::=
