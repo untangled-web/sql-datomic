@@ -89,7 +89,13 @@
           'Foo', 'Bar', '123 Some Place', '',
           'Thousand Oaks', 'CA', '91362', 'USA'
       )
-      "))
+      ")
+    (parsable?
+     "INSERT INTO
+        foo
+      (name, age, joined_on)
+      VALUES
+      ('foo', 42, date '2016-04-01')"))
 
   (testing "UPDATE statements"
     (parsable?

@@ -13,7 +13,29 @@ _verbose_select_statement ::= query_expression
 select_statement ::= <"SELECT"> select_list from_clause [ wee_where_clause ]
 
 insert_statement ::=
-    "INSERT" "INTO" table_name insert_columns_and_source
+                 <"INSERT"> <"INTO"> table_name
+                 <"("> insert_cols_list <")">
+                 <"VALUES">
+                 <"("> insert_vals_list <")">
+
+insert_cols_list ::= #"[_A-Za-z]\w*" [ { <","> #"[_A-Za-z]\w*" }+ ]
+
+insert_vals_list ::=
+                   ( character_string_literal
+                   | exact_numeric_literal
+                   | approximate_numeric_literal
+                   | something_date_literal
+                   | something_datetime_literal
+                   | something_epochal_literal )
+                   [ {
+                     <",">
+                     ( character_string_literal
+                     | exact_numeric_literal
+                     | approximate_numeric_literal
+                     | something_date_literal
+                     | something_datetime_literal
+                     | something_epochal_literal )
+                     }+ ]
 
 update_statement ::=
     "UPDATE" table_name "SET" set_clause_list

@@ -1,0 +1,76 @@
+select_statement ::= <"SELECT"> select_list from_clause [ wee_where_clause ]
+
+from_clause ::=
+    <"FROM"> table_reference
+    [ { <","> table_reference }+ ]
+
+select_list ::=
+                ( column_name
+                | qualified_asterisk
+                | character_string_literal
+                | exact_numeric_literal
+                | approximate_numeric_literal )
+                [ {
+                  <",">
+                  ( column_name
+                  | qualified_asterisk
+                  | character_string_literal
+                  | exact_numeric_literal
+                  | approximate_numeric_literal )
+                  }+ ]
+
+wee_where_clause ::= <"WHERE">
+                 ( something_between_dates
+                 | something_compare_something )
+                 [ { <"AND">
+                     ( something_between_dates
+                     | something_compare_something )
+                   }+ ]
+
+table_reference ::= table_name [ table_alias ]
+
+approximate_numeric_literal ::=
+             #"(\d+(\.(\d+)?)?|\.\d+)[eE](?:\+|-)?\d+"
+
+character_string_literal ::= #"'[^']*'"
+
+column_name ::= #'("[^\"]+"|[_A-Za-z]\w*)'
+                <"."> #'("[^\"]+"|[_A-Za-z]\w*)'
+
+exact_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)"
+
+qualified_asterisk ::= #'("[^\"]+"|[_A-Za-z]\w*)' <"."> < asterisk >
+
+something_between_dates ::= column_name <"BETWEEN">
+                        something_datetime <"AND"> something_datetime
+
+something_compare_something ::= column_name
+                            #'(=|!=|<>|<|<=|>|>=)'
+                            something_value
+
+table_alias ::= [ <"AS"> ] #"'[^']+'|[_A-Za-z]\w*"
+
+table_name ::= #"[_A-Za-z]\w*"
+
+asterisk ::= "*"
+
+something_datetime ::= column_name
+                   | something_date_literal
+                   | something_datetime_literal
+                   | something_epochal_literal
+
+something_value ::= column_name
+                | something_datetime
+                | exact_numeric_literal
+                | approximate_numeric_literal
+                | character_string_literal
+
+something_date_literal ::= <"date"> <"'"> #"\d{4}-\d{2}-\d{2}" <"'">
+
+something_datetime_literal ::= <"datetime">
+                           <"'">
+                           #"\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}"
+                           <"'">
+
+something_epochal_literal ::= <"time"> <"'"> #"\d+" <"'">
+
