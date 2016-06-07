@@ -93,9 +93,9 @@
     (parsable?
      "INSERT INTO
         foo
-      (name, age, joined_on)
+      (name, age, balance, joined_on)
       VALUES
-      ('foo', 42, date '2016-04-01')"))
+      ('foo', 42, 1234.56, date '2016-04-01')"))
 
   (testing "UPDATE statements"
     (parsable?
