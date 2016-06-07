@@ -236,11 +236,10 @@ _verbose_select_list ::=
              asterisk
      |       select_sublist [ { comma select_sublist }+ ]
 
-qualified_asterisk ::= #'("[^\"]+"|[_A-Za-z]\w*)' <"."> asterisk
+qualified_asterisk ::= #'("[^\"]+"|[_A-Za-z]\w*)' <"."> < asterisk >
 
 select_list ::=
                 ( column_name
-                | asterisk
                 | qualified_asterisk
                 | character_string_literal
                 | exact_numeric_literal
@@ -248,7 +247,6 @@ select_list ::=
                 [ {
                   <",">
                   ( column_name
-                  | asterisk
                   | qualified_asterisk
                   | character_string_literal
                   | exact_numeric_literal
@@ -322,7 +320,7 @@ select_sublist ::= column_name
                | exact_numeric_literal
 
 column_name ::= #'("[^\"]+"|[_A-Za-z]\w*)'
-            [ <"."> #'("[^\"]+"|[_A-Za-z]\w*)' ]
+                <"."> #'("[^\"]+"|[_A-Za-z]\w*)'
 
 from_clause ::=
     <"FROM"> table_reference

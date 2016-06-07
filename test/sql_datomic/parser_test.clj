@@ -10,26 +10,26 @@
 
 (deftest select-tests
   (testing "SELECT statements"
-    (parsable? "SELECT name FROM a_table")
-    (parsable? "SELECT name FROM a_table")
-    (parsable? "SELECT name, age FROM a_table")
-    (parsable? "SELECT * FROM a_table")
-    (parsable? "SELECT name FROM a_table, b_table")
+    (parsable? "SELECT a_table.name FROM a_table")
+    (parsable? "SELECT a_table.name FROM a_table")
+    (parsable? "SELECT a_table.name, a_table.age FROM a_table")
+    (parsable? "SELECT a_table.* FROM a_table")
+    (parsable? "SELECT a_table.name FROM a_table, b_table")
     (parsable?
-     "SELECT foo
+     "SELECT a_table.foo
       FROM   a_table
      ")
     (parsable?
-     "SELECT foo,
-		bar,
-             baz
+     "SELECT a_table.foo,
+		a_table.bar,
+             a_table.baz
       FROM   a_table
      ")
     (parsable?
      "
-         SELECT foo FROM   a_table
+         SELECT a_table.foo FROM   a_table
      ")
-    (parsable? "SELECT name FROM a_table WHERE name = 'foo'")
+    (parsable? "SELECT a_table.name FROM a_table WHERE a_table.name = 'foo'")
     (parsable?
      "SELECT a_table.*, b_table.zebra_id
       FROM a_table
@@ -48,7 +48,7 @@
         AND b_table.zebra_id > 9000
       ")
     (parsable?
-     "SELECT *
+     "SELECT a_table.*
       FROM a_table
       WHERE a_table.foo <> 0")
     (parsable?
@@ -75,7 +75,7 @@
       WHERE  a_table.id = b_table.a_id
         AND  b_table.zebra_id > 9000")
     (parsable?
-     "SELECT *
+     "SELECT a_table.*
       FROM a_table
       WHERE a_table.created_on BETWEEN DATE '2007-02-01'
                                    AND DATE '2010-10-10'"))
