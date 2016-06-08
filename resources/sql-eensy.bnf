@@ -1,12 +1,11 @@
-sql_data_statement ::=
-             delete_statement
-     |       select_statement
-     |       insert_statement
-     |       update_statement
+sql_data_statement ::= delete_statement
+                     | select_statement
+                     | insert_statement
+                     | update_statement
 
 delete_statement ::=
     <"DELETE"> <"FROM"> table_name
-    [ wee_where_clause ]
+    [ where_clause ]
 
 insert_statement ::=
                  <"INSERT"> <"INTO"> table_name
@@ -14,113 +13,104 @@ insert_statement ::=
                  <"VALUES">
                  <"("> insert_vals <")">
 
-select_statement ::= <"SELECT"> select_list from_clause [ wee_where_clause ]
+select_statement ::= <"SELECT"> select_list from_clause [ where_clause ]
 
 update_statement ::=
     <"UPDATE"> table_name <"SET"> set_clausen
-    [ wee_where_clause ]
+    [ where_clause ]
 
 table_name ::= #"[_A-Za-z]\w*"
 
-wee_where_clause ::= <"WHERE">
-                 ( something_between_dates
-                 | something_compare_something )
+where_clause ::= <"WHERE">
+                 ( between_clause
+                 | binary_comparison )
                  [ { <"AND">
-                     ( something_between_dates
-                     | something_compare_something )
+                     ( between_clause
+                     | binary_comparison )
                    }+ ]
 
 insert_cols ::= #"[_A-Za-z]\w*" [ { <","> #"[_A-Za-z]\w*" }+ ]
 
-insert_vals ::=
-                   ( character_string_literal
-                   | exact_numeric_literal
-                   | approximate_numeric_literal
-                   | something_date_literal
-                   | something_datetime_literal
-                   | something_epochal_literal )
-                   [ {
-                     <",">
-                     ( character_string_literal
-                     | exact_numeric_literal
-                     | approximate_numeric_literal
-                     | something_date_literal
-                     | something_datetime_literal
-                     | something_epochal_literal )
-                     }+ ]
+insert_vals ::= ( string_literal
+                | exact_numeric_literal
+                | approximate_numeric_literal
+                | date_literal
+                | datetime_literal
+                | epochal_literal )
+                [ {
+                  <",">
+                  ( string_literal
+                  | exact_numeric_literal
+                  | approximate_numeric_literal
+                  | date_literal
+                  | datetime_literal
+                  | epochal_literal )
+                  }+ ]
 
-from_clause ::=
-    <"FROM"> table_reference
-    [ { <","> table_reference }+ ]
+from_clause ::= <"FROM"> table_ref [ { <","> table_ref }+ ]
 
-select_list ::=
-                ( column_name
+select_list ::= ( column_name
                 | qualified_asterisk
-                | character_string_literal
+                | string_literal
                 | exact_numeric_literal
                 | approximate_numeric_literal )
                 [ {
                   <",">
                   ( column_name
                   | qualified_asterisk
-                  | character_string_literal
+                  | string_literal
                   | exact_numeric_literal
                   | approximate_numeric_literal )
                   }+ ]
 
-set_clausen ::= set_clause_assign_pair
-            [ { <","> set_clause_assign_pair }+ ]
+set_clausen ::= assignment_pair [ { <","> assignment_pair }+ ]
 
-something_between_dates ::= column_name <"BETWEEN">
-                        something_datetime <"AND"> something_datetime
+between_clause ::= column_name <"BETWEEN">
+                   chrono_value <"AND"> chrono_value
 
-something_compare_something ::= column_name
-                            #'(=|!=|<>|<|<=|>|>=)'
-                            something_value
+binary_comparison ::= column_name
+                      #"(=|!=|<>|<|<=|>|>=)"
+                      general_value
 
-approximate_numeric_literal ::=
-             #"(\d+(\.(\d+)?)?|\.\d+)[eE](?:\+|-)?\d+"
+approximate_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)[eE](?:\+|-)?\d+"
 
-character_string_literal ::= #"'[^']*'"
+string_literal ::= #"'[^']*'"
 
 exact_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)"
 
-something_date_literal ::= <"date"> <"'"> #"\d{4}-\d{2}-\d{2}" <"'">
+date_literal ::= <"date"> <"'"> #"\d{4}-\d{2}-\d{2}" <"'">
 
-something_datetime_literal ::= <"datetime">
-                           <"'">
-                           #"\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}"
-                           <"'">
+datetime_literal ::= <"datetime">
+                     <"'">
+                     #"\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}"
+                     <"'">
 
-something_epochal_literal ::= <"time"> <"'"> #"\d+" <"'">
+epochal_literal ::= <"time"> <"'"> #"\d+" <"'">
 
-table_reference ::= table_name [ table_alias ]
+table_ref ::= table_name [ table_alias ]
 
 column_name ::= #'("[^\"]+"|[_A-Za-z]\w*)'
                 <"."> #'("[^\"]+"|[_A-Za-z]\w*)'
 
-qualified_asterisk ::= #'("[^\"]+"|[_A-Za-z]\w*)' <"."> < asterisk >
+qualified_asterisk ::= #'("[^\"]+"|[_A-Za-z]\w*)' <"."> <"*">
 
-set_clause_assign_pair ::=
-                       column_name <"=">
-                       ( character_string_literal
-                       | exact_numeric_literal
-                       | approximate_numeric_literal
-                       | something_date_literal
-                       | something_datetime_literal
-                       | something_epochal_literal )
+assignment_pair ::= column_name <"=">
+                    ( string_literal
+                    | exact_numeric_literal
+                    | approximate_numeric_literal
+                    | date_literal
+                    | datetime_literal
+                    | epochal_literal )
 
-something_datetime ::= column_name
-                   | something_date_literal
-                   | something_datetime_literal
-                   | something_epochal_literal
+chrono_value ::= column_name
+               | date_literal
+               | datetime_literal
+               | epochal_literal
 
-something_value ::= column_name
-                | something_datetime
+general_value ::= column_name
+                | chrono_value
                 | exact_numeric_literal
                 | approximate_numeric_literal
-                | character_string_literal
+                | string_literal
 
-table_alias ::= [ <"AS"> ] #"'[^']+'|[_A-Za-z]\w*"
-
-asterisk ::= "*"
+table_alias ::= [ <"AS"> ] #'"[^\"]+"|[_A-Za-z]\w*'

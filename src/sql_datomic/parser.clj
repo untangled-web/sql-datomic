@@ -4,8 +4,7 @@
             [clojure.string :as str]))
 
 (def parser
-  (-> #_"select-grammar.bnf"
-      "resources/sql-eensy.bnf"
+  (-> "resources/sql-eensy.bnf"
       #_"resources/sql.bnf"
       slurp
       (insta/parser
