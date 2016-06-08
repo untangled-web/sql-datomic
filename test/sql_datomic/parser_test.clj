@@ -83,7 +83,12 @@
      "select foo.name
         from foo
        where foo.title = 'git-\\'r-dun maestro'
-         and foo.hired_on <= '2000-01-01'"))
+         and foo.hired_on <= date '2000-01-01'")
+    (parsable?
+     "select foo.id, foo.name, foo.title
+        from foo
+       where foo.is_active = true
+         and foo.group_id >= 3"))
 
   (testing "INSERT statements"
     (parsable?

@@ -32,6 +32,7 @@ where_clause ::= <"WHERE">
 insert_cols ::= #"[_A-Za-z]\w*" [ { <","> #"[_A-Za-z]\w*" }+ ]
 
 insert_vals ::= ( string_literal
+                | boolean_literal
                 | exact_numeric_literal
                 | approximate_numeric_literal
                 | date_literal
@@ -40,6 +41,7 @@ insert_vals ::= ( string_literal
                 [ {
                   <",">
                   ( string_literal
+                  | boolean_literal
                   | exact_numeric_literal
                   | approximate_numeric_literal
                   | date_literal
@@ -52,6 +54,7 @@ from_clause ::= <"FROM"> table_ref [ { <","> table_ref }+ ]
 select_list ::= ( column_name
                 | qualified_asterisk
                 | string_literal
+                | boolean_literal
                 | exact_numeric_literal
                 | approximate_numeric_literal )
                 [ {
@@ -59,6 +62,7 @@ select_list ::= ( column_name
                   ( column_name
                   | qualified_asterisk
                   | string_literal
+                  | boolean_literal
                   | exact_numeric_literal
                   | approximate_numeric_literal )
                   }+ ]
@@ -69,18 +73,35 @@ between_clause ::= column_name <"BETWEEN">
                    chrono_value <"AND"> chrono_value
 
 binary_comparison ::= column_name
-                      #"(=|!=|<>|<=|<|>=|>)"
+                  {
+                    ( #"(<=|<|>=|>)"
                       ( column_name
+                      | chrono_value
+                      | exact_numeric_literal
+                      | approximate_numeric_literal )
+                    )
+                    |
+                    ( #"(=|!=|<>)"
+                      ( column_name
+                      | boolean_literal
                       | chrono_value
                       | exact_numeric_literal
                       | approximate_numeric_literal
                       | string_literal )
-
-approximate_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)[eE](?:\+|-)?\d+"
+                    )
+                  }
 
 string_literal ::= #"'(?:[^'\\]|\\.)*?'"
 
 exact_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)"
+
+approximate_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)[eE](?:\+|-)?\d+"
+
+boolean_literal ::= true | false
+
+true ::= <"TRUE">
+
+false ::= <"FALSE">
 
 date_literal ::= <"date"> <"'"> #"\d{4}-\d{2}-\d{2}" <"'">
 
@@ -100,6 +121,7 @@ qualified_asterisk ::= #'("[^\"]+"|[_A-Za-z]\w*)' <"."> <"*">
 
 assignment_pair ::= column_name <"=">
                     ( string_literal
+                    | boolean_literal
                     | exact_numeric_literal
                     | approximate_numeric_literal
                     | date_literal
