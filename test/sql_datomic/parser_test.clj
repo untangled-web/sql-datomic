@@ -88,7 +88,14 @@
      "select foo.id, foo.name, foo.title
         from foo
        where foo.is_active = true
-         and foo.group_id >= 3"))
+         and foo.group_id >= 3")
+    (parsable?
+     "select survey-request.email,
+             survey-request.completion-status
+        from survey-request
+       where survey-request.sent-date between date '2014-04-01'
+                                          and date '2014-05-01'
+     "))
 
   (testing "INSERT statements"
     (parsable?
