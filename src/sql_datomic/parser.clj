@@ -13,6 +13,32 @@
        :string-ci true
        :auto-whitespace :standard)))
 
+(defn where-clause-ast->ir [ast]
+  {:pre [(vector? ast)
+         (= (first ast) :where_clause)]}
+  (rest ast))
+
+(defn from-clause-ast->ir [ast]
+  {:pre [(vector? ast)
+         (= (first ast) :from_clause)]}
+  (rest ast))
+
+(defn select-list-ast->ir [ast]
+  {:pre [(vector? ast)
+         (= (first ast) :select_list)]}
+  (rest ast))
+
+(defn select-statement-ast->ir [ast]
+  {:pre [(vector? ast)
+         (>= (count ast) 3)
+         (= (first ast) :select_statement)]}
+  (let [[_ select-list from-clause where-clause] ast
+        result {:tables (from-clause-ast->ir from-clause)
+                :fields (select-list-ast->ir select-list)}]
+    (if where-clause
+      (assoc result :where (where-clause-ast->ir where-clause))
+      result)))
+
 (declare simplify-select
          simplify-delete
          simplify-update
