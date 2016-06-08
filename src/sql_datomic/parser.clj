@@ -120,25 +120,3 @@
 (defn parse [input]
   (->> (parser input)
        transform))
-
-;; (def transform-operator
-;;   {"+" +
-;;    "-" -
-;;    "*" *
-;;    "/" /})
-
-;; (defn transform-operation [f v]
-;;   (if (coll? v)
-;;     (apply f v)
-;;     (f v)))
-
-;; (def transform-options
-;;   {:expr identity
-;;    :vector vector
-;;    :number read-string
-;;    :operator transform-operator
-;;    :operation transform-operation})
-
-;; (defn parse [input]
-;;   (->> (parser input)
-;;        (insta/transform transform-options)))
