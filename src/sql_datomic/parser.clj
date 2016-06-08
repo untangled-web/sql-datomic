@@ -18,10 +18,27 @@
          (= (first ast) :where_clause)]}
   (rest ast))
 
+(defn table-ref-ast->ir [ast]
+  {:pre [(vector? ast)
+         (= (first ast) :table_ref)
+         (vector? (second ast))
+         (= (get-in ast [1 0]) :table_name)
+         (string? (get-in ast [1 1]))]}
+  (when (>= (count ast) 3)
+    (assert (vector? (get-in ast [2])) "invalid table_alias")
+    (assert (= (get-in ast [2 0]) :table_alias) "invalid table_alias")
+    (assert (string? (get-in ast [2 1])) "invalid table_alias"))
+  (let [[_ [_ table-name] maybe-table-alias] ast
+        result {:name table-name}]
+    (if maybe-table-alias
+      (assoc result :alias (second maybe-table-alias))
+      result)))
+
 (defn from-clause-ast->ir [ast]
   {:pre [(vector? ast)
          (= (first ast) :from_clause)]}
-  (rest ast))
+  (->> (rest ast)
+       (map table-ref-ast->ir)))
 
 (defn select-list-ast->ir [ast]
   {:pre [(vector? ast)
