@@ -14,63 +14,6 @@
        :string-ci true
        :auto-whitespace :standard)))
 
-(comment
-
-  ;; Such AST ...
-  ;; Do not want.  Trim please.
-  (->> "delete from products where actor = 'homer simpson'"
-       parser
-       clojure.pprint/pprint)
-  [:direct_SQL_statement
-   [:direct_SQL_data_statement
-    [:delete_statement_searched
-     "DELETE"
-     "FROM"
-     [:table_name
-      [:qualified_name
-       [:qualified_identifier
-        [:identifier
-         [:actual_identifier
-          [:regular_identifier [:identifier_body "products"]]]]]]]
-     "WHERE"
-     [:search_condition
-      [:boolean_term
-       [:boolean_factor
-        [:boolean_test
-         [:boolean_primary
-          [:predicate
-           [:comparison_predicate
-            [:row_value_constructor
-             [:row_value_constructor_element
-              [:value_expression
-               [:interval_value_expression
-                [:interval_term
-                 [:interval_factor
-                  [:interval_primary
-                   [:value_expression_primary
-                    [:column_reference
-                     [:column_name
-                      [:identifier
-                       [:actual_identifier
-                        [:regular_identifier
-                         [:identifier_body "actor"]]]]]]]]]]]]]]
-            [:comp_op [:equals_operator "="]]
-            [:row_value_constructor
-             [:row_value_constructor_element
-              [:value_expression
-               [:interval_value_expression
-                [:interval_term
-                 [:interval_factor
-                  [:interval_primary
-                   [:value_expression_primary
-                    [:unsigned_value_specification
-                     [:unsigned_literal
-                      [:general_literal
-                       [:character_string_literal
-                        "homer simpson"]]]]]]]]]]]]]]]]]]]]]]
-
-  )
-
 (declare simplify-select
          simplify-delete
          simplify-update
