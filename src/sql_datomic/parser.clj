@@ -73,6 +73,17 @@
       (assoc result :where (where-clause-ast->ir where-clause))
       result)))
 
+(defn strip-doublequotes [s]
+  (-> s
+      (str/replace #"^\"" "")
+      (str/replace #"\"$" "")))
+
+(defn transform-string-literal [s]
+  (-> s
+      (str/replace #"^'" "")
+      (str/replace #"'$" "")
+      (str/replace #"\\'" "'")))
+
 (def comparison-ops
   {"=" =
    "<>" not=
@@ -87,12 +98,9 @@
    :sql_data_statement identity
    :select_statement (fn [& ps] (zipmap [:fields :tables :where] ps))
    :select_list vector
-   :column_name (fn [t c] {:table t, :column c})
-   :string_literal (fn [s]
-                     (-> s
-                         (str/replace #"^'" "")
-                         (str/replace #"'$" "")
-                         (str/replace #"\\'" "'")))
+   :column_name (fn [t c] {:table (strip-doublequotes t)
+                           :column (strip-doublequotes c)})
+   :string_literal transform-string-literal
    :exact_numeric_literal edn/read-string
    :approximate_numeric_literal edn/read-string
    :boolean_literal identity
