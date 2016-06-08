@@ -119,8 +119,7 @@
        coer/from-long))
 
 (def transform-options
-  {
-   :sql_data_statement identity
+  {:sql_data_statement identity
    :select_statement (fn [& ps] (zipmap [:fields :tables :where] ps))
    :select_list vector
    :column_name (fn [t c] {:table (strip-doublequotes t)
@@ -134,14 +133,13 @@
    :from_clause vector
    :table_ref (fn [& vs] (zipmap [:name :alias] vs))
    :where_clause vector
-   :table_name identity
-   :table_alias identity
+   :table_name strip-doublequotes
+   :table_alias strip-doublequotes
    :binary_comparison (fn [c op v]
                         (list (comparison-ops op) c v))
    :date_literal transform-date-literal
    :datetime_literal transform-datetime-literal
-   :epochal_literal transform-epochal-literal
-   })
+   :epochal_literal transform-epochal-literal})
 
 (def transform (partial insta/transform transform-options))
 
