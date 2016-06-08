@@ -69,7 +69,7 @@ between_clause ::= column_name <"BETWEEN">
                    chrono_value <"AND"> chrono_value
 
 binary_comparison ::= column_name
-                      #"(=|!=|<>|<|<=|>|>=)"
+                      #"(=|!=|<>|<=|<|>=|>)"
                       ( column_name
                       | chrono_value
                       | exact_numeric_literal
@@ -78,7 +78,7 @@ binary_comparison ::= column_name
 
 approximate_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)[eE](?:\+|-)?\d+"
 
-string_literal ::= #"'[^']*'"
+string_literal ::= #"'(?:[^'\\]|\\.)*?'"
 
 exact_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)"
 

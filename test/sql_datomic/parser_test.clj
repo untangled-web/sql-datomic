@@ -78,7 +78,12 @@
      "SELECT a_table.*
       FROM a_table
       WHERE a_table.created_on BETWEEN DATE '2007-02-01'
-                                   AND DATE '2010-10-10'"))
+                                   AND DATE '2010-10-10'")
+    (parsable?
+     "select foo.name
+        from foo
+       where foo.title = 'git-\\'r-dun maestro'
+         and foo.hired_on <= '2000-01-01'"))
 
   (testing "INSERT statements"
     (parsable?
