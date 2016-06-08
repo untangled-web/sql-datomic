@@ -70,7 +70,11 @@ between_clause ::= column_name <"BETWEEN">
 
 binary_comparison ::= column_name
                       #"(=|!=|<>|<|<=|>|>=)"
-                      general_value
+                      ( column_name
+                      | chrono_value
+                      | exact_numeric_literal
+                      | approximate_numeric_literal
+                      | string_literal )
 
 approximate_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)[eE](?:\+|-)?\d+"
 
@@ -106,11 +110,5 @@ chrono_value ::= column_name
                | date_literal
                | datetime_literal
                | epochal_literal
-
-general_value ::= column_name
-                | chrono_value
-                | exact_numeric_literal
-                | approximate_numeric_literal
-                | string_literal
 
 table_alias ::= [ <"AS"> ] #'"[^\"]+"|[_A-Za-z]\w*'
