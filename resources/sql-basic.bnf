@@ -38,8 +38,20 @@ insert_vals ::=
                      }+ ]
 
 update_statement ::=
-    "UPDATE" table_name "SET" set_clause_list
-    [ "WHERE" search_condition ]
+    <"UPDATE"> table_name <"SET"> set_clausen
+    [ wee_where_clause ]
+
+set_clausen ::= set_clause_assign_pair
+            [ { <","> set_clause_assign_pair }+ ]
+
+set_clause_assign_pair ::=
+                       column_name <"=">
+                       ( character_string_literal
+                       | exact_numeric_literal
+                       | approximate_numeric_literal
+                       | something_date_literal
+                       | something_datetime_literal
+                       | something_epochal_literal )
 
 search_condition ::=
          boolean_term

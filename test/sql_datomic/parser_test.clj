@@ -100,14 +100,21 @@
   (testing "UPDATE statements"
     (parsable?
      "update      customers
-      set         city = 'Springfield'
-                , state = 'VA'
-                , zip = '22150'
-      where       id = 123454321"))
+      set         customers.city = 'Springfield'
+                , customers.state = 'VA'
+                , customers.zip = '22150'
+      where       customers.id = 123454321")
+    (parsable?
+     "update employees
+      set    employees.salary = 40000.00
+      where  employees.salary < 38000.00
+        and  employees.hired_on < date '2010-01-01'"))
 
   (testing "DELETE statements"
     (parsable?
      "delete from products where products.actor = 'homer simpson'")
+    (parsable?
+     "delete from drop_bear_attacks")
     (parsable?
      "
      DELETE FROM
