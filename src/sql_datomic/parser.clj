@@ -1,7 +1,8 @@
 (ns sql-datomic.parser
   (:require [instaparse.core :as insta]
             [clojure.zip :as zip]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.edn :as edn]))
 
 (def parser
   (-> "resources/sql-eensy.bnf"
@@ -71,6 +72,46 @@
     (if where-clause
       (assoc result :where (where-clause-ast->ir where-clause))
       result)))
+
+(def comparison-ops
+  {"=" =
+   "<>" not=
+   "!=" not=
+   "<" <
+   "<=" <=
+   ">" >
+   ">=" >=})
+
+(def transform-options
+  {
+   :sql_data_statement identity
+   :select_statement (fn [& ps] (zipmap [:fields :tables :where] ps))
+   :select_list vector
+   :column_name (fn [t c] {:table t, :column c})
+   :string_literal (fn [s]
+                     (-> s
+                         (str/replace #"^'" "")
+                         (str/replace #"'$" "")
+                         (str/replace #"\\'" "'")))
+   :exact_numeric_literal edn/read-string
+   :approximate_numeric_literal edn/read-string
+   :boolean_literal identity
+   :true (constantly true)
+   :false (constantly false)
+   :from_clause vector
+   :table_ref (fn [& vs] (zipmap [:name :alias] vs))
+   :where_clause vector
+   :table_name identity
+   :table_alias identity
+   :binary_comparison (fn [c op v]
+                        (list (comparison-ops op) c v))
+   })
+
+(def transform (partial insta/transform transform-options))
+
+(defn parse [input]
+  (->> (parser input)
+       transform))
 
 ;; (def transform-operator
 ;;   {"+" +
