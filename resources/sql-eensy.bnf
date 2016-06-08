@@ -70,25 +70,39 @@ select_list ::= ( column_name
 set_clausen ::= assignment_pair [ { <","> assignment_pair }+ ]
 
 between_clause ::= column_name <"BETWEEN">
-                   chrono_value <"AND"> chrono_value
+               {
+                 (
+                   ( date_literal | datetime_literal | epochal_literal )
+                   <"AND">
+                   ( date_literal | datetime_literal | epochal_literal )
+                 )
+                 |
+                 (
+                   ( exact_numeric_literal | approximate_numeric_literal )
+                   <"AND">
+                   ( exact_numeric_literal | approximate_numeric_literal )
+                 )
+               }
 
 binary_comparison ::= column_name
                   {
                     ( #"(<=|<|>=|>)"
                       ( column_name
-                      | chrono_value
+                      | date_literal
+                      | datetime_literal
+                      | epochal_literal
                       | exact_numeric_literal
-                      | approximate_numeric_literal )
-                    )
+                      | approximate_numeric_literal ) )
                     |
                     ( #"(=|!=|<>)"
                       ( column_name
                       | boolean_literal
-                      | chrono_value
+                      | date_literal
+                      | datetime_literal
+                      | epochal_literal
                       | exact_numeric_literal
                       | approximate_numeric_literal
-                      | string_literal )
-                    )
+                      | string_literal ) )
                   }
 
 string_literal ::= #"'(?:[^'\\]|\\.)*?'"
@@ -127,10 +141,5 @@ assignment_pair ::= column_name <"=">
                     | date_literal
                     | datetime_literal
                     | epochal_literal )
-
-chrono_value ::= column_name
-               | date_literal
-               | datetime_literal
-               | epochal_literal
 
 table_alias ::= [ <"AS"> ] #'"[^\"]+"|[_A-Za-z]\w*'
