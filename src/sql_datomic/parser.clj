@@ -2,7 +2,10 @@
   (:require [instaparse.core :as insta]
             [clojure.zip :as zip]
             [clojure.string :as str]
-            [clojure.edn :as edn]))
+            [clojure.edn :as edn]
+            [clj-time.format :as fmt]
+            [clj-time.core :as tm]
+            [clj-time.coerce :as coer]))
 
 (def parser
   (-> "resources/sql-eensy.bnf"
@@ -93,6 +96,28 @@
    ">" >
    ">=" >=})
 
+(def datetime-formatter (fmt/formatters :date-hour-minute-second))
+(def date-formatter (fmt/formatters :date))
+
+(defn to-utc [d]
+  (tm/from-time-zone d tm/utc))
+
+(defn transform-datetime-literal [s]
+  (->> s
+       (fmt/parse datetime-formatter)
+       to-utc))
+
+(defn transform-date-literal [s]
+  (->> s
+       (fmt/parse date-formatter)
+       to-utc))
+
+(defn transform-epochal-literal [s]
+  (->> s
+       Long/parseLong
+       (*' 1000)  ;; ->milliseconds
+       coer/from-long))
+
 (def transform-options
   {
    :sql_data_statement identity
@@ -113,6 +138,9 @@
    :table_alias identity
    :binary_comparison (fn [c op v]
                         (list (comparison-ops op) c v))
+   :date_literal transform-date-literal
+   :datetime_literal transform-datetime-literal
+   :epochal_literal transform-epochal-literal
    })
 
 (def transform (partial insta/transform transform-options))
