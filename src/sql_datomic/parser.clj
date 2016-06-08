@@ -5,7 +5,7 @@
 
 (def parser
   (-> #_"select-grammar.bnf"
-      "resources/sql-basic.bnf"
+      "resources/sql-eensy.bnf"
       #_"resources/sql.bnf"
       slurp
       (insta/parser
