@@ -19,7 +19,7 @@ update_statement ::=
     <"UPDATE"> table_name <"SET"> set_clausen
     [ where_clause ]
 
-table_name ::= #"[_A-Za-z]\w*"
+table_name ::= #"[-_A-Za-z][-\w]*"
 
 where_clause ::= <"WHERE">
                  ( between_clause
@@ -29,7 +29,7 @@ where_clause ::= <"WHERE">
                      | binary_comparison )
                    }+ ]
 
-insert_cols ::= #"[_A-Za-z]\w*" [ { <","> #"[_A-Za-z]\w*" }+ ]
+insert_cols ::= #"[-_A-Za-z][-\w]*" [ { <","> #"[-_A-Za-z][-\w]*" }+ ]
 
 insert_vals ::= ( string_literal
                 | boolean_literal
@@ -128,10 +128,10 @@ epochal_literal ::= <"time"> <"'"> #"\d+" <"'">
 
 table_ref ::= table_name [ table_alias ]
 
-column_name ::= #'("[^\"]+"|[_A-Za-z]\w*)'
-                <"."> #'("[^\"]+"|[_A-Za-z]\w*)'
+column_name ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)'
+                <"."> #'("[^\"]+"|[-_A-Za-z][-\w]*)'
 
-qualified_asterisk ::= #'("[^\"]+"|[_A-Za-z]\w*)' <"."> <"*">
+qualified_asterisk ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)' <"."> <"*">
 
 assignment_pair ::= column_name <"=">
                     ( string_literal
@@ -142,4 +142,4 @@ assignment_pair ::= column_name <"=">
                     | datetime_literal
                     | epochal_literal )
 
-table_alias ::= [ <"AS"> ] #'"[^\"]+"|[_A-Za-z]\w*'
+table_alias ::= [ <"AS"> ] #'"[^\"]+"|[-_A-Za-z][-\w]*'
