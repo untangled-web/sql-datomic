@@ -5,8 +5,8 @@ sql_data_statement ::=
      |       update_statement
 
 delete_statement ::=
-    "DELETE" "FROM" table_name
-    [ "WHERE" search_condition ]
+    <"DELETE"> <"FROM"> table_name
+    [ wee_where_clause ]
 
 _verbose_select_statement ::= query_expression
 

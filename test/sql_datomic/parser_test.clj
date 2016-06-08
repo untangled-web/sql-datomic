@@ -107,4 +107,15 @@
 
   (testing "DELETE statements"
     (parsable?
-     "delete from products where actor = 'homer simpson'")))
+     "delete from products where products.actor = 'homer simpson'")
+    (parsable?
+     "
+     DELETE FROM
+         lineitems
+     WHERE
+         lineitems.user_id = 42
+     AND lineitems.created_at BETWEEN
+         DATETIME '2013-11-15T00:00:00'
+           AND
+         DATETIME '2014-01-15T08:00:00'
+     ")))
