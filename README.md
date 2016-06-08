@@ -28,8 +28,8 @@ The SQL used by this tool is largely a subset of ANSI SQL-92, with the
 following deviations:
 
 - Accepts only `SELECT`, `INSERT`, `UPDATE`, `DELETE` statements.
-- All column names must be fully qualified: `table_name.column_name`.
-  (Even for `insert`, `update`, and `delete`.)
+- Column names must be fully qualified (`table_name.column_name`)
+  for `select`, `update` and `delete`; `insert` are exempt from this.
 - No support for explicit `JOIN`s.  Instead, use implicit joins
   (which is more like Datomic's syntax anyhow).
 - No support for `NULL`, `IS NULL`, `IS NOT NULL` (no meaning in Datomic).
