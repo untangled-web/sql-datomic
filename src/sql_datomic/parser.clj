@@ -13,6 +13,18 @@
        :string-ci true
        :auto-whitespace :standard)))
 
+(defn column-name-ast? [ast]
+  (and (vector? ast) (= (first ast) :column_name)))
+
+(defn column-name-ast->ir [ast]
+  {:pre [(vector? ast)
+         (= 3 (count ast))
+         (= (first ast) :column_name)
+         (string? (nth ast 1))
+         (string? (nth ast 2))]}
+  (let [[_ table-name column-name] ast]
+    {:table table-name, :column column-name}))
+
 (defn where-clause-ast->ir [ast]
   {:pre [(vector? ast)
          (= (first ast) :where_clause)]}
@@ -43,7 +55,11 @@
 (defn select-list-ast->ir [ast]
   {:pre [(vector? ast)
          (= (first ast) :select_list)]}
-  (rest ast))
+  (->> (rest ast)
+       (map (fn [v]
+              (if (column-name-ast? v)
+                (column-name-ast->ir v)
+                v)))))
 
 (defn select-statement-ast->ir [ast]
   {:pre [(vector? ast)
