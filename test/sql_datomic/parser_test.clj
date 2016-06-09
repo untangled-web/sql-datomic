@@ -1,14 +1,15 @@
 (ns sql-datomic.parser-test
   (:require [clojure.test :refer :all]
             [sql-datomic.parser :as prs]
-            [instaparse.core :as insta]))
+            [instaparse.core :as insta]
+            [clj-time.core :as tm]))
 
 (def good-parser? (complement insta/failure?))
 
 (defmacro parsable? [stmt]
   `(is (good-parser? (prs/parser ~stmt))))
 
-(deftest select-tests
+(deftest parser-tests
   (testing "SELECT statements"
     (parsable? "SELECT a_table.name FROM a_table")
     (parsable? "SELECT a_table.name FROM a_table")
@@ -143,3 +144,42 @@
            AND
          DATETIME '2014-01-15T08:00:00'
      ")))
+
+(deftest transform-tests
+  (testing "SELECT AST -> IR"
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:select_statement
+              [:select_list
+               [:qualified_asterisk "a_table"]
+               [:column_name "b_table" "zebra_id"]]
+              [:from_clause
+               [:table_ref [:table_name "a_table"]]
+               [:table_ref [:table_name "b_table"]]]
+              [:where_clause
+               [:binary_comparison
+                [:column_name "a_table" "id"]
+                "="
+                [:column_name "b_table" "a_id"]]
+               [:binary_comparison
+                [:column_name "b_table" "zebra_id"]
+                ">"
+                [:exact_numeric_literal "9000"]]
+               [:binary_comparison
+                [:column_name "b_table" "hired_on"]
+                "<"
+                [:date_literal "2011-11-11"]]]]])
+           {:type :select
+            :fields [[:qualified_asterisk "a_table"]
+                     {:table "b_table" :column "zebra_id"}]
+            :tables [{:name "a_table"} {:name "b_table"}]
+            :where [(list clojure.core/=
+                          {:table "a_table" :column "id"}
+                          {:table "b_table" :column "a_id"})
+                    (list clojure.core/>
+                          {:table "b_table" :column "zebra_id"}
+                          9000)
+                    (list clojure.core/<
+                          {:table "b_table" :column "hired_on"}
+                          (tm/date-time 2011 11 11))]
+            }))))
