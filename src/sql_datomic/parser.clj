@@ -124,7 +124,10 @@
 
 (def transform-options
   {:sql_data_statement identity
-   :select_statement (fn [& ps] (zipmap [:fields :tables :where] ps))
+   :select_statement (fn [& ps]
+                       (->> ps
+                            (zipmap [:fields :tables :where])
+                            (into {:type :select})))
    :select_list vector
    :column_name (fn [t c] {:table (strip-doublequotes t)
                            :column (strip-doublequotes c)})
