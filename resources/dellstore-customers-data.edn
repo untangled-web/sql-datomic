@@ -1,0 +1,43 @@
+[
+ ;; orderid 2
+ {:db/id #db/id[:db.part/user]
+  :customer/creditcard "9752442379947752"
+  :customer/income 20000M
+  :customer/email "OVWOIYIDDL@dell.com"
+  :customer/lastname "OVWOIYIDDL"
+  :customer/phone "6298730047"
+  :customer/password "password"
+  :customer/age 56
+  :customer/creditcardexpiration "2010/04"
+  :customer/state "IA"
+  :customer/city "IQIDDJY"
+  :customer/creditcardtype 5
+  :customer/zip "98082"
+  :customer/username "user4858"
+  :customer/address-1 "6298730047 Dell Way"
+  :customer/region 1
+  :customer/firstname "SKULRB"
+  :customer/customerid 4858
+  :customer/country "US"
+  :customer/gender :customer.gender/male}
+
+ ;; orderid 5
+ {:customer/creditcard "2564112400636077"
+  :customer/income 40000M
+  :customer/email "JSCBIDJQER@dell.com"
+  :customer/lastname "JSCBIDJQER"
+  :customer/phone "6447516578"
+  :customer/password "password"
+  :customer/age 44
+  :customer/creditcardexpiration "2009/10"
+  :customer/city "KEFQJES"
+  :customer/creditcardtype 3
+  :customer/zip "0"
+  :customer/username "user14771"
+  :customer/address-1 "6447516578 Dell Way"
+  :customer/region 2
+  :customer/firstname "JIDXLK"
+  :db/id #db/id[:db.part/user]
+  :customer/customerid 14771
+  :customer/country "Canada"
+  :customer/gender :customer.gender/female}]
