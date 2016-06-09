@@ -29,6 +29,25 @@
   (delete-default-db)
   (create-default-db))
 
+(def default-uri? (partial = default-connection-uri))
+
+(defrecord DatomicConnection [connection-uri connection]
+  component/Lifecycle
+  (start [component]
+    (if (default-uri? (:connection-uri component))
+      (assoc component :connection (create-default-db))
+      component))
+  (stop [component]
+    (when (default-uri? (:connection-uri component))
+      (delete-default-db))
+    (assoc component :connection nil)))
+
+(defn system [{:keys [connection connection-uri]
+               :or {connection-uri default-connection-uri}}]
+  (component/system-map
+   :datomic (map->DatomicConnection {:connection connection
+                                     :connection-uri connection-uri})))
+
 (comment
 
   (use 'clojure.repl)
@@ -56,5 +75,8 @@
          d/touch))
 
   (->> order5 so-touchy pp/pprint)
+
+  (def sys (.start (system {})))
+  (defn sys-cxn [] (->> sys :datomic :connection))
 
   )
