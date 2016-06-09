@@ -13,6 +13,7 @@
         products-tx (load-edn "resources/dellstore-products-data.edn")
         orders-tx (load-edn "resources/dellstore-orders-data.edn")]
     @(d/transact connection schema-tx)
+    ;; Order here matters.
     @(d/transact connection customers-tx)
     @(d/transact connection products-tx)
     @(d/transact connection orders-tx)
