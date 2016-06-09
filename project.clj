@@ -6,5 +6,6 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [instaparse "1.4.2"]
                  [clj-time "0.12.0"]
-                 [com.datomic/datomic-pro "0.9.5206" :exclusions [joda-time]]]
+                 [com.datomic/datomic-pro "0.9.5206" :exclusions [joda-time]]
+                 [com.stuartsierra/component "0.3.1"]]
   :main sql-datomic.repl)

@@ -1,6 +1,9 @@
 (ns sql-datomic.datomic
   (:require [datomic.api :as d]
-            [clojure.edn :as edn]))
+            [clojure.edn :as edn]
+            [com.stuartsierra.component :as component]
+            [clojure.pprint :as pp]
+            [clojure.walk :as walk]))
 
 (def default-connection-uri "datomic:mem://dellstore")
 
@@ -25,3 +28,33 @@
 (defn recreate-default-db []
   (delete-default-db)
   (create-default-db))
+
+(comment
+
+  (use 'clojure.repl)
+
+  (def cxn (recreate-default-db))
+
+  (defn so-touchy [entity]
+    (walk/prewalk
+     (fn [n]
+       (if (= datomic.query.EntityMap (class n))
+         (->> n d/touch (into {}))
+         n))
+     entity))
+
+  (def order2
+    (->> [:order/orderid 2]
+         (d/entity (d/db cxn))
+         d/touch))
+
+  (->> order2 so-touchy pp/pprint)
+
+  (def order5
+    (->> [:order/orderid 5]
+         (d/entity (d/db cxn))
+         d/touch))
+
+  (->> order5 so-touchy pp/pprint)
+
+  )
