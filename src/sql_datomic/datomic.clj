@@ -36,7 +36,7 @@
   (start [component]
     (if (default-uri? (:connection-uri component))
       (assoc component :connection (create-default-db))
-      component))
+      (assoc component :connection (d/connect (:connection-uri component)))))
   (stop [component]
     (when (default-uri? (:connection-uri component))
       (delete-default-db))

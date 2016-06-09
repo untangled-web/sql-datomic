@@ -3,4 +3,5 @@ set -eu
 
 cd "$(dirname $0)/.."
 
-exec rlwrap lein run
+# Uses rlwrap if available, but will still run otherwise.
+exec $(which rlwrap) lein run -- "$@"
