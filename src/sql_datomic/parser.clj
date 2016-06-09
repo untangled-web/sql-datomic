@@ -102,8 +102,12 @@
 (defn to-utc [d]
   (tm/from-time-zone d tm/utc))
 
+(defn fix-datetime-separator-space->T [s]
+  (str/replace s #"^(.{10}) (.*)$" "$1T$2"))
+
 (defn transform-datetime-literal [s]
   (->> s
+       fix-datetime-separator-space->T
        (fmt/parse datetime-formatter)
        to-utc))
 
