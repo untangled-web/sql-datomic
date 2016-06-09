@@ -1,0 +1,514 @@
+[
+
+ ;;  dellstore2=# \d+ orders
+ ;;                                                      Table "public.orders"
+ ;;    Column    |     Type      |                        Modifiers                         | Storage | Stats target | Description
+ ;; -------------+---------------+----------------------------------------------------------+---------+--------------+-------------
+ ;;  orderid     | integer       | not null default nextval('orders_orderid_seq'::regclass) | plain   |              |
+ ;;  orderdate   | date          | not null                                                 | plain   |              |
+ ;;  customerid  | integer       |                                                          | plain   |              |
+ ;;  netamount   | numeric(12,2) | not null                                                 | main    |              |
+ ;;  tax         | numeric(12,2) | not null                                                 | main    |              |
+ ;;  totalamount | numeric(12,2) | not null                                                 | main    |              |
+ ;; Indexes:
+ ;;     "orders_pkey" PRIMARY KEY, btree (orderid)
+ ;;     "ix_order_custid" btree (customerid)
+ ;; Foreign-key constraints:
+ ;;     "fk_customerid" FOREIGN KEY (customerid) REFERENCES customers(customerid) ON DELETE SET NULL
+ ;; Referenced by:
+ ;;     TABLE "orderlines" CONSTRAINT "fk_orderid" FOREIGN KEY (orderid) REFERENCES orders(orderid) ON DELETE CASCADE
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :order/orderid
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/value
+  :db/doc "legacy PK"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :order/orderdate
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :order/customerid
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy FK to customers.customerid"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :order/customer
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :order/netamount
+  :db/valueType :db.type/bigdec
+  :db/cardinality :db.cardinality/one
+  :db/doc "numeric(12,2)"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :order/tax
+  :db/valueType :db.type/bigdec
+  :db/cardinality :db.cardinality/one
+  :db/doc "numeric(12,2)"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :order/totalamount
+  :db/valueType :db.type/bigdec
+  :db/cardinality :db.cardinality/one
+  :db/doc "numeric(12,2)"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :order/orderlines
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/many
+  :db/isComponent true
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+
+ ;; dellstore2=# \d+ customers
+ ;;                                                                Table "public.customers"
+ ;;         Column        |         Type          |                           Modifiers                            | Storage  | Stats target | Description
+ ;; ----------------------+-----------------------+----------------------------------------------------------------+----------+--------------+-------------
+ ;;  customerid           | integer               | not null default nextval('customers_customerid_seq'::regclass) | plain    |              |
+ ;;  firstname            | character varying(50) | not null                                                       | extended |              |
+ ;;  lastname             | character varying(50) | not null                                                       | extended |              |
+ ;;  address1             | character varying(50) | not null                                                       | extended |              |
+ ;;  address2             | character varying(50) |                                                                | extended |              |
+ ;;  city                 | character varying(50) | not null                                                       | extended |              |
+ ;;  state                | character varying(50) |                                                                | extended |              |
+ ;;  zip                  | integer               |                                                                | plain    |              |
+ ;;  country              | character varying(50) | not null                                                       | extended |              |
+ ;;  region               | smallint              | not null                                                       | plain    |              |
+ ;;  email                | character varying(50) |                                                                | extended |              |
+ ;;  phone                | character varying(50) |                                                                | extended |              |
+ ;;  creditcardtype       | integer               | not null                                                       | plain    |              |
+ ;;  creditcard           | character varying(50) | not null                                                       | extended |              |
+ ;;  creditcardexpiration | character varying(50) | not null                                                       | extended |              |
+ ;;  username             | character varying(50) | not null                                                       | extended |              |
+ ;;  password             | character varying(50) | not null                                                       | extended |              |
+ ;;  age                  | smallint              |                                                                | plain    |              |
+ ;;  income               | integer               |                                                                | plain    |              |
+ ;;  gender               | character varying(1)  |                                                                | extended |              |
+ ;; Indexes:
+ ;;     "customers_pkey" PRIMARY KEY, btree (customerid)
+ ;;     "ix_cust_username" UNIQUE, btree (username)
+ ;; Referenced by:
+ ;;     TABLE "cust_hist" CONSTRAINT "fk_cust_hist_customerid" FOREIGN KEY (customerid) REFERENCES customers(customerid) ON DELETE CASCADE
+ ;;     TABLE "orders" CONSTRAINT "fk_customerid" FOREIGN KEY (customerid) REFERENCES customers(customerid) ON DELETE SET NULL
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/customerid
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/value
+  :db/doc "legacy PK"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/firstname
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/lastname
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/address-1
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy column customers.address1"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/address-2
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy column customers.address2"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/city
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/state
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/zip
+  :db/valueType :db.type/string  ;; Note: legacy had this as int (!?!!!??!)
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/country
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/region
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/email
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/phone
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/creditcardtype       ;; ????
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/creditcard
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/creditcardexpiration
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/username
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/value
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/password
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/age
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/income
+  :db/valueType :db.type/bigdec
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer/gender
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+
+ [:db/add #db/id[:db.part/user] :db/ident :customer.gender/female]
+ [:db/add #db/id[:db.part/user] :db/ident :customer.gender/male]
+
+ ;; dellstore2=# \d+ products
+ ;;                                                            Table "public.products"
+ ;;      Column     |         Type          |                         Modifiers                          | Storage  | Stats target | Description
+ ;; ----------------+-----------------------+------------------------------------------------------------+----------+--------------+-------------
+ ;;  prod_id        | integer               | not null default nextval('products_prod_id_seq'::regclass) | plain    |              |
+ ;;  category       | integer               | not null                                                   | plain    |              |
+ ;;  title          | character varying(50) | not null                                                   | extended |              |
+ ;;  actor          | character varying(50) | not null                                                   | extended |              |
+ ;;  price          | numeric(12,2)         | not null                                                   | main     |              |
+ ;;  special        | smallint              |                                                            | plain    |              |
+ ;;  common_prod_id | integer               | not null                                                   | plain    |              |
+ ;; Indexes:
+ ;;     "products_pkey" PRIMARY KEY, btree (prod_id)
+ ;;     "ix_prod_category" btree (category)
+ ;;     "ix_prod_special" btree (special)
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :product/prod-id
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/value  ;; TODO: :db.unique/identity or :db.unique/value ???
+  :db/doc "legacy PK products.prod_id - retained for interop"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :product/category
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/index true
+  :db/doc "Product category enum"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :product/title
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[db.part/db]
+  :db/ident :product/actor
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :product/price
+  :db/valueType :db.type/bigdec ;; use BigDecimal for money
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy has this as numeric(12,2)"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :product/special
+  :db/valueType :db.type/boolean
+  :db/cardinality :db.cardinality/one
+  :db/index true
+  :db/doc "legacy has this as smallint [0, 1]"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[db.part/db]
+  :db/ident :product/common-prod-id
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one ;; ??? or many
+  :db/doc "not sure here; might be FK to prod_id for hierarchy; KISS"
+  :db.install/_attribute :db.part/db}
+
+ ;; dellstore2=# \d categories
+ ;;                                       Table "public.categories"
+ ;;     Column    |         Type          |                           Modifiers
+ ;; --------------+-----------------------+---------------------------------------------------------------
+ ;;  category     | integer               | not null default nextval('categories_category_seq'::regclass)
+ ;;  categoryname | character varying(50) | not null
+ ;; Indexes:
+ ;;     "categories_pkey" PRIMARY KEY, btree (category)
+
+ ; Not sure this is the best approach.
+ ; Might want to go with a more direct "table" representation.
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/action]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/animation]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/children]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/classics]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/comedy]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/documentary]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/drama]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/family]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/foreign]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/games]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/horror]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/music]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/new]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/sci-fi]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/sports]
+ [:db/add #db/id[:db.part/user] :db/ident :product.category/travel]
+
+
+
+ ;; dellstore2=# \d+ orderlines
+ ;;                          Table "public.orderlines"
+ ;;    Column    |   Type   | Modifiers | Storage | Stats target | Description
+ ;; -------------+----------+-----------+---------+--------------+-------------
+ ;;  orderlineid | integer  | not null  | plain   |              |
+ ;;  orderid     | integer  | not null  | plain   |              |
+ ;;  prod_id     | integer  | not null  | plain   |              |
+ ;;  quantity    | smallint | not null  | plain   |              |
+ ;;  orderdate   | date     | not null  | plain   |              |
+ ;; Indexes:
+ ;;     "ix_orderlines_orderid" UNIQUE, btree (orderid, orderlineid)
+ ;; Foreign-key constraints:
+ ;;     "fk_orderid" FOREIGN KEY (orderid) REFERENCES orders(orderid) ON DELETE CASCADE
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :orderline/orderlineid
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy composite PK with orderid"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :orderline/orderid
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy FK to orders.orderid"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :orderline/prod-id
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy FK to products.prod_id"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :orderline/product
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :orderline/quantity
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :orderline/orderdate
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+
+
+
+
+ ;; dellstore2=# \d+ inventory
+ ;;                           Table "public.inventory"
+ ;;     Column     |  Type   | Modifiers | Storage | Stats target | Description
+ ;; ---------------+---------+-----------+---------+--------------+-------------
+ ;;  prod_id       | integer | not null  | plain   |              |
+ ;;  quan_in_stock | integer | not null  | plain   |              |
+ ;;  sales         | integer | not null  | plain   |              |
+ ;; Indexes:
+ ;;     "inventory_pkey" PRIMARY KEY, btree (prod_id)
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :inventory/product
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/value
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :inventory/prod-id
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/unique :db.unique/value
+  :db/doc "legacy FK to products.prod_id"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :inventory/quan-in-stock
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :inventory/sales
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+
+;;  dellstore2=# \d+ cust_hist
+;;                         Table "public.cust_hist"
+;;    Column   |  Type   | Modifiers | Storage | Stats target | Description
+;; ------------+---------+-----------+---------+--------------+-------------
+;;  customerid | integer | not null  | plain   |              |
+;;  orderid    | integer | not null  | plain   |              |
+;;  prod_id    | integer | not null  | plain   |              |
+;; Indexes:
+;;     "ix_cust_hist_customerid" btree (customerid)
+;; Foreign-key constraints:
+;;     "fk_cust_hist_customerid" FOREIGN KEY (customerid) REFERENCES customers(customerid) ON DELETE CASCADE
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer-history/customerid
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy FK to customers.customerid"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer-history/order
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer-history/orderid
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy FK to orders.orderid"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer-history/product
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+  {:db/id #db/id[:db.part/db]
+  :db/ident :customer-history/prod-id
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy FK to products.prod_id"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :customer-history/customer
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+
+;; dellstore2=# \d+ reorder
+;;                            Table "public.reorder"
+;;      Column     |  Type   | Modifiers | Storage | Stats target | Description
+;; ----------------+---------+-----------+---------+--------------+-------------
+;;  prod_id        | integer | not null  | plain   |              |
+;;  date_low       | date    | not null  | plain   |              |
+;;  quan_low       | integer | not null  | plain   |              |
+;;  date_reordered | date    |           | plain   |              |
+;;  quan_reordered | integer |           | plain   |              |
+;;  date_expected  | date    |           | plain   |              |
+ {:db/id #db/id[:db.part/db]
+  :db/ident :reorder/prod-id
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "legacy FK"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :reorder/product
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :reorder/date-low
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :reorder/quantity-low
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "-> reorder.quan_low"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :reorder/date-reordered
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :reorder/quantity-reordered
+  :db/valueType :db.type/long
+  :db/cardinality :db.cardinality/one
+  :db/doc "-> reorder.quan_reordered"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[:db.part/db]
+  :db/ident :reorder/date-expected
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc ""
+  :db.install/_attribute :db.part/db}
+
+ ]

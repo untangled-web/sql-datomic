@@ -5,5 +5,6 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [instaparse "1.4.2"]
-                 [clj-time "0.12.0"]]
+                 [clj-time "0.12.0"]
+                 [com.datomic/datomic-pro "0.9.5206" :exclusions [joda-time]]]
   :main sql-datomic.repl)
