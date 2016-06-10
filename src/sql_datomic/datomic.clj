@@ -59,12 +59,6 @@
 (defn table-column->attr-kw [{:keys [table column]}]
   (keyword table column))
 
-;; TODO: need an env-like registry that keeps mapping from:
-;;   {:table t, :column c}
-;; to:
-;;   ?e
-;; TODO: how do we deal with table aliases?
-
 (defn extract-columns [where-clauses]
   (let [column? (fn [v] (and (map? v)
                              (= #{:table :column}
@@ -83,6 +77,8 @@
   (gensym "?v"))
 
 (defn build-datomic-var-map [columns]
+  ;; TODO: How do we deal with table aliases?
+  ;;       This will naively unify based on table name alone.
   (let [name->entity (->> columns
                           (group-by :table)
                           (map (fn [[name _]]
