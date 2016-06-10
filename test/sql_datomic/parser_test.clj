@@ -180,4 +180,26 @@
                     (list :<
                           {:table "b_table" :column "hired_on"}
                           (tm/date-time 2011 11 11))]
-            }))))
+            }))
+    ;; select product.prod-id from product where product.prod-id between 1 and 2 and product.title <> 'foo'
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:select_statement
+              [:select_list [:column_name "product" "prod-id"]]
+              [:from_clause [:table_ref [:table_name "product"]]]
+              [:where_clause
+               [:between_clause
+                [:column_name "product" "prod-id"]
+                [:exact_numeric_literal "1"]
+                [:exact_numeric_literal "10"]]
+               [:binary_comparison
+                [:column_name "product" "title"]
+                "<>"
+                [:string_literal "'foo'"]]]]])
+           {:type :select,
+            :fields [{:table "product", :column "prod-id"}],
+            :tables [{:name "product"}],
+            :where
+            [(list :between {:table "product", :column "prod-id"} 1 10)
+             (list :not= {:table "product", :column "title"} "foo")]}
+         ))))
