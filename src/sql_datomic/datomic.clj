@@ -83,11 +83,16 @@
   (gensym "?v"))
 
 (defn build-datomic-var-map [columns]
-  (->> columns
-       (map (fn [col] [col {:entity (gensym-datomic-entity-var)
-                            :value (gensym-datomic-value-var)
-                            :attr (table-column->attr-kw col)}]))
-       (into {})))
+  (let [name->entity (->> columns
+                          (group-by :table)
+                          (map (fn [[name _]]
+                                 [name (gensym-datomic-entity-var)]))
+                          (into {}))]
+    (->> columns
+         (map (fn [col] [col {:entity (get name->entity (:table col))
+                              :value (gensym-datomic-value-var)
+                              :attr (table-column->attr-kw col)}]))
+         (into {}))))
 
 (defn binary-comparison->datomic [col->var op vs]
   (let [[c v] vs
@@ -135,24 +140,25 @@
                                      :clause c}))))))
          (into base-where))))
 
-(comment
+(defn scrape-entities [dat-where]
+  (->> dat-where
+       (filter (fn [[e]]
+                 (and (symbol? e)
+                      (re-seq #"^\?e\d+" (name e)))))
+       (map first)
+       (into #{})))
 
-  (def where-clauses
-    [(list :between {:table "product", :column "prod-id"} 1 2)
-     (list :not= {:table "product", :column "title"} "foo")])
-
-  (where->datomic where-clauses)
-
-  (where->datomic
-   [(list := {:table "product" :column "prod-id"} 42)])
-
-  )
+(defn where->datomic-q [where]
+  (let [ws (where->datomic where)
+        es (scrape-entities ws)]
+    `[:find ~@es
+      :where ~@ws]))
 
 (comment
 
   (use 'clojure.repl)
 
-  (def cxn (recreate-default-db))
+  ;; (def cxn (recreate-default-db))
 
   (defn so-touchy [entity]
     (walk/prewalk
@@ -178,5 +184,25 @@
 
   (def sys (.start (system {})))
   (defn sys-cxn [] (->> sys :datomic :connection))
+
+  (def where-clauses
+    [(list :between {:table "product", :column "price"} 10 15)
+     (list :not= {:table "product", :column "title"} "AGENT CELEBRITY")])
+
+  (where->datomic where-clauses)
+  #_[[?e13699 :product/price ?v13700] [?e13699 :product/title ?v13701] [(clojure.core/<= 10 ?v13700 20)] [(not= ?v13701 "AGENT CELEBRITY")]]
+  (where->datomic-q where-clauses)
+  (d/q (where->datomic-q where-clauses) (d/db (sys-cxn)))
+  (def ids (d/q (where->datomic-q where-clauses) (d/db (sys-cxn))))
+  (mapcat identity ids)
+  (->> ids
+       (mapcat identity)
+       (map (fn [id]
+              (->> id
+                   (d/entity (d/db (sys-cxn)))
+                   d/touch))))
+
+  (where->datomic
+   [(list := {:table "product" :column "prod-id"} 42)])
 
   )
