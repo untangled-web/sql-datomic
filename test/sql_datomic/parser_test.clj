@@ -4,10 +4,8 @@
             [instaparse.core :as insta]
             [clj-time.core :as tm]))
 
-(def good-parser? (complement insta/failure?))
-
 (defmacro parsable? [stmt]
-  `(is (good-parser? (prs/parser ~stmt))))
+  `(is (prs/good-ast? (prs/parser ~stmt))))
 
 (deftest parser-tests
   (testing "SELECT statements"

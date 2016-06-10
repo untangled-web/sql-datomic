@@ -17,6 +17,8 @@
        :string-ci true
        :auto-whitespace :standard)))
 
+(def good-ast? (complement insta/failure?))
+
 (defn column-name-ast? [ast]
   (and (vector? ast) (= (first ast) :column_name)))
 
