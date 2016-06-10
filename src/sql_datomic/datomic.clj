@@ -89,42 +89,23 @@
                             :attr (table-column->attr-kw col)}]))
        (into {})))
 
-(defn foo-eq [col->var vs]
+(defn binary-comparison->datomic [col->var op vs]
   (let [[c v] vs
         {v-sym :value} (get col->var c :unknown-column!)
-        attr (table-column->attr-kw c)]
-    [(list '= v-sym v)]))
-
-(defn foo-bin-cmp [col->var op vs]
-  (let [[c v] vs
-        {v-sym :value} (get col->var c :unknown-column!)
-        ;; c-sym (get col->var c :unknown-column!)
-        kw->op {:not= 'not=
+        kw->op {:= '=
+                :not= 'not=
                 :< '<
                 :> '>
                 :<= '<=
                 :>= '>=}]
     [(list (kw->op op) v-sym v)]))
 
-(defn foo-between [col->var [c v1 v2]]
+(defn between->datomic [col->var [c v1 v2]]
   (let [{v-sym :value} (get col->var c :unknown-column!)]
     ;; datomic's builtin <= is an extension and supports only two args.
     [(list 'clojure.core/<= v1 v-sym v2)]))
 
-(comment
-
-  (def where-clauses
-    [(list :between {:table "product", :column "prod-id"} 1 2)
-     (list :not= {:table "product", :column "title"} "foo")])
-
-  (where-clause-ir->datomic where-clauses)
-
-  (where-clause-ir->datomic
-   [(list := {:table "product" :column "prod-id"} 42)])
-
-  )
-
-(defn where-clause-ir->datomic [clauses]
+(defn where->datomic [clauses]
   {:pre [(not (empty? clauses))
          (every? list? clauses)
          (every? (comp keyword? first) clauses)
@@ -135,7 +116,6 @@
   (let [col->var (->> clauses
                       extract-columns
                       build-datomic-var-map)
-        _ (prn col->var)
         base-where (->> col->var
                         (map (fn [[c {:keys [entity value]}]]
                                [entity (table-column->attr-kw c) value]))
@@ -144,14 +124,29 @@
          (map (fn [c]
                 (let [[op & operands] c]
                   (case op
-                    :between (foo-between col->var operands)
-                    := (foo-eq col->var operands)
-                    (:not= :< :> :<= :>=) (foo-bin-cmp col->var op operands)
+                    :between (between->datomic col->var operands)
+
+                    (:= :not= :< :> :<= :>=)
+                    (binary-comparison->datomic col->var op operands)
+
                     (throw (ex-info "unknown where-clause operator"
                                     {:operator op
                                      :operands operands
                                      :clause c}))))))
          (into base-where))))
+
+(comment
+
+  (def where-clauses
+    [(list :between {:table "product", :column "prod-id"} 1 2)
+     (list :not= {:table "product", :column "title"} "foo")])
+
+  (where->datomic where-clauses)
+
+  (where->datomic
+   [(list := {:table "product" :column "prod-id"} 42)])
+
+  )
 
 (comment
 
