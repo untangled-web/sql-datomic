@@ -48,6 +48,14 @@
    :datomic (map->DatomicConnection {:connection connection
                                      :connection-uri connection-uri})))
 
+(defn select-ir->clj [ir]
+  {:pre [(= :select (:type ir))]}
+  (let [{:keys [fields tables where]} ir]
+    ))
+
+(defn map-eq-to-datomic-clause [ir-eq-clause]
+  )
+
 (comment
 
   (use 'clojure.repl)

@@ -31,13 +31,13 @@
       (str/replace #"\\'" "'")))
 
 (def comparison-ops
-  {"=" =
-   "<>" not=
-   "!=" not=
-   "<" <
-   "<=" <=
-   ">" >
-   ">=" >=})
+  {"=" :=
+   "<>" :not=
+   "!=" :not=
+   "<" :<
+   "<=" :<=
+   ">" :>
+   ">=" :>=})
 
 (def datetime-formatter (fmt/formatters :date-hour-minute-second))
 (def date-formatter (fmt/formatters :date))

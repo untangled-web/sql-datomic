@@ -171,13 +171,13 @@
             :fields [[:qualified_asterisk "a_table"]
                      {:table "b_table" :column "zebra_id"}]
             :tables [{:name "a_table"} {:name "b_table"}]
-            :where [(list clojure.core/=
+            :where [(list :=
                           {:table "a_table" :column "id"}
                           {:table "b_table" :column "a_id"})
-                    (list clojure.core/>
+                    (list :>
                           {:table "b_table" :column "zebra_id"}
                           9000)
-                    (list clojure.core/<
+                    (list :<
                           {:table "b_table" :column "hired_on"}
                           (tm/date-time 2011 11 11))]
             }))))
