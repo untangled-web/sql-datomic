@@ -2,9 +2,12 @@
   (:require [sql-datomic.parser :as parser]
             [sql-datomic.datomic :as dat]
             [clojure.pprint :as pp]
-            [clojure.tools.cli :as cli]))
+            [clojure.tools.cli :as cli]
+            [datomic.api :as d]))
 
 (def ^:dynamic *prompt* "sql> ")
+
+(declare sys)
 
 (defn repl [{:keys [debug] :as opts}]
   (let [dbg (atom debug)]
@@ -35,8 +38,28 @@
                 (let [ir (parser/transform maybe-ast)]
                   (when @dbg
                     (binding [*out* *err*]
-                      (println "\nIR:\n===")))
-                  (pp/pprint ir)))))))
+                      (println "\nIR:\n===")
+                      (pp/pprint ir)))
+                  (when (= :select (:type ir))
+                    (when-let [wheres (:where ir)]
+                      (let [query (dat/where->datomic-q wheres)]
+                        (when @dbg
+                          (binding [*out* *err*]
+                            (println "\nDatomic Query:\n============")
+                            (pp/pprint query)))
+                        (let [db (->> sys :datomic :connection d/db)
+                              results (d/q query db)]
+                          (when @dbg
+                            (binding [*out* *err*]
+                              (println "\nRaw Results:\n===========")
+                              (prn results)))
+                          (let [ids (mapcat identity results)]
+                            (when @dbg
+                              (binding [*out* *err*]
+                                (println "\nEntities:\n============")))
+                            (doseq [id ids]
+                              (let [entity (d/touch (d/entity db id))]
+                                (pp/pprint entity))))))))))))))
 
       (recur (assoc opts :debug @dbg)))))
 

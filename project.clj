@@ -9,5 +9,8 @@
                  [com.datomic/datomic-pro "0.9.5206" :exclusions [joda-time]]
                  [com.stuartsierra/component "0.3.1"]
                  [org.clojure/tools.cli "0.3.5"]
-                 [org.postgresql/postgresql "9.4.1208.jre7"]]
+                 [org.postgresql/postgresql "9.4.1208.jre7"]
+                 [com.datastax.cassandra/cassandra-driver-core "2.0.6"
+                  :exclusions [com.google.guava/guava
+                               org.slf4j/slf4j-api]]]
   :main sql-datomic.repl)
