@@ -59,7 +59,8 @@
                             (let [ids (mapcat identity results)]
                               (when @dbg
                                 (squawk "Entities")
-                                (binding [*out* *err*] (println "None")))
+                                (when-not (seq results)
+                                  (binding [*out* *err*] (println "None"))))
                               (doseq [id ids]
                                 (let [entity (d/touch (d/entity db id))]
                                   (pp/pprint entity)
