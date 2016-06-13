@@ -65,6 +65,26 @@
        (*' 1000)  ;; ->milliseconds
        coer/from-long))
 
+
+;; TODO: Need to add support for these Datomic types, from SQL dialect:
+;;
+;; :db.type/keyword - Value type for keywords. Keywords are used
+;; as names, and are interned for efficiency. Keywords map to the
+;; native interned-name type in languages that support them.
+;;
+;; :db.type/instant - Value type for instants in time. Stored internally
+;; as a number of milliseconds since midnight, January 1, 1970 UTC.
+;; Maps to java.util.Date on Java platforms.
+;;
+;; :db.type/uuid - Value type for UUIDs. Maps to java.util.UUID on
+;; Java platforms.
+;;
+;; :db.type/uri - Value type for URIs. Maps to java.net.URI on Java
+;; platforms.
+;;
+;; :db.type/bytes - Value type for small binary data. Maps to byte
+;; array on Java platforms. See limitations.
+
 (def transform-options
   {:sql_data_statement identity
    :select_statement (fn [& ps]
