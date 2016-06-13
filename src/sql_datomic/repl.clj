@@ -57,7 +57,9 @@
                                 results (d/q query db dat/rules)]
                             (when @dbg (squawk "Raw Results" results))
                             (let [ids (mapcat identity results)]
-                              (when @dbg (squawk "Entities"))
+                              (when @dbg
+                                (squawk "Entities")
+                                (binding [*out* *err*] (println "None")))
                               (doseq [id ids]
                                 (let [entity (d/touch (d/entity db id))]
                                   (pp/pprint entity)
