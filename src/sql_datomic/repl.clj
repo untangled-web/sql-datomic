@@ -22,6 +22,7 @@
       (if (re-seq #"^(?i)\s*debug\s*$" input)
         (let [new-debug (not @dbg)]
           (println "Set debug to" (if new-debug "ON" "OFF"))
+          (flush)
           (reset! dbg new-debug))
 
         (when (re-seq #"(?ms)\S" input)
@@ -29,37 +30,44 @@
             (if-not (parser/good-ast? maybe-ast)
               (binding [*out* *err*]
                 (println "Parse error:")
-                (pp/pprint maybe-ast))
+                (pp/pprint maybe-ast)
+                (flush))
               (do
                 (when @dbg
                   (binding [*out* *err*]
                     (println "\nAST:\n====")
-                    (pp/pprint maybe-ast)))
+                    (pp/pprint maybe-ast)
+                    (flush)))
                 (let [ir (parser/transform maybe-ast)]
                   (when @dbg
                     (binding [*out* *err*]
                       (println "\nIR:\n===")
-                      (pp/pprint ir)))
+                      (pp/pprint ir)
+                      (flush)))
                   (when (= :select (:type ir))
                     (when-let [wheres (:where ir)]
                       (let [query (dat/where->datomic-q wheres)]
                         (when @dbg
                           (binding [*out* *err*]
                             (println "\nDatomic Query:\n============")
-                            (pp/pprint query)))
+                            (pp/pprint query)
+                            (flush)))
                         (let [db (->> sys :datomic :connection d/db)
                               results (d/q query db)]
                           (when @dbg
                             (binding [*out* *err*]
                               (println "\nRaw Results:\n===========")
-                              (prn results)))
+                              (prn results)
+                              (flush)))
                           (let [ids (mapcat identity results)]
                             (when @dbg
                               (binding [*out* *err*]
-                                (println "\nEntities:\n============")))
+                                (println "\nEntities:\n============")
+                                (flush)))
                             (doseq [id ids]
                               (let [entity (d/touch (d/entity db id))]
-                                (pp/pprint entity))))))))))))))
+                                (pp/pprint entity)
+                                (flush))))))))))))))
 
       (recur (assoc opts :debug @dbg)))))
 
