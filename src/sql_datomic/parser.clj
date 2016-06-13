@@ -5,7 +5,8 @@
             [clojure.edn :as edn]
             [clj-time.format :as fmt]
             [clj-time.core :as tm]
-            [clj-time.coerce :as coer]))
+            [clj-time.coerce :as coer]
+            [clojure.instant :as inst]))
 
 (def parser
   (-> "resources/sql-eensy.bnf"
@@ -54,14 +55,14 @@
        (fmt/parse datetime-formatter)
        to-utc
        str
-       clojure.instant/read-instant-date))
+       inst/read-instant-date))
 
 (defn transform-date-literal [s]
   (->> s
        (fmt/parse date-formatter)
        to-utc
        str
-       clojure.instant/read-instant-date))
+       inst/read-instant-date))
 
 (defn transform-epochal-literal [s]
   (->> s
@@ -69,17 +70,13 @@
        (*' 1000)  ;; ->milliseconds
        coer/from-long
        str
-       clojure.instant/read-instant-date))
+       inst/read-instant-date))
 
 ;; TODO: Need to add support for these Datomic types, from SQL dialect:
 ;;
 ;; :db.type/keyword - Value type for keywords. Keywords are used
 ;; as names, and are interned for efficiency. Keywords map to the
 ;; native interned-name type in languages that support them.
-;;
-;; :db.type/instant - Value type for instants in time. Stored internally
-;; as a number of milliseconds since midnight, January 1, 1970 UTC.
-;; Maps to java.util.Date on Java platforms.
 ;;
 ;; :db.type/uuid - Value type for UUIDs. Maps to java.util.UUID on
 ;; Java platforms.
@@ -116,7 +113,8 @@
                      (list :between c v1 v2))
    :date_literal transform-date-literal
    :datetime_literal transform-datetime-literal
-   :epochal_literal transform-epochal-literal})
+   :epochal_literal transform-epochal-literal
+   :inst_literal inst/read-instant-date})
 
 (def transform (partial insta/transform transform-options))
 

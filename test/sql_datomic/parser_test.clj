@@ -2,7 +2,8 @@
   (:require [clojure.test :refer :all]
             [sql-datomic.parser :as prs]
             [instaparse.core :as insta]
-            [clj-time.core :as tm]))
+            [clj-time.core :as tm]
+            [clojure.instant :as inst]))
 
 (defmacro parsable? [stmt]
   `(is (prs/good-ast? (prs/parser ~stmt))))
@@ -94,7 +95,12 @@
         from survey-request
        where survey-request.sent-date between date '2014-04-01'
                                           and date '2014-05-01'
-     "))
+     ")
+    (parsable?
+     "SELECT a_table.*
+      FROM a_table
+      WHERE a_table.created_on BETWEEN DATETIME '2007-02-01T10:11:12'
+                               AND #inst \"2010-10-10T01:02:03.001-07:00\""))
 
   (testing "INSERT statements"
     (parsable?
@@ -181,7 +187,7 @@
                           {:table "b_table" :column "hired_on"}
                           (->> (tm/date-time 2011 11 11)
                                str
-                               clojure.instant/read-instant-date))]
+                               inst/read-instant-date))]
             }))
     ;; select product.prod-id from product where product.prod-id between 1 and 2 and product.title <> 'foo'
     (is (= (prs/transform
