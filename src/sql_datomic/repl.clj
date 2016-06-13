@@ -4,11 +4,23 @@
             [clojure.pprint :as pp]
             [clojure.tools.cli :as cli]
             [datomic.api :as d]
-            clojure.repl))
+            clojure.repl
+            [clojure.string :as str]))
 
 (def ^:dynamic *prompt* "sql> ")
 
 (declare sys)
+
+(defn squawk
+  ([title] (squawk title nil))
+  ([title data]
+   (let [s (str title ":")
+         sep (str/join (repeat (count s) \=))]
+     (binding [*out* *err*]
+       (println (str "\n" s "\n" sep))
+       (when data
+         (pp/pprint data))
+       (flush)))))
 
 (defn repl [{:keys [debug] :as opts}]
   (let [dbg (atom debug)]
@@ -30,48 +42,27 @@
           (when (re-seq #"(?ms)\S" input)
             (let [maybe-ast (parser/parser input)]
               (if-not (parser/good-ast? maybe-ast)
-                (binding [*out* *err*]
-                  (println "Parse error:")
-                  (pp/pprint maybe-ast)
-                  (flush))
+                (squawk "Parse error" maybe-ast)
                 (do
-                  (when @dbg
-                    (binding [*out* *err*]
-                      (println "\nAST:\n====")
-                      (pp/pprint maybe-ast)
-                      (flush)))
+                  (when @dbg (squawk "AST" maybe-ast))
                   (let [ir (parser/transform maybe-ast)]
-                    (when @dbg
-                      (binding [*out* *err*]
-                        (println "\nIR:\n===")
-                        (pp/pprint ir)
-                        (flush)))
+                    (when @dbg (squawk "Intermediate Repr" ir))
                     (when (= :select (:type ir))
                       (when-let [wheres (:where ir)]
                         (let [query (dat/where->datomic-q wheres)]
-                          (when @dbg
-                            (binding [*out* *err*]
-                              (println "\nDatomic Query:\n============")
-                              (pp/pprint query)
-                              (flush)))
+                          (when @dbg (squawk "Datomic Query" query))
                           (let [db (->> sys :datomic :connection d/db)
                                 results (d/q query db)]
-                            (when @dbg
-                              (binding [*out* *err*]
-                                (println "\nRaw Results:\n===========")
-                                (prn results)
-                                (flush)))
+                            (when @dbg (squawk "Raw Results" results))
                             (let [ids (mapcat identity results)]
-                              (when @dbg
-                                (binding [*out* *err*]
-                                  (println "\nEntities:\n============")
-                                  (flush)))
+                              (when @dbg (squawk "Entities"))
                               (doseq [id ids]
                                 (let [entity (d/touch (d/entity db id))]
                                   (pp/pprint entity)
                                   (flush))))))))))))))
         (catch Exception ex
           (binding [*out* *err*]
+            (println "\n!!! Error !!!")
             (if @dbg
               (clojure.repl/pst ex)
               (println (.toString ex))))))
