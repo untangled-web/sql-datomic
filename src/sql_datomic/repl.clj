@@ -50,9 +50,11 @@
                     (when (= :select (:type ir))
                       (when-let [wheres (:where ir)]
                         (let [query (dat/where->datomic-q wheres)]
-                          (when @dbg (squawk "Datomic Query" query))
+                          (when @dbg
+                            (squawk "Datomic Rules" dat/rules)
+                            (squawk "Datomic Query" query))
                           (let [db (->> sys :datomic :connection d/db)
-                                results (d/q query db)]
+                                results (d/q query db dat/rules)]
                             (when @dbg (squawk "Raw Results" results))
                             (let [ids (mapcat identity results)]
                               (when @dbg (squawk "Entities"))

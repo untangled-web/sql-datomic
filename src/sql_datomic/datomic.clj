@@ -3,10 +3,19 @@
             [clojure.edn :as edn]
             [com.stuartsierra.component :as component]
             [clojure.pprint :as pp]
-            [clojure.walk :as walk]
-            [clj-time.core :as tm]))
+            [clojure.walk :as walk]))
 
 (def default-connection-uri "datomic:mem://dellstore")
+
+(def rules
+  '[
+    ;; (between 2 ?foo-id 4)
+    ;; (between #inst "2004-01-09T00:00:00.000-00:00"
+    ;;      ?od #inst "2004-01-10T00:00:00.000-00:00"
+    [[between ?v1 ?c ?v2]
+     [(<= ?v1 ?c)]
+     [(<= ?c ?v2)]]
+    ])
 
 (defn create-default-db []
   (d/create-database default-connection-uri)
@@ -102,19 +111,9 @@
                 :>= '>=}]
     [(list (kw->op op) v-sym v)]))
 
-(defn between-dates? [c v1 v2]
-  (let [c (org.joda.time.DateTime. c)
-        v1 (org.joda.time.DateTime. v1)
-        v2 (org.joda.time.DateTime. v2)]
-   (or (= c v2)
-       (tm/within? (tm/interval v1 v2) c))))
-
 (defn between->datomic [col->var [c v1 v2]]
   (let [{v-sym :value} (get col->var c :unknown-column!)]
-    ;; datomic's builtin <= is an extension and supports only two args.
-    (if (number? v1)
-      [(list clojure.core/<= v1 v-sym v2)]
-      [(list sql-datomic.datomic/between-dates? v-sym v1 v2)])))
+    (list 'between v1 v-sym v2)))
 
 (defn where->datomic [clauses]
   {:pre [(not (empty? clauses))
@@ -158,6 +157,7 @@
   (let [ws (where->datomic where)
         es (scrape-entities ws)]
     `[:find ~@es
+      :in ~'$ ~'%
       :where ~@ws]))
 
 (comment
