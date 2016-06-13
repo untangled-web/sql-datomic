@@ -65,7 +65,8 @@
             (println "\n!!! Error !!!")
             (if @dbg
               (clojure.repl/pst ex)
-              (println (.toString ex))))))
+              (println (.toString ex)))
+            (flush))))
 
       (recur (assoc opts :debug @dbg)))))
 

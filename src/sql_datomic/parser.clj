@@ -52,19 +52,24 @@
   (->> s
        fix-datetime-separator-space->T
        (fmt/parse datetime-formatter)
-       to-utc))
+       to-utc
+       str
+       clojure.instant/read-instant-date))
 
 (defn transform-date-literal [s]
   (->> s
        (fmt/parse date-formatter)
-       to-utc))
+       to-utc
+       str
+       clojure.instant/read-instant-date))
 
 (defn transform-epochal-literal [s]
   (->> s
        Long/parseLong
        (*' 1000)  ;; ->milliseconds
-       coer/from-long))
-
+       coer/from-long
+       str
+       clojure.instant/read-instant-date))
 
 ;; TODO: Need to add support for these Datomic types, from SQL dialect:
 ;;

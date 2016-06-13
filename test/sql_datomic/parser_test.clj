@@ -179,7 +179,9 @@
                           9000)
                     (list :<
                           {:table "b_table" :column "hired_on"}
-                          (tm/date-time 2011 11 11))]
+                          (->> (tm/date-time 2011 11 11)
+                               str
+                               clojure.instant/read-instant-date))]
             }))
     ;; select product.prod-id from product where product.prod-id between 1 and 2 and product.title <> 'foo'
     (is (= (prs/transform
