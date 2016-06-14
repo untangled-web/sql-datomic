@@ -16,6 +16,10 @@
     [[between ?v1 ?c ?v2]
      [(<= ?v1 ?c)]
      [(<= ?c ?v2)]]
+
+    ;; (unify-ident :product.category/action ?ident2974)
+    [[unify-ident ?ident ?var]
+     [(datomic.api/entid $ ?ident) ?var]]
     ])
 
 (defn create-default-db []
@@ -169,7 +173,7 @@
                         (into []))
         ident-where (->> ident-env
                          (map (fn [[ident {:keys [eid var]}]]
-                                [(list datomic.api/entid '$ ident) var])))
+                                (list 'unify-ident ident var))))
         base-where (apply conj base-where ident-where)]
     (->> clauses
          (map (fn [c]
