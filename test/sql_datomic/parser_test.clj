@@ -100,7 +100,11 @@
      "SELECT a_table.*
       FROM a_table
       WHERE a_table.created_on BETWEEN DATETIME '2007-02-01T10:11:12'
-                               AND #inst \"2010-10-10T01:02:03.001-07:00\""))
+                               AND #inst \"2010-10-10T01:02:03.001-07:00\"")
+    (parsable?
+     "select foo.* from foo
+      where product.prod-id between 4000 and 6000 and
+            product.category <> :product.category/action"))
 
   (testing "INSERT statements"
     (parsable?
@@ -210,4 +214,27 @@
             :where
             [(list :between {:table "product", :column "prod-id"} 1 10)
              (list :not= {:table "product", :column "title"} "foo")]}
-         ))))
+           ))
+    ;; select foo.* from foo where product.prod-id between 4000 and 6000 and product.category <> :product.category/action
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:select_statement
+              [:select_list [:qualified_asterisk "foo"]]
+              [:from_clause [:table_ref [:table_name "foo"]]]
+              [:where_clause
+               [:between_clause
+                [:column_name "product" "prod-id"]
+                [:exact_numeric_literal "4000"]
+                [:exact_numeric_literal "6000"]]
+               [:binary_comparison
+                [:column_name "product" "category"]
+                "<>"
+                [:keyword_literal "product.category/action"]]]]])
+           {:type :select,
+            :fields [[:qualified_asterisk "foo"]],
+            :tables [{:name "foo"}],
+            :where
+            ['(:between {:table "product", :column "prod-id"} 4000 6000)
+             '(:not=
+              {:table "product", :column "category"}
+              :product.category/action)]}))))
