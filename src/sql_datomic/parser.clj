@@ -74,9 +74,6 @@
 
 ;; TODO: Need to add support for these Datomic types, from SQL dialect:
 ;;
-;; :db.type/uuid - Value type for UUIDs. Maps to java.util.UUID on
-;; Java platforms.
-;;
 ;; :db.type/uri - Value type for URIs. Maps to java.net.URI on Java
 ;; platforms.
 ;;
