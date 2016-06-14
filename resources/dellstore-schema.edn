@@ -287,6 +287,18 @@
   :db/cardinality :db.cardinality/one ;; ??? or many
   :db/doc "not sure here; might be FK to prod_id for hierarchy; KISS"
   :db.install/_attribute :db.part/db}
+ {:db/id #db/id[db.part/db]
+  :db/ident :product/tag
+  :db/valueType :db.type/keyword
+  :db/cardinality :db.cardinality/one
+  :db/doc "sample non-ident keyword field"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[db.part/db]
+  :db/ident :product/uuid
+  :db/valueType :db.type/uuid
+  :db/cardinality :db.cardinality/one
+  :db/doc "sample uuid field"
+  :db.install/_attribute :db.part/db}
 
  ;; dellstore2=# \d categories
  ;;                                       Table "public.categories"

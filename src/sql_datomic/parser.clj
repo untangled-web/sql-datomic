@@ -111,7 +111,8 @@
    :date_literal transform-date-literal
    :datetime_literal transform-datetime-literal
    :epochal_literal transform-epochal-literal
-   :inst_literal inst/read-instant-date})
+   :inst_literal inst/read-instant-date
+   :uuid_literal (fn [s] (java.util.UUID/fromString s))})
 
 (def transform (partial insta/transform transform-options))
 

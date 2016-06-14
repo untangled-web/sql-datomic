@@ -7,7 +7,9 @@
   :product/actor "RIP DOUGLAS"
   :product/price 16.99M
   :product/special false
-  :product/common-prod-id 1644}
+  :product/common-prod-id 1644
+  :product/tag :airplane-cat-games
+  :product/uuid #uuid "57607364-9b35-4515-b067-88fe80de59a3"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 4936
   :product/category :product.category/new
@@ -15,7 +17,9 @@
   :product/actor "EDWARD NOLTE"
   :product/price 16.99M
   :product/special false
-  :product/common-prod-id 4633}
+  :product/common-prod-id 4633
+  :product/tag :african-vanishing-new
+  :product/uuid #uuid "5760739f-b352-4a41-82b9-98f6819e28cc"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 1298
   :product/category :product.category/comedy
@@ -23,7 +27,9 @@
   :product/actor "DENNIS FIENNES"
   :product/price 26.99M
   :product/special false
-  :product/common-prod-id 5006}
+  :product/common-prod-id 5006
+  :product/tag :ace-eyes-comedy
+  :product/uuid #uuid "576073c3-24c5-4461-9b84-dfe65774d41b"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 2926
   :product/category :product.category/music
@@ -31,7 +37,9 @@
   :product/actor "HELEN BERRY"
   :product/price 22.99M
   :product/special false
-  :product/common-prod-id 2561}
+  :product/common-prod-id 2561
+  :product/tag :adaptation-untouchables-music
+  :product/uuid #uuid "576073e7-d671-45ba-af1a-f08a9a355b81"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 5130
   :product/category :product.category/action
@@ -39,7 +47,9 @@
   :product/actor "ORLANDO KILMER"
   :product/price 14.99M
   :product/special false
-  :product/common-prod-id 8074}
+  :product/common-prod-id 8074
+  :product/tag :agent-celebrity-action
+  :product/uuid #uuid "5760740c-4f24-4f3d-8455-f79a1cc57fa9"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 9990
   :product/category :product.category/music
@@ -47,7 +57,9 @@
   :product/actor "HUMPHREY DENCH"
   :product/price 25.99M
   :product/special false
-  :product/common-prod-id 6584}
+  :product/common-prod-id 6584
+  :product/tag :aladdin-world-music
+  :product/uuid #uuid "57607426-cdd4-49fa-aecb-0a2572976db9"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 1567
   :product/category :product.category/new
@@ -55,7 +67,9 @@
   :product/actor "JESSICA PFEIFFER"
   :product/price 25.99M
   :product/special false
-  :product/common-prod-id 5179}
+  :product/common-prod-id 5179
+  :product/tag :ace-meet-new
+  :product/uuid #uuid "5760743c-33b3-4d8c-8f65-7ef389be597c"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 6376
   :product/category :product.category/drama
@@ -63,7 +77,9 @@
   :product/actor "KIM RYDER"
   :product/price 21.99M
   :product/special false
-  :product/common-prod-id 7411}
+  :product/common-prod-id 7411
+  :product/tag :airplane-grapes-drama
+  :product/uuid #uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0"}
 
  ;; orderid 5
  {:db/id #db/id[:db.part/user]
@@ -73,7 +89,9 @@
   :product/actor "NICK MINELLI"
   :product/price 13.99M
   :product/special false
-  :product/common-prod-id 4804}
+  :product/common-prod-id 4804
+  :product/tag :alabama-exorcist-family
+  :product/uuid #uuid "57607472-0bd8-4ed3-98d3-586e9e9c9683"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 4402
   :product/category :product.category/children
@@ -81,7 +99,9 @@
   :product/actor "GENE WILLIS"
   :product/price 11.99M
   :product/special false
-  :product/common-prod-id 1261}
+  :product/common-prod-id 1261
+  :product/tag :african-harper-children
+  :product/uuid #uuid "5760748b-7898-499c-af26-871426422d08"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 6879
   :product/category :product.category/action
@@ -89,7 +109,9 @@
   :product/actor "LIAM KILMER"
   :product/price 12.99M
   :product/special false
-  :product/common-prod-id 6893}
+  :product/common-prod-id 6893
+  :product/tag :airplane-telegraph-action
+  :product/uuid #uuid "576074a9-8d11-4468-bb46-bebcc23646fa"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 2290
   :product/category :product.category/documentary
@@ -97,4 +119,6 @@
   :product/actor "ANNETTE BEATTY"
   :product/price 15.99M
   :product/special false
-  :product/common-prod-id 2928}]
+  :product/common-prod-id 2928
+  :product/tag :adaptation-everyone-documentary
+  :product/uuid #uuid "576074cd-9f64-42cf-b604-4dee95de1303"}]

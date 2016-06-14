@@ -39,7 +39,8 @@ insert_vals ::= ( string_literal
                 | date_literal
                 | datetime_literal
                 | epochal_literal
-                | inst_literal )
+                | inst_literal
+                | uuid_literal )
                 [ {
                   <",">
                   ( string_literal
@@ -50,7 +51,8 @@ insert_vals ::= ( string_literal
                   | date_literal
                   | datetime_literal
                   | epochal_literal
-                  | inst_literal )
+                  | inst_literal
+                  | uuid_literal )
                   }+ ]
 
 from_clause ::= <"FROM"> table_ref [ { <","> table_ref }+ ]
@@ -64,6 +66,7 @@ select_list ::= ( column_name
                 | datetime_literal
                 | epochal_literal
                 | inst_literal
+                | uuid_literal
                 | exact_numeric_literal
                 | approximate_numeric_literal )
                 [ {
@@ -77,6 +80,7 @@ select_list ::= ( column_name
                   | datetime_literal
                   | epochal_literal
                   | inst_literal
+                  | uuid_literal
                   | exact_numeric_literal
                   | approximate_numeric_literal )
                   }+ ]
@@ -94,9 +98,11 @@ between_clause ::= column_name <"BETWEEN">
                  )
                  |
                  (
-                   ( exact_numeric_literal | approximate_numeric_literal )
+                   ( exact_numeric_literal | approximate_numeric_literal
+                   | uuid_literal )
                    <"AND">
-                   ( exact_numeric_literal | approximate_numeric_literal )
+                   ( exact_numeric_literal | approximate_numeric_literal
+                   | uuid_literal )
                  )
                }
 
@@ -109,7 +115,8 @@ binary_comparison ::= column_name
                       | epochal_literal
                       | inst_literal
                       | exact_numeric_literal
-                      | approximate_numeric_literal ) )
+                      | approximate_numeric_literal
+                      | uuid_literal ) )
                     |
                     ( #"(=|!=|<>)"
                       ( column_name
@@ -121,7 +128,8 @@ binary_comparison ::= column_name
                       | inst_literal
                       | exact_numeric_literal
                       | approximate_numeric_literal
-                      | string_literal ) )
+                      | string_literal
+                      | uuid_literal ) )
                   }
 
 string_literal ::= #"'(?:[^'\\]|\\.)*?'"
@@ -152,6 +160,11 @@ epochal_literal ::= <"time"> <"'"> #"\d+" <"'">
 
 keyword_literal ::= <":"> #"[-\.\*\+\$\?\|_/<>=%!#\w]+"
 
+uuid_literal ::= <"#uuid">
+     <"\"">
+     #"[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}"
+     <"\"">
+
 table_ref ::= table_name [ table_alias ]
 
 column_name ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)'
@@ -168,6 +181,7 @@ assignment_pair ::= column_name <"=">
                     | date_literal
                     | datetime_literal
                     | epochal_literal
-                    | inst_literal )
+                    | inst_literal
+                    | uuid_literal )
 
 table_alias ::= [ <"AS"> ] #'"[^\"]+"|[-_A-Za-z][-\w]*'

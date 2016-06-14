@@ -104,7 +104,14 @@
     (parsable?
      "select foo.* from foo
       where product.prod-id between 4000 and 6000 and
-            product.category <> :product.category/action"))
+            product.category <> :product.category/action")
+    (parsable?
+     "select foo.bar from foo where product.tag = :alabama-exorcist-family")
+    (parsable?
+     "select foo.bar from foo where
+        product.uuid between
+              #uuid \"576073c3-24c5-4461-9b84-dfe65774d41b\"
+          and #uuid \"5760745a-5bb5-4768-96f7-0f8aeb1a84f0\""))
 
   (testing "INSERT statements"
     (parsable?
@@ -237,4 +244,43 @@
             ['(:between {:table "product", :column "prod-id"} 4000 6000)
              '(:not=
               {:table "product", :column "category"}
-              :product.category/action)]}))))
+              :product.category/action)]}))
+    ;; select foo.bar from foo where product.tag = :alabama-exorcist-family
+    (is (prs/transform
+         [:sql_data_statement
+           [:select_statement
+            [:select_list
+             [:column_name "foo" "bar"]]
+            [:from_clause [:table_ref [:table_name "foo"]]]
+            [:where_clause
+             [:binary_comparison
+              [:column_name "product" "tag"]
+              "="
+              [:keyword_literal "alabama-exorcist-family"]]]]])
+        {:type :select,
+         :fields
+         [{:table "foo", :column "bar"}],
+         :tables [{:name "foo"}],
+         :where
+         ['(:= {:table "product", :column "tag"} :alabama-exorcist-family)]})
+
+    ;; select foo.bar from foo where product.uuid between #uuid "576073c3-24c5-4461-9b84-dfe65774d41b" and #uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0"
+    (is (prs/transform
+         [:sql_data_statement
+          [:select_statement
+           [:select_list [:column_name "foo" "bar"]]
+           [:from_clause [:table_ref [:table_name "foo"]]]
+           [:where_clause
+            [:between_clause
+             [:column_name "product" "uuid"]
+             [:uuid_literal "576073c3-24c5-4461-9b84-dfe65774d41b"]
+             [:uuid_literal "5760745a-5bb5-4768-96f7-0f8aeb1a84f0"]]]]])
+        {:type :select,
+         :fields [{:table "foo", :column "bar"}],
+         :tables [{:name "foo"}],
+         :where
+         ['(:between
+           {:table "product", :column "uuid"}
+           #uuid "576073c3-24c5-4461-9b84-dfe65774d41b"
+           #uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0")]})
+    ))
