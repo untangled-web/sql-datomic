@@ -35,6 +35,7 @@ insert_vals ::= ( string_literal
                 | boolean_literal
                 | exact_numeric_literal
                 | approximate_numeric_literal
+                | keyword_literal
                 | date_literal
                 | datetime_literal
                 | epochal_literal
@@ -45,6 +46,7 @@ insert_vals ::= ( string_literal
                   | boolean_literal
                   | exact_numeric_literal
                   | approximate_numeric_literal
+                  | keyword_literal
                   | date_literal
                   | datetime_literal
                   | epochal_literal
@@ -57,6 +59,7 @@ select_list ::= ( column_name
                 | qualified_asterisk
                 | string_literal
                 | boolean_literal
+                | keyword_literal
                 | date_literal
                 | datetime_literal
                 | epochal_literal
@@ -69,6 +72,7 @@ select_list ::= ( column_name
                   | qualified_asterisk
                   | string_literal
                   | boolean_literal
+                  | keyword_literal
                   | date_literal
                   | datetime_literal
                   | epochal_literal
@@ -109,6 +113,7 @@ binary_comparison ::= column_name
                     |
                     ( #"(=|!=|<>)"
                       ( column_name
+                      | keyword_literal
                       | boolean_literal
                       | date_literal
                       | datetime_literal
@@ -145,6 +150,8 @@ datetime_literal ::= <"datetime">
 
 epochal_literal ::= <"time"> <"'"> #"\d+" <"'">
 
+keyword_literal ::= <":"> #"[-\.\*\+\$\?\|_/<>=%!#\w]+"
+
 table_ref ::= table_name [ table_alias ]
 
 column_name ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)'
@@ -157,6 +164,7 @@ assignment_pair ::= column_name <"=">
                     | boolean_literal
                     | exact_numeric_literal
                     | approximate_numeric_literal
+                    | keyword_literal
                     | date_literal
                     | datetime_literal
                     | epochal_literal

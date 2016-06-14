@@ -3,7 +3,8 @@
             [clojure.edn :as edn]
             [com.stuartsierra.component :as component]
             [clojure.pprint :as pp]
-            [clojure.walk :as walk]))
+            [clojure.walk :as walk])
+  (:import [datomic.impl Exceptions$IllegalArgumentExceptionInfo]))
 
 (def default-connection-uri "datomic:mem://dellstore")
 
@@ -86,6 +87,9 @@
 (defn gensym-datomic-value-var []
   (gensym "?v"))
 
+(defn gensym-datomic-ident-var []
+  (gensym "?ident"))
+
 (defn build-datomic-var-map [columns]
   ;; TODO: How do we deal with table aliases?
   ;;       This will naively unify based on table name alone.
@@ -100,9 +104,10 @@
                               :attr (table-column->attr-kw col)}]))
          (into {}))))
 
-(defn binary-comparison->datomic [col->var op vs]
+(defn binary-comparison->datomic [col->var ident-env op vs]
   (let [[c v] vs
         {v-sym :value} (get col->var c :unknown-column!)
+        v (get-in ident-env [v :var] v)
         kw->op {:= '=
                 :not= 'not=
                 :< '<
@@ -115,7 +120,33 @@
   (let [{v-sym :value} (get col->var c :unknown-column!)]
     (list 'between v1 v-sym v2)))
 
-(defn where->datomic [clauses]
+(defn lookup-ref? [r]
+  (and (vector? r)
+       (->> r first keyword?)
+       (->> r second ((complement coll?)))))
+
+(defn ident-value [db v]
+  (and v
+       (not (number? v)) ;; skip eids
+       (or (keyword? v) (lookup-ref? v))
+       (try
+         (d/entid db v)
+         (catch Exceptions$IllegalArgumentExceptionInfo _ex
+           nil))))
+
+(defn extract-ident-values [db tree]
+  (->> tree
+       (tree-seq coll? seq)
+       (filter (fn [v] (ident-value db v)))))
+
+(defn build-datomic-ident-var-map [ident->eid]
+  (->> ident->eid
+       (map (fn [[ident eid]]
+              [ident {:eid eid
+                      :var (gensym-datomic-ident-var)}]))
+       (into {})))
+
+(defn where->datomic [db clauses]
   {:pre [(not (empty? clauses))
          (every? list? clauses)
          (every? (comp keyword? first) clauses)
@@ -126,10 +157,20 @@
   (let [col->var (->> clauses
                       extract-columns
                       build-datomic-var-map)
+        ident->eid (->> clauses
+                        (tree-seq coll? seq)
+                        (map (fn [n] [n (ident-value db n)]))
+                        (filter second)
+                        (into {}))
+        ident-env (build-datomic-ident-var-map ident->eid)
         base-where (->> col->var
                         (map (fn [[c {:keys [entity value]}]]
                                [entity (table-column->attr-kw c) value]))
-                        (into []))]
+                        (into []))
+        ident-where (->> ident-env
+                         (map (fn [[ident {:keys [eid var]}]]
+                                [(list datomic.api/entid '$ ident) var])))
+        base-where (apply conj base-where ident-where)]
     (->> clauses
          (map (fn [c]
                 (let [[op & operands] c]
@@ -137,7 +178,8 @@
                     :between (between->datomic col->var operands)
 
                     (:= :not= :< :> :<= :>=)
-                    (binary-comparison->datomic col->var op operands)
+                    (binary-comparison->datomic
+                     col->var ident-env op operands)
 
                     (throw (ex-info "unknown where-clause operator"
                                     {:operator op
@@ -153,8 +195,8 @@
        (map first)
        (into #{})))
 
-(defn where->datomic-q [where]
-  (let [ws (where->datomic where)
+(defn where->datomic-q [db where]
+  (let [ws (where->datomic db where)
         es (scrape-entities ws)]
     `[:find ~@es
       :in ~'$ ~'%

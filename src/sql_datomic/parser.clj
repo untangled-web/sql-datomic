@@ -74,10 +74,6 @@
 
 ;; TODO: Need to add support for these Datomic types, from SQL dialect:
 ;;
-;; :db.type/keyword - Value type for keywords. Keywords are used
-;; as names, and are interned for efficiency. Keywords map to the
-;; native interned-name type in languages that support them.
-;;
 ;; :db.type/uuid - Value type for UUIDs. Maps to java.util.UUID on
 ;; Java platforms.
 ;;
@@ -99,6 +95,7 @@
    :string_literal transform-string-literal
    :exact_numeric_literal edn/read-string
    :approximate_numeric_literal edn/read-string
+   :keyword_literal keyword
    :boolean_literal identity
    :true (constantly true)
    :false (constantly false)
