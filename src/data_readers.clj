@@ -1,2 +1,2 @@
-{uri sql-datomic.parser/->uri
- bytes sql-datomic.parser/base64-str->bytes}
+{uri sql-datomic.types/->uri
+ bytes sql-datomic.types/base64-str->bytes}

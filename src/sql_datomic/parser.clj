@@ -6,7 +6,8 @@
             [clj-time.format :as fmt]
             [clj-time.core :as tm]
             [clj-time.coerce :as coer]
-            [clojure.instant :as inst]))
+            [clojure.instant :as inst]
+            [sql-datomic.types :as types]))
 
 (def parser
   (-> "resources/sql-eensy.bnf"
@@ -19,40 +20,6 @@
        :auto-whitespace :standard)))
 
 (def good-ast? (complement insta/failure?))
-
-(defn ->uri [s] (java.net.URI. s))
-
-(defmethod print-dup java.net.URI [uri ^java.io.Writer writer]
-  (.write writer (str "#uri \"" (.toString uri) "\"")))
-
-(defmethod print-method java.net.URI [uri ^java.io.Writer writer]
-  (print-dup uri writer))
-
-(defn string->bytes [^String s]
-  (.getBytes s java.nio.charset.StandardCharsets/ISO_8859_1))
-(defn bytes->string [#^bytes b]
-  (String. b java.nio.charset.StandardCharsets/ISO_8859_1))
-(defn bytes->base64-str [#^bytes b]
-  (.encodeToString (java.util.Base64/getEncoder) b))
-(defn base64-str->bytes [^String b64str]
-  (.decode (java.util.Base64/getDecoder) b64str))
-
-(defonce bytes-class (Class/forName "[B"))
-(defmethod print-dup bytes-class [#^bytes b, ^java.io.Writer writer]
-  (.write writer (str "#bytes \"" (bytes->base64-str b) "\"")))
-(defmethod print-method bytes-class [#^bytes b, ^java.io.Writer writer]
-  (print-dup b writer))
-
-;; http://docs.datomic.com/schema.html#bytes-limitations
-;; <quote>
-;; The bytes :db.type/bytes type maps directly to Java byte arrays,
-;; which do not have value semantics (semantically equal byte arrays
-;; do not compare or hash as equal).
-;; </quote>
-(defn bytes= [& bs]
-  (apply = (map seq bs)))
-
-
 
 (defn strip-doublequotes [s]
   (-> s
@@ -136,8 +103,8 @@
    :epochal_literal transform-epochal-literal
    :inst_literal inst/read-instant-date
    :uuid_literal (fn [s] (java.util.UUID/fromString s))
-   :uri_literal ->uri
-   :bytes_literal base64-str->bytes})
+   :uri_literal types/->uri
+   :bytes_literal types/base64-str->bytes})
 
 (def transform (partial insta/transform transform-options))
 

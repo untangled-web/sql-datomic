@@ -289,6 +289,7 @@
            {:table "product", :column "uuid"}
            #uuid "576073c3-24c5-4461-9b84-dfe65774d41b"
            #uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0")]})
+
     ;; select foo.bar from foo where product.url = #uri "http://example.com/products/2290"
     (is (prs/transform
          [:sql_data_statement
@@ -307,6 +308,7 @@
          ['(:=
             {:table "product", :column "url"}
             #uri "http://example.com/products/2290")]})
+
     ;; select foo.bar, #bytes "QURBUFRBVElPTiBVTlRPVUNIQUJMRVM=" from foo where product.prod-id between 2000 and 3000
     (is (prs/transform
          [:sql_data_statement
