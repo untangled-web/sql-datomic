@@ -6,7 +6,8 @@
             [clj-time.format :as fmt]
             [clj-time.core :as tm]
             [clj-time.coerce :as coer]
-            [clojure.instant :as inst]))
+            [clojure.instant :as inst]
+            [datomic.codec :as codec]))
 
 (def parser
   (-> "resources/sql-eensy.bnf"
@@ -42,6 +43,15 @@
   (.write writer (str "#bytes \"" (bytes->base64-str b) "\"")))
 (defmethod print-method bytes-class [#^bytes b, ^java.io.Writer writer]
   (print-dup b writer))
+
+;; http://docs.datomic.com/schema.html#bytes-limitations
+;; <quote>
+;; The bytes :db.type/bytes type maps directly to Java byte arrays,
+;; which do not have value semantics (semantically equal byte arrays
+;; do not compare or hash as equal).
+;; </quote>
+(defn bytes= [& bs]
+  (apply = (map seq bs)))
 
 
 
@@ -132,7 +142,8 @@
    :epochal_literal transform-epochal-literal
    :inst_literal inst/read-instant-date
    :uuid_literal (fn [s] (java.util.UUID/fromString s))
-   :uri_literal ->uri})
+   :uri_literal ->uri
+   :bytes_literal base64-str->bytes})
 
 (def transform (partial insta/transform transform-options))
 

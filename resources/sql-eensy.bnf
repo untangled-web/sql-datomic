@@ -41,7 +41,8 @@ insert_vals ::= ( string_literal
                 | epochal_literal
                 | inst_literal
                 | uuid_literal
-                | uri_literal )
+                | uri_literal
+                | bytes_literal )
                 [ {
                   <",">
                   ( string_literal
@@ -54,7 +55,8 @@ insert_vals ::= ( string_literal
                   | epochal_literal
                   | inst_literal
                   | uuid_literal
-                  | uri_literal )
+                  | uri_literal
+                  | bytes_literal )
                   }+ ]
 
 from_clause ::= <"FROM"> table_ref [ { <","> table_ref }+ ]
@@ -71,7 +73,8 @@ select_list ::= ( column_name
                 | uuid_literal
                 | exact_numeric_literal
                 | approximate_numeric_literal
-                | uri_literal )
+                | uri_literal
+                | bytes_literal )
                 [ {
                   <",">
                   ( column_name
@@ -86,7 +89,8 @@ select_list ::= ( column_name
                   | uuid_literal
                   | exact_numeric_literal
                   | approximate_numeric_literal
-                  | uri_literal )
+                  | uri_literal
+                  | bytes_literal )
                   }+ ]
 
 set_clausen ::= assignment_pair [ { <","> assignment_pair }+ ]
@@ -172,6 +176,8 @@ uuid_literal ::= <"#uuid">
 
 uri_literal ::= <"#uri"> <"\""> #"[^\"]+" <"\"">
 
+bytes_literal ::= <"#bytes"> <"\""> #"[A-Za-z0-9+/=]+" <"\"">
+
 table_ref ::= table_name [ table_alias ]
 
 column_name ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)'
@@ -190,6 +196,7 @@ assignment_pair ::= column_name <"=">
                     | epochal_literal
                     | inst_literal
                     | uuid_literal
-                    | uri_literal )
+                    | uri_literal
+                    | bytes_literal )
 
 table_alias ::= [ <"AS"> ] #'"[^\"]+"|[-_A-Za-z][-\w]*'
