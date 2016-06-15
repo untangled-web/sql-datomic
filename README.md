@@ -57,6 +57,22 @@ following deviations:
     - `=`, `<>`, `!=` for columns and all scalars
     - `<`, `<=`, `>`, `>=` for columns, numeric and chronological types
 
+### Datomic-native data types supported in SQL dialect
+
+In addition to the usual data types expected in a database
+(e.g., string, ints, floats, booleans), Datomic also supports some
+interesting additional data types.  To better support them at the
+SQL prompt, the following Tagged Literals are supported:
+
+- UUID: `#uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0"`
+- URI: `#uri "http://slashdot.org/"`
+- Byte Array (base-64): `#bytes "b2hhaQ=="`
+- Instant (like datetimes): `#inst "1987-01-14T10:30:00"`
+- Keyword: `:foo.bar/baz-quux`, `:ohai`
+
+Note that byte arrays are not value types (from Datomic's perspective);
+therefore, they are not supported in `WHERE` clauses.
+
 ## License
 
 Copyright © 2016 FIXME
