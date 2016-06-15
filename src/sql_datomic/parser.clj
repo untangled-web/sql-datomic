@@ -22,8 +22,11 @@
 
 (defn ->uri [s] (java.net.URI. s))
 
-(defmethod print-dup java.net.URI [uri writer]
+(defmethod print-dup java.net.URI [uri ^java.io.Writer writer]
   (.write writer (str "#uri \"" (.toString uri) "\"")))
+
+(defmethod print-method java.net.URI [uri ^java.io.Writer writer]
+  (print-dup uri writer))
 
 (defn strip-doublequotes [s]
   (-> s
@@ -78,9 +81,6 @@
        inst/read-instant-date))
 
 ;; TODO: Need to add support for these Datomic types, from SQL dialect:
-;;
-;; :db.type/uri - Value type for URIs. Maps to java.net.URI on Java
-;; platforms.
 ;;
 ;; :db.type/bytes - Value type for small binary data. Maps to byte
 ;; array on Java platforms. See limitations.
