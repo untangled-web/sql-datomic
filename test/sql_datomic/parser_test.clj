@@ -114,7 +114,10 @@
           and #uuid \"5760745a-5bb5-4768-96f7-0f8aeb1a84f0\"")
     (parsable?
      "select foo.bar from foo where
-        product.url = #uri \"http://example.com/products/2290\""))
+        product.url = #uri \"http://example.com/products/2290\"")
+    (parsable?
+     "select foo.bar, #bytes \"QURBUFRBVElPTiBVTlRPVUNIQUJMRVM=\"
+      from foo where product.prod-id between 2000 and 3000"))
 
   (testing "INSERT statements"
     (parsable?
@@ -304,4 +307,24 @@
          ['(:=
             {:table "product", :column "url"}
             #uri "http://example.com/products/2290")]})
+    ;; select foo.bar, #bytes "QURBUFRBVElPTiBVTlRPVUNIQUJMRVM=" from foo where product.prod-id between 2000 and 3000
+    (is (prs/transform
+         [:sql_data_statement
+          [:select_statement
+           [:select_list
+            [:column_name "foo" "bar"]
+            [:bytes_literal "QURBUFRBVElPTiBVTlRPVUNIQUJMRVM="]]
+           [:from_clause [:table_ref [:table_name "foo"]]]
+           [:where_clause
+            [:between_clause
+             [:column_name "product" "prod-id"]
+             [:exact_numeric_literal "2000"]
+             [:exact_numeric_literal "3000"]]]]])
+        {:type :select
+         :fields [{:table "foo" :column "bar"}
+                  [65 68 65 80 84 65 84 73 79 78 32 85 78 84 79 85 67
+                   72 65 66 76 69 83]]
+         :tables [{:name "foo"}]
+         :where ['(:between {:table "product" :column "prod-id"}
+                            2000 3000)]})
     ))
