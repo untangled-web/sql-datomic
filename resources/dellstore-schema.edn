@@ -299,6 +299,12 @@
   :db/cardinality :db.cardinality/one
   :db/doc "sample uuid field"
   :db.install/_attribute :db.part/db}
+ {:db/id #db/id[db.part/db]
+  :db/ident :product/url
+  :db/valueType :db.type/uri
+  :db/cardinality :db.cardinality/one
+  :db/doc "sample uri field"
+  :db.install/_attribute :db.part/db}
 
  ;; dellstore2=# \d categories
  ;;                                       Table "public.categories"

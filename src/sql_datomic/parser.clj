@@ -20,6 +20,11 @@
 
 (def good-ast? (complement insta/failure?))
 
+(defn ->uri [s] (java.net.URI. s))
+
+(defmethod print-dup java.net.URI [uri writer]
+  (.write writer (str "#uri \"" (.toString uri) "\"")))
+
 (defn strip-doublequotes [s]
   (-> s
       (str/replace #"^\"" "")
@@ -109,7 +114,8 @@
    :datetime_literal transform-datetime-literal
    :epochal_literal transform-epochal-literal
    :inst_literal inst/read-instant-date
-   :uuid_literal (fn [s] (java.util.UUID/fromString s))})
+   :uuid_literal (fn [s] (java.util.UUID/fromString s))
+   :uri_literal ->uri})
 
 (def transform (partial insta/transform transform-options))
 

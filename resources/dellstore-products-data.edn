@@ -2,6 +2,7 @@
  ;; orderid 2
  {:db/id #db/id[:db.part/user]
   :product/prod-id 6127
+  :product/url #uri "http://example.com/products/6127"
   :product/category :product.category/games
   :product/title "AIRPLANE CAT"
   :product/actor "RIP DOUGLAS"
@@ -12,6 +13,7 @@
   :product/uuid #uuid "57607364-9b35-4515-b067-88fe80de59a3"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 4936
+  :product/url #uri "http://example.com/products/4936"
   :product/category :product.category/new
   :product/title "AFRICAN VANISHING"
   :product/actor "EDWARD NOLTE"
@@ -22,6 +24,7 @@
   :product/uuid #uuid "5760739f-b352-4a41-82b9-98f6819e28cc"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 1298
+  :product/url #uri "http://example.com/products/1298"
   :product/category :product.category/comedy
   :product/title "ACE EYES"
   :product/actor "DENNIS FIENNES"
@@ -32,6 +35,7 @@
   :product/uuid #uuid "576073c3-24c5-4461-9b84-dfe65774d41b"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 2926
+  :product/url #uri "http://example.com/products/2926"
   :product/category :product.category/music
   :product/title "ADAPTATION UNTOUCHABLES"
   :product/actor "HELEN BERRY"
@@ -42,6 +46,7 @@
   :product/uuid #uuid "576073e7-d671-45ba-af1a-f08a9a355b81"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 5130
+  :product/url #uri "http://example.com/products/5130"
   :product/category :product.category/action
   :product/title "AGENT CELEBRITY"
   :product/actor "ORLANDO KILMER"
@@ -52,6 +57,7 @@
   :product/uuid #uuid "5760740c-4f24-4f3d-8455-f79a1cc57fa9"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 9990
+  :product/url #uri "http://example.com/products/9990"
   :product/category :product.category/music
   :product/title "ALADDIN WORLD"
   :product/actor "HUMPHREY DENCH"
@@ -62,6 +68,7 @@
   :product/uuid #uuid "57607426-cdd4-49fa-aecb-0a2572976db9"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 1567
+  :product/url #uri "http://example.com/products/1567"
   :product/category :product.category/new
   :product/title "ACE MEET"
   :product/actor "JESSICA PFEIFFER"
@@ -72,6 +79,7 @@
   :product/uuid #uuid "5760743c-33b3-4d8c-8f65-7ef389be597c"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 6376
+  :product/url #uri "http://example.com/products/6376"
   :product/category :product.category/drama
   :product/title "AIRPLANE GRAPES"
   :product/actor "KIM RYDER"
@@ -84,6 +92,7 @@
  ;; orderid 5
  {:db/id #db/id[:db.part/user]
   :product/prod-id 8293
+  :product/url #uri "http://example.com/products/8293"
   :product/category :product.category/family
   :product/title "ALABAMA EXORCIST"
   :product/actor "NICK MINELLI"
@@ -94,6 +103,7 @@
   :product/uuid #uuid "57607472-0bd8-4ed3-98d3-586e9e9c9683"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 4402
+  :product/url #uri "http://example.com/products/4402"
   :product/category :product.category/children
   :product/title "AFRICAN HARPER"
   :product/actor "GENE WILLIS"
@@ -104,6 +114,7 @@
   :product/uuid #uuid "5760748b-7898-499c-af26-871426422d08"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 6879
+  :product/url #uri "http://example.com/products/6879"
   :product/category :product.category/action
   :product/title "AIRPLANE TELEGRAPH"
   :product/actor "LIAM KILMER"
@@ -114,6 +125,7 @@
   :product/uuid #uuid "576074a9-8d11-4468-bb46-bebcc23646fa"}
  {:db/id #db/id[:db.part/user]
   :product/prod-id 2290
+  :product/url #uri "http://example.com/products/2290"
   :product/category :product.category/documentary
   :product/title "ADAPTATION EVERYONE"
   :product/actor "ANNETTE BEATTY"

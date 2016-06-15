@@ -111,7 +111,10 @@
      "select foo.bar from foo where
         product.uuid between
               #uuid \"576073c3-24c5-4461-9b84-dfe65774d41b\"
-          and #uuid \"5760745a-5bb5-4768-96f7-0f8aeb1a84f0\""))
+          and #uuid \"5760745a-5bb5-4768-96f7-0f8aeb1a84f0\"")
+    (parsable?
+     "select foo.bar from foo where
+        product.url = #uri \"http://example.com/products/2290\""))
 
   (testing "INSERT statements"
     (parsable?
@@ -283,4 +286,22 @@
            {:table "product", :column "uuid"}
            #uuid "576073c3-24c5-4461-9b84-dfe65774d41b"
            #uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0")]})
+    ;; select foo.bar from foo where product.url = #uri "http://example.com/products/2290"
+    (is (prs/transform
+         [:sql_data_statement
+          [:select_statement
+           [:select_list [:column_name "foo" "bar"]]
+           [:from_clause [:table_ref [:table_name "foo"]]]
+           [:where_clause
+            [:binary_comparison
+             [:column_name "product" "url"]
+             "="
+             [:uri_literal "http://example.com/products/2290"]]]]])
+        {:type :select,
+         :fields [{:table "foo", :column "bar"}],
+         :tables [{:name "foo"}],
+         :where
+         ['(:=
+            {:table "product", :column "url"}
+            #uri "http://example.com/products/2290")]})
     ))

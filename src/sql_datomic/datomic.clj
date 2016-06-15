@@ -25,7 +25,10 @@
 (defn create-default-db []
   (d/create-database default-connection-uri)
   (let [connection (d/connect default-connection-uri)
-        load-edn (comp read-string slurp)
+        load-edn (fn [path]
+                   (->> path
+                        slurp
+                        (edn/read-string {:readers *data-readers*})))
         schema-tx (load-edn "resources/dellstore-schema.edn")
         customers-tx (load-edn "resources/dellstore-customers-data.edn")
         products-tx (load-edn "resources/dellstore-products-data.edn")

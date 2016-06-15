@@ -40,7 +40,8 @@ insert_vals ::= ( string_literal
                 | datetime_literal
                 | epochal_literal
                 | inst_literal
-                | uuid_literal )
+                | uuid_literal
+                | uri_literal )
                 [ {
                   <",">
                   ( string_literal
@@ -52,7 +53,8 @@ insert_vals ::= ( string_literal
                   | datetime_literal
                   | epochal_literal
                   | inst_literal
-                  | uuid_literal )
+                  | uuid_literal
+                  | uri_literal )
                   }+ ]
 
 from_clause ::= <"FROM"> table_ref [ { <","> table_ref }+ ]
@@ -68,7 +70,8 @@ select_list ::= ( column_name
                 | inst_literal
                 | uuid_literal
                 | exact_numeric_literal
-                | approximate_numeric_literal )
+                | approximate_numeric_literal
+                | uri_literal )
                 [ {
                   <",">
                   ( column_name
@@ -82,7 +85,8 @@ select_list ::= ( column_name
                   | inst_literal
                   | uuid_literal
                   | exact_numeric_literal
-                  | approximate_numeric_literal )
+                  | approximate_numeric_literal
+                  | uri_literal )
                   }+ ]
 
 set_clausen ::= assignment_pair [ { <","> assignment_pair }+ ]
@@ -129,7 +133,8 @@ binary_comparison ::= column_name
                       | exact_numeric_literal
                       | approximate_numeric_literal
                       | string_literal
-                      | uuid_literal ) )
+                      | uuid_literal
+                      | uri_literal ) )
                   }
 
 string_literal ::= #"'(?:[^'\\]|\\.)*?'"
@@ -165,6 +170,8 @@ uuid_literal ::= <"#uuid">
      #"[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}"
      <"\"">
 
+uri_literal ::= <"#uri"> <"\""> #"[^\"]+" <"\"">
+
 table_ref ::= table_name [ table_alias ]
 
 column_name ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)'
@@ -182,6 +189,7 @@ assignment_pair ::= column_name <"=">
                     | datetime_literal
                     | epochal_literal
                     | inst_literal
-                    | uuid_literal )
+                    | uuid_literal
+                    | uri_literal )
 
 table_alias ::= [ <"AS"> ] #'"[^\"]+"|[-_A-Za-z][-\w]*'
