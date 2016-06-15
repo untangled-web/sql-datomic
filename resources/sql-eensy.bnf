@@ -176,7 +176,7 @@ uuid_literal ::= <"#uuid">
 
 uri_literal ::= <"#uri"> <"\""> #"[^\"]+" <"\"">
 
-bytes_literal ::= <"#bytes"> <"\""> #"[A-Za-z0-9+/=]+" <"\"">
+bytes_literal ::= <#"#(bytes|base64)"> <"\""> #"[A-Za-z0-9+/=]+" <"\"">
 
 table_ref ::= table_name [ table_alias ]
 

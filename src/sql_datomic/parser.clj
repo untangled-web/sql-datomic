@@ -6,8 +6,7 @@
             [clj-time.format :as fmt]
             [clj-time.core :as tm]
             [clj-time.coerce :as coer]
-            [clojure.instant :as inst]
-            [datomic.codec :as codec]))
+            [clojure.instant :as inst]))
 
 (def parser
   (-> "resources/sql-eensy.bnf"
@@ -106,11 +105,6 @@
        coer/from-long
        str
        inst/read-instant-date))
-
-;; TODO: Need to add support for these Datomic types, from SQL dialect:
-;;
-;; :db.type/bytes - Value type for small binary data. Maps to byte
-;; array on Java platforms. See limitations.
 
 (def transform-options
   {:sql_data_statement identity
