@@ -10,6 +10,10 @@
            [java.net URI]
            [java.io Writer]))
 
+;; Note to maintainers:
+;;  If you change tagged literal code here, you very likely
+;;  will need to modify src/data_readers.clj also (and vice versa).
+
 ;; URI support
 
 (defn ->uri [s] (URI. s))
