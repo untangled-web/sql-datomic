@@ -32,6 +32,7 @@
       (when (re-seq #"^(?ims)\s*(?:quit|exit)\s*$" input)
         (System/exit 0))
 
+      ;; FIXME: Behold, the great leaning tower of REPL code.
       (try
         (if (re-seq #"^(?i)\s*debug\s*$" input)
           (let [new-debug (not @dbg)]
