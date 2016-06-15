@@ -180,8 +180,20 @@ bytes_literal ::= <#"#(bytes|base64)"> <"\""> #"[A-Za-z0-9+/=]+" <"\"">
 
 table_ref ::= table_name [ table_alias ]
 
+(* TODO:
+The keyword-as-col-name syntax is clear in the case of WHERE clauses,
+but leave some ambiguity when used in SELECT column lists.
+In `SELECT :product/title FROM product WHERE :product/prod-id = 1234`,
+should :product/title be interpreted as a keyword literal (seems useless),
+or should it map to `[?e :product/title ?v]`?
+Grammar currently interprets it as a keyword literal.
+*)
 column_name ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)'
                 <"."> #'("[^\"]+"|[-_A-Za-z][-\w]*)'
+              | <":">
+                #"([-\.\*\+\$\?\|_<>=%!#\w]+)"
+                <"/">
+                #"([-\.\*\+\$\?\|_<>=%!#\w]+)"
 
 qualified_asterisk ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)' <"."> <"*">
 

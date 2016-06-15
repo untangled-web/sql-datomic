@@ -117,7 +117,11 @@
         product.url = #uri \"http://example.com/products/2290\"")
     (parsable?
      "select foo.bar, #bytes \"QURBUFRBVElPTiBVTlRPVUNIQUJMRVM=\"
-      from foo where product.prod-id between 2000 and 3000"))
+      from foo where product.prod-id between 2000 and 3000")
+    (parsable?
+     "select foo.bar from foo where
+              :product/url = #uri \"http://example.com/products/2290\"
+          and :product/category = :product.category/documentary"))
 
   (testing "INSERT statements"
     (parsable?
