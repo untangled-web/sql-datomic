@@ -28,6 +28,23 @@
 (defmethod print-method java.net.URI [uri ^java.io.Writer writer]
   (print-dup uri writer))
 
+(defn string->bytes [^String s]
+  (.getBytes s java.nio.charset.StandardCharsets/ISO_8859_1))
+(defn bytes->string [#^bytes b]
+  (String. b java.nio.charset.StandardCharsets/ISO_8859_1))
+(defn bytes->base64-str [#^bytes b]
+  (.encodeToString (java.util.Base64/getEncoder) b))
+(defn base64-str->bytes [^String b64str]
+  (.decode (java.util.Base64/getDecoder) b64str))
+
+(defonce bytes-class (Class/forName "[B"))
+(defmethod print-dup bytes-class [#^bytes b, ^java.io.Writer writer]
+  (.write writer (str "#bytes \"" (bytes->base64-str b) "\"")))
+(defmethod print-method bytes-class [#^bytes b, ^java.io.Writer writer]
+  (print-dup b writer))
+
+
+
 (defn strip-doublequotes [s]
   (-> s
       (str/replace #"^\"" "")

@@ -239,6 +239,7 @@
 
   (def sys (.start (system {})))
   (defn sys-cxn [] (->> sys :datomic :connection))
+  (def db (d/db (sys-cxn)))
 
   (def where-clauses
     [(list :between {:table "product", :column "price"} 10 15)
