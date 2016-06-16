@@ -121,7 +121,19 @@
     (parsable?
      "select foo.bar from foo where
               :product/url = #uri \"http://example.com/products/2290\"
-          and :product/category = :product.category/documentary"))
+          and :product/category = :product.category/documentary")
+    (is (= (prs/parser
+            "select :foo/bar from foo where :foo/quux = :xyzzy.baz/foo")
+           [:sql_data_statement
+            [:select_statement
+             [:select_list [:column_name "foo" "bar"]]
+             [:from_clause [:table_ref [:table_name "foo"]]]
+             [:where_clause
+              [:binary_comparison
+               [:column_name "foo" "quux"]
+               "="
+               [:keyword_literal "xyzzy.baz/foo"]]]]])
+        "ns-keyword in select list maps to column_name"))
 
   (testing "INSERT statements"
     (parsable?
@@ -332,5 +344,4 @@
                    72 65 66 76 69 83]]
          :tables [{:name "foo"}]
          :where ['(:between {:table "product" :column "prod-id"}
-                            2000 3000)]})
-    ))
+                            2000 3000)]})))
