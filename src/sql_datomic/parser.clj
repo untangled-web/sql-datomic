@@ -117,4 +117,14 @@
         c (get text index)]
     (cond
       (= c \")
-      "Did you use \" for string literal?  Strings are delimited by '.")))
+      "Did you use \" for string literal?  Strings are delimited by '."
+
+      (and
+       (re-seq #"^(?:#bytes|#base64)" (subs text index))
+       (re-seq
+        #"(?i)\bwhere\s+.*(?:=|!=|<>|<=|<|>=|>)\s*(?:#bytes|#base64)\b"
+        text))
+      (str "Did you use a #bytes literal in a comparison?  "
+           "Bytes arrays are not values"
+           " and cannot be used with =, !=, <>, <, etc.")
+      )))
