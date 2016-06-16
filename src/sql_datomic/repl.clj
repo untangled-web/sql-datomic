@@ -145,5 +145,6 @@
       (when (dat/default-uri? uri)
         (println "*** using default in-mem database ***"))
       (println "type `exit` or `quit` or ^D to exit")
-      (println "type `debug` to toggle debug mode"))
+      (println "type `debug` to toggle debug mode")
+      (println "type `pretend` to toggle pretend mode"))
     (repl opts)))
