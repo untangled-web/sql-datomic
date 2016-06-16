@@ -22,8 +22,25 @@
          (pp/pprint data))
        (flush)))))
 
-(defn repl [{:keys [debug] :as opts}]
-  (let [dbg (atom debug)]
+(defn ruler [s]
+  (let [nums (map (fn [n] (-> n inc (mod 10))) (range))]
+    (->> nums
+         (take (count s))
+         (map str)
+         str/join)))
+
+(defn print-ruler [input]
+  (when (seq input)
+    (binding [*out* *err*]
+      (println "\nInput with column offsets:\n===========================")
+      (println input)
+      (println (ruler input))
+      (flush))))
+
+(defn repl [{:keys [debug pretend] :as opts}]
+  (let [dbg (atom debug)
+        loljk (atom pretend)
+        noop (atom false)]
     (print *prompt*)
     (flush)
     (let [input (read-line)]
@@ -34,47 +51,71 @@
 
       ;; FIXME: Behold, the great leaning tower of REPL code.
       (try
-        (if (re-seq #"^(?i)\s*debug\s*$" input)
+        (when (re-seq #"^(?i)\s*debug\s*$" input)
           (let [new-debug (not @dbg)]
             (println "Set debug to" (if new-debug "ON" "OFF"))
             (flush)
-            (reset! dbg new-debug))
+            (reset! dbg new-debug)
+            (reset! noop true)))
+        (when (re-seq #"^(?i)\s*pretend\s*$" input)
+          (let [new-pretend (not @loljk)]
+            (println "Set pretend to" (if new-pretend "ON" "OFF"))
+            (flush)
+            (reset! loljk new-pretend)
+            (reset! noop true)))
+        (when (and (not @dbg) @loljk)
+          (println "Set debug to ON due to pretend ON")
+          (flush)
+          (reset! dbg true)
+          (reset! noop true))
 
-          (when (re-seq #"(?ms)\S" input)
-            (let [maybe-ast (parser/parser input)]
-              (if-not (parser/good-ast? maybe-ast)
+        (when (and (not @noop) (re-seq #"(?ms)\S" input))
+          (let [maybe-ast (parser/parser input)]
+            (if-not (parser/good-ast? maybe-ast)
+              (do
                 (squawk "Parse error" maybe-ast)
-                (do
-                  (when @dbg (squawk "AST" maybe-ast))
-                  (let [ir (parser/transform maybe-ast)]
-                    (when @dbg (squawk "Intermediate Repr" ir))
-                    (when (= :select (:type ir))
-                      (when-let [wheres (:where ir)]
-                        (let [db (->> sys :datomic :connection d/db)
-                              query (dat/where->datomic-q db wheres)]
-                          (when @dbg
-                            (squawk "Datomic Rules" dat/rules)
-                            (squawk "Datomic Query" query))
-                          (let [results (d/q query db dat/rules)]
-                            (when @dbg (squawk "Raw Results" results))
-                            (let [ids (mapcat identity results)]
-                              (when @dbg
-                                (squawk "Entities")
-                                (when-not (seq results)
-                                  (binding [*out* *err*] (println "None"))))
-                              (doseq [id ids]
-                                (let [entity (d/touch (d/entity db id))]
-                                  (pp/pprint entity)
-                                  (flush))))))))))))))
+                (print-ruler input))
+              (do
+                (when @dbg (squawk "AST" maybe-ast))
+                (let [ir (parser/transform maybe-ast)]
+                  (when @dbg (squawk "Intermediate Repr" ir))
+                  (case (:type ir)
+                    :select
+                    (when-let [wheres (:where ir)]
+                      (let [db (->> sys :datomic :connection d/db)
+                            query (dat/where->datomic-q db wheres)]
+                        (when @dbg
+                          (squawk "Datomic Rules" dat/rules)
+                          (squawk "Datomic Query" query))
+                        (let [results (d/q query db dat/rules)]
+                          (when @dbg (squawk "Raw Results" results))
+                          (let [ids (mapcat identity results)]
+                            (when @dbg
+                              (squawk "Entities")
+                              (when-not (seq results)
+                                (binding [*out* *err*] (println "None"))))
+                            (doseq [id ids]
+                              (let [entity (d/touch (d/entity db id))]
+                                (pp/pprint entity)
+                                (flush)))))))
+
+                    (:insert :update :delete)
+                    (println "TBD")
+
+                    ;; else
+                    (throw (ex-info "Unknown query type" {:type (:type ir)
+                                                          :ir ir}))))))))
         (catch Exception ex
           (binding [*out* *err*]
             (println "\n!!! Error !!!")
             (if @dbg
-              (clojure.repl/pst ex)
+              (do
+                (clojure.repl/pst ex)
+                (print-ruler input))
               (println (.toString ex)))
             (flush))))
 
-      (recur (assoc opts :debug @dbg)))))
+      (recur (assoc opts :debug @dbg :pretend @loljk)))))
 
 (defn -main [& args]
   (let [[opts args banner]
@@ -83,6 +124,9 @@
                   :flag true
                   :default false]
                  ["-d" "--debug" "Write debug info to stderr"
+                  :flag true
+                  :default false]
+                 ["-p" "--pretend" "Run without transacting; turns on debug"
                   :flag true
                   :default false]
                  ["-u" "--connection-uri"
