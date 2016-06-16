@@ -79,6 +79,18 @@
                        (->> ps
                             (zipmap [:fields :tables :where])
                             (into {:type :select})))
+   :update_statement (fn [& ps]
+                       (->> ps
+                            (zipmap [:table :assign-pairs :where])
+                            (into {:type :update})))
+   :insert_statement (fn [& ps]
+                       (->> ps
+                            (zipmap [:table :cols :vals])
+                            (into {:type :insert})))
+   :delete_statement (fn [& ps]
+                       (->> ps
+                            (zipmap [:table :where])
+                            (into {:type :delete})))
    :select_list vector
    :column_name (fn [t c] {:table (strip-doublequotes t)
                            :column (strip-doublequotes c)})

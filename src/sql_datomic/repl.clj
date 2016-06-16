@@ -22,20 +22,32 @@
          (pp/pprint data))
        (flush)))))
 
-(defn ruler [s]
-  (let [nums (map (fn [n] (-> n inc (mod 10))) (range))]
-    (->> nums
-         (take (count s))
-         (map str)
-         str/join)))
+(defn pointer [s index]
+  (str/join (conj (into [] (repeat (dec index) \space)) \^)))
 
-(defn print-ruler [input]
-  (when (seq input)
-    (binding [*out* *err*]
-      (println "\nInput with column offsets:\n==========================")
-      (println input)
-      (println (ruler input))
-      (flush))))
+(defn ruler [s]
+  (let [nats (->> (range) (map inc) (take (count s)))
+        ->line (fn [coll]
+                 (->> coll (map str) str/join))
+        ones (map (fn [n] (rem n 10))
+                  nats)
+        tens (map (fn [n] (if (zero? (rem n 10))
+                            (rem (quot n 10) 10)
+                            \space))
+                  nats)]
+    (str/join "\n" [(->line ones) (->line tens)])))
+
+(defn print-ruler
+  ([input] (print-ruler input nil))
+  ([input index]
+   (when (seq input)
+     (binding [*out* *err*]
+       (println "\nInput with column offsets:\n==========================")
+       (println input)
+       (when index
+         (println (pointer input index)))
+       (println (ruler input))
+       (flush)))))
 
 (defn repl [{:keys [debug pretend] :as opts}]
   (let [dbg (atom debug)
@@ -77,7 +89,7 @@
                 (when-let [hint (parser/hint-for-parse-error maybe-ast)]
                   (binding [*out* *err*]
                     (println (str "\n*** Hint: " hint))))
-                (print-ruler input))
+                (print-ruler input (:index maybe-ast)))
               (do
                 (when @dbg (squawk "AST" maybe-ast))
                 (let [ir (parser/transform maybe-ast)]
@@ -103,7 +115,7 @@
                                 (flush)))))))
 
                     (:insert :update :delete)
-                    (println "TBD")
+                    (println "\n\n*** TBD ***")
 
                     ;; else
                     (throw (ex-info "Unknown query type" {:type (:type ir)
