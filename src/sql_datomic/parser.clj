@@ -111,3 +111,10 @@
 (defn parse [input]
   (->> (parser input)
        transform))
+
+(defn hint-for-parse-error [parse-error]
+  (let [{:keys [index reason line column text]} parse-error
+        c (get text index)]
+    (cond
+      (= c \")
+      "Did you use \" for string literal?  Strings are delimited by '.")))

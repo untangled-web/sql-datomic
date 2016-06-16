@@ -32,7 +32,7 @@
 (defn print-ruler [input]
   (when (seq input)
     (binding [*out* *err*]
-      (println "\nInput with column offsets:\n===========================")
+      (println "\nInput with column offsets:\n==========================")
       (println input)
       (println (ruler input))
       (flush))))
@@ -74,6 +74,9 @@
             (if-not (parser/good-ast? maybe-ast)
               (do
                 (squawk "Parse error" maybe-ast)
+                (when-let [hint (parser/hint-for-parse-error maybe-ast)]
+                  (binding [*out* *err*]
+                    (println (str "\n*** Hint: " hint))))
                 (print-ruler input))
               (do
                 (when @dbg (squawk "AST" maybe-ast))
