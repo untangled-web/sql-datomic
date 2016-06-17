@@ -430,4 +430,20 @@
             :table "product",
             :where ['(:between {:table "product", :column "prod-id"}
                                2000 4000)]}))
+
+    ;; insert into product (prod-id, actor, title, category) values (9999, 'Naomi Watts', 'The Ring', :product.category/horror)
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:insert_statement
+              [:table_name "product"]
+              [:insert_cols "prod-id" "actor" "title" "category"]
+              [:insert_vals
+               [:exact_numeric_literal "9999"]
+               [:string_literal "'Naomi Watts'"]
+               [:string_literal "'The Ring'"]
+               [:keyword_literal "product.category/horror"]]]])
+           {:type :insert,
+            :table "product",
+            :cols ["prod-id" "actor" "title" "category"],
+            :vals [9999 "Naomi Watts" "The Ring" :product.category/horror]}))
     ))

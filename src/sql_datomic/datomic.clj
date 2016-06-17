@@ -229,7 +229,7 @@
       :in ~'$ ~'%
       :where ~@ws]))
 
-(defn update-ir->base-transaction [{:keys [assign-pairs] :as ir}]
+(defn update-ir->base-tx-data [{:keys [assign-pairs] :as ir}]
   {:pre [(seq assign-pairs)
          (vector? assign-pairs)
          (every? vector? assign-pairs)
@@ -239,10 +239,10 @@
        (map (fn [[c v]] [(table-column->attr-kw c) v]))
        (into {})))
 
-(defn stitch-transactions [base-transaction eids]
-  {:pre [(map? base-transaction)]}
+(defn stitch-tx-data [base-tx eids]
+  {:pre [(map? base-tx)]}
   (->> eids
-       (map (fn [id] (assoc base-transaction :db/id id)))
+       (map (fn [id] (assoc base-tx :db/id id)))
        (into [])))
 
 (defn get-entities-by-eids [db eids]
@@ -251,10 +251,29 @@
          (d/entity db)
          d/touch)))
 
-(defn delete-ir->transactions [eids]
+(defn delete-eids->tx-data [eids]
   (->> eids
        (map (fn [id] [:db.fn/retractEntity id]))
        (into [])))
+
+(defn add-tempid [entity]
+  (assoc entity :db/id (d/tempid :db.part/user)))
+
+(defn insert-ir->tx-data [{:keys [table cols vals] :as ir}]
+  {:pre [(seq cols)
+         (seq vals)
+         (seq table)
+         (string? table)
+         (every? string? cols)
+         (= (count cols) (count vals))]}
+  (let [attrs (->> cols (map (partial keyword table)))]
+    (->> (zipmap attrs vals)
+         add-tempid
+         vector)))
+
+(defn scrape-inserted-eids [transact-result]
+  {:pre [(map? transact-result)]}
+  (->> transact-result :tempids vals (into [])))
 
 (comment
 

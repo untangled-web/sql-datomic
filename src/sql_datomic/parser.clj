@@ -73,6 +73,8 @@
        str
        inst/read-instant-date))
 
+;; FIXME: Unable to update/insert bigdec values.
+
 (def transform-options
   {:sql_data_statement identity
    :select_statement (fn [& ps]
@@ -121,7 +123,9 @@
    :uri_literal types/->uri
    :bytes_literal types/base64-str->bytes
    :set_clausen vector
-   :assignment_pair vector})
+   :assignment_pair vector
+   :insert_cols vector
+   :insert_vals vector})
 
 (def transform (partial insta/transform transform-options))
 

@@ -94,7 +94,10 @@
                 (when @dbg (squawk "AST" maybe-ast))
                 (let [ir (parser/transform maybe-ast)]
                   (when @dbg (squawk "Intermediate Repr" ir))
+
+                  ;; FIXME: Sooooo much copy-pasta ...
                   (case (:type ir)
+
                     :select
                     (when-let [wheres (:where ir)]
                       (let [db (->> sys :datomic :connection d/db)
@@ -134,15 +137,15 @@
                                 (pp/pprint entity)
                                 (flush)))
                             (when (seq results)
-                              (let [base-tx (dat/update-ir->base-transaction ir)
-                                    txs (dat/stitch-transactions base-tx ids)]
-                                (when @dbg (squawk "Transaction" txs))
+                              (let [base-tx (dat/update-ir->base-tx-data ir)
+                                    tx-data (dat/stitch-tx-data base-tx ids)]
+                                (when @dbg (squawk "Transaction" tx-data))
                                 (if @loljk
                                   (println
                                    "Halting transaction due to pretend mode ON")
                                   (do
                                     (println)
-                                    (println @(d/transact conn txs))
+                                    (println @(d/transact conn tx-data))
                                     (when @dbg
                                       (squawk "Entities after Transaction")
                                       (let [db' (d/db conn)
@@ -173,14 +176,14 @@
                                 (pp/pprint entity)
                                 (flush)))
                             (when (seq results)
-                              (let [txs (dat/delete-ir->transactions ids)]
-                                (when @dbg (squawk "Transaction" txs))
+                              (let [tx-data (dat/delete-eids->tx-data ids)]
+                                (when @dbg (squawk "Transaction" tx-data))
                                 (if @loljk
                                   (println
                                    "Halting transaction due to pretend mode ON")
                                   (do
                                     (println)
-                                    (println @(d/transact conn txs))
+                                    (println @(d/transact conn tx-data))
                                     (when @dbg
                                       (squawk "Entities after Transaction")
                                       (let [db' (d/db conn)
@@ -191,8 +194,29 @@
                                             (pp/pprint entity)
                                             (flush)))))))))))))
 
-                    (:insert)
-                    (println "\n\n*** TBD ***")
+                    :insert
+                    (let [conn (->> sys :datomic :connection)
+                          db (d/db conn)
+                          tx-data (dat/insert-ir->tx-data ir)]
+                      (when @dbg (squawk "Transaction" tx-data))
+                      (if @loljk
+                        (println
+                         "Halting transaction due to pretend mode ON")
+                        (do
+                          (println)
+                          (let [transact-result @(d/transact conn tx-data)
+                                ids (dat/scrape-inserted-eids
+                                     transact-result)]
+                            (prn ids)
+                            (when @dbg
+                              (squawk "Entities after Transaction")
+                              (let [db' (d/db conn)
+                                    entities (dat/get-entities-by-eids
+                                              db' ids)]
+                                (doseq [entity entities]
+                                  (binding [*out* *err*]
+                                    (pp/pprint entity)
+                                    (flush)))))))))
 
                     ;; else
                     (throw (ex-info "Unknown query type" {:type (:type ir)
