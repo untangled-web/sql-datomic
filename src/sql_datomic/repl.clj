@@ -113,8 +113,26 @@
                               (let [entity (d/touch (d/entity db id))]
                                 (pp/pprint entity)
                                 (flush)))))))
+                    :update
+                    (when-let [wheres (:where ir)]
+                      (let [db (->> sys :datomic :connection d/db)
+                            query (dat/where->datomic-q db wheres)]
+                        (when @dbg
+                          (squawk "Datomic Rules" dat/rules)
+                          (squawk "Datomic Query" query))
+                        (let [results (d/q query db dat/rules)]
+                          (when @dbg (squawk "Raw Results" results))
+                          (let [ids (mapcat identity results)]
+                            (when @dbg
+                              (squawk "Entities Targetted for Update")
+                              (when-not (seq results)
+                                (binding [*out* *err*] (println "None"))))
+                            (doseq [id ids]
+                              (let [entity (d/touch (d/entity db id))]
+                                (pp/pprint entity)
+                                (flush)))))))
 
-                    (:insert :update :delete)
+                    (:insert :delete)
                     (println "\n\n*** TBD ***")
 
                     ;; else

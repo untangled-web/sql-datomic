@@ -107,7 +107,10 @@
    :table_name strip-doublequotes
    :table_alias strip-doublequotes
    :binary_comparison (fn [c op v]
-                        (list (comparison-ops op) c v))
+                        (if (and (= c {:table "db", :column "id"})
+                                 (= op "="))
+                          (list :db-id v)
+                          (list (comparison-ops op) c v)))
    :between_clause (fn [c v1 v2]
                      (list :between c v1 v2))
    :date_literal transform-date-literal

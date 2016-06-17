@@ -20,6 +20,11 @@
     ;; (unify-ident :product.category/action ?ident2974)
     [[unify-ident ?ident ?var]
      [(datomic.api/entid $ ?ident) ?var]]
+
+    ;;
+    #_[[db-id= ?eid ?var]
+     [(ground ?eid) ?var]
+     [?var]]
     ])
 
 (defn create-default-db []
@@ -66,16 +71,11 @@
    :datomic (map->DatomicConnection {:connection connection
                                      :connection-uri connection-uri})))
 
-(defn select-ir->clj [ir]
-  {:pre [(= :select (:type ir))]}
-  (let [{:keys [fields tables where]} ir]
-    ))
-
-(defn map-eq-to-datomic-clause [ir-eq-clause]
-  )
-
 (defn table-column->attr-kw [{:keys [table column]}]
   (keyword table column))
+
+(defonce db-id-column {:table "db", :column "id"})
+(defn db-id? [c] (= c db-id-column))
 
 (defn extract-columns [where-clauses]
   (let [column? (fn [v] (and (map? v)
@@ -146,6 +146,11 @@
        (tree-seq coll? seq)
        (filter (fn [v] (ident-value db v)))))
 
+(defn db-id->datomic [id]
+  (let [e-var (gensym-datomic-entity-var)]
+    [[(list 'ground id) e-var]
+     [e-var]]))
+
 (defn build-datomic-ident-var-map [ident->eid]
   (->> ident->eid
        (map (fn [[ident eid]]
@@ -153,13 +158,22 @@
                       :var (gensym-datomic-ident-var)}]))
        (into {})))
 
+(defn squoosh [cs]
+  (loop [remain cs, result []]
+    (if-not (seq remain)
+      result
+      (let [[v & vs] remain]
+        (if (and (vector? v) (vector? (first v)))
+          (recur vs (apply conj result v))
+          (recur vs (conj result v)))))))
+
 (defn where->datomic [db clauses]
   {:pre [(not (empty? clauses))
          (every? list? clauses)
          (every? (comp keyword? first) clauses)
          (every? (fn [c]
                    (-> (first c)
-                       #{:between := :not= :< :> :<= :>=}))
+                       #{:between := :not= :< :> :<= :>= :db-id}))
                  clauses)]}
   (let [col->var (->> clauses
                       extract-columns
@@ -188,10 +202,13 @@
                     (binary-comparison->datomic
                      col->var ident-env op operands)
 
+                    :db-id (db-id->datomic (first operands))
+
                     (throw (ex-info "unknown where-clause operator"
                                     {:operator op
                                      :operands operands
                                      :clause c}))))))
+         squoosh
          (into base-where))))
 
 (defn scrape-entities [dat-where]
@@ -240,6 +257,7 @@
   (def sys (.start (system {})))
   (defn sys-cxn [] (->> sys :datomic :connection))
   (def db (d/db (sys-cxn)))
+  (def bloom (comp d/touch (partial d/entity db)))
 
   (def where-clauses
     [(list :between {:table "product", :column "price"} 10 15)
@@ -260,5 +278,13 @@
 
   (where->datomic
    [(list := {:table "product" :column "prod-id"} 42)])
+
+  (->> (d/q '[:find [?e ...]
+              :in $
+              :where
+              [(ground 17592186045445) ?e]
+              [?e]]
+            db)
+       (map bloom) )
 
   )
