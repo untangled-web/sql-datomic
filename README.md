@@ -46,8 +46,15 @@ following deviations:
   numeric literals or chronological literals (`DATE`, `DATETIME`, `TIME`)
   for bounds.
 - Supported scalar types are:
-    - boolean: `TRUE`, `FALSE`
+    - boolean: `TRUE`, `FALSE` (`true`, `false`)
     - numeric (int, float): `42`, `3.14159`, `6.62607004e-34`
+        - int-types:
+            - long: `42`
+            - bigint: `9001N`
+        - float-types:
+            - double: `3.14159`
+            - float:  `2.7182F`, `1.6182f`, `#float -5.24e-5`
+            - bigdec: `24.95M` (often used for monetary values)
     - strings: `''`, `'foo'`, `'bIlujDI\\' yIchegh()Qo\\'; yIHegh()!'`
     - chronological literals (all assumed to be UTC):
         - `date '1999-12-31'`
@@ -69,6 +76,7 @@ SQL prompt, the following Tagged Literals are supported:
 - Byte Array (base-64): `#bytes "b2hhaQ=="`
 - Instant (like datetimes): `#inst "1987-01-14T10:30:00"`
 - Keyword: `:foo.bar/baz-quux`, `:ohai`
+- Float: `#float 3.1415`
 
 Note that byte arrays are not value types (from Datomic's perspective);
 therefore, they are not supported in `WHERE` clauses.
