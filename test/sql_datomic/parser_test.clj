@@ -388,7 +388,7 @@
             :where ['(:db-id 17592186045445)]})
         "`:db/id = eid` translates to :db-id clause, not :binary_comparison")
 
-    ;;
+    ;; update product set :product/category = :product.category/new, :product/tag = :foo-bar-baz, :product/actor = 'Quux the Great' where :product/prod-id = 1567
     (is (= (prs/transform
             [:sql_data_statement
              [:update_statement
@@ -415,4 +415,19 @@
              [{:table "product", :column "tag"} :foo-bar-baz]
              [{:table "product", :column "actor"} "Quux the Great"]],
             :where ['(:= {:table "product", :column "prod-id"} 1567)]}))
+
+    ;; delete from product where :product/prod-id between 2000 and 4000
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:delete_statement
+              [:table_name "product"]
+              [:where_clause
+               [:between_clause
+                [:column_name "product" "prod-id"]
+                [:exact_numeric_literal "2000"]
+                [:exact_numeric_literal "4000"]]]]])
+           {:type :delete,
+            :table "product",
+            :where ['(:between {:table "product", :column "prod-id"}
+                               2000 4000)]}))
     ))

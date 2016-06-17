@@ -251,6 +251,11 @@
          (d/entity db)
          d/touch)))
 
+(defn delete-ir->transactions [eids]
+  (->> eids
+       (map (fn [id] [:db.fn/retractEntity id]))
+       (into [])))
+
 (comment
 
   (use 'clojure.repl)

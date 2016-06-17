@@ -150,7 +150,43 @@
                                           (pp/pprint entity)
                                           (flush))))))))))))
 
-                    (:insert :delete)
+                    :delete
+                    (when-let [wheres (:where ir)]
+                      (let [conn (->> sys :datomic :connection)
+                            db (d/db conn)
+                            query (dat/where->datomic-q db wheres)]
+                        (when @dbg
+                          (squawk "Datomic Rules" dat/rules)
+                          (squawk "Datomic Query" query))
+                        (let [results (d/q query db dat/rules)]
+                          (when @dbg (squawk "Raw Results" results))
+                          (let [ids (mapcat identity results)]
+                            (when @dbg
+                              (squawk "Entities Targeted for Delete")
+                              (when-not (seq results)
+                                (binding [*out* *err*] (println "None"))))
+                            (doseq [id ids]
+                              (let [entity (d/touch (d/entity db id))]
+                                (pp/pprint entity)
+                                (flush)))
+                            (let [txs (dat/delete-ir->transactions ids)]
+                              (when @dbg (squawk "Transaction" txs))
+                              (if @loljk
+                                (println
+                                 "Halting transaction due to pretend mode ON")
+                                (do
+                                  (println @(d/transact conn txs))
+                                  (when @dbg
+                                    (squawk "Entities after Transaction")
+                                    (let [db' (d/db conn)
+                                          entities (dat/get-entities-by-eids
+                                                    db' ids)]
+                                      (doseq [entity entities]
+                                        (binding [*out* *err*]
+                                          (pp/pprint entity)
+                                          (flush))))))))))))
+
+                    (:insert)
                     (println "\n\n*** TBD ***")
 
                     ;; else
