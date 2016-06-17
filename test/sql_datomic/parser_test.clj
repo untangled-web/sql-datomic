@@ -153,7 +153,11 @@
                [:keyword_literal "xyzzy.baz/foo"]]]]])
         "ns-keyword in select list maps to column_name")
     (parsable? "select foo.bar from product where :db/id = 17592186045445"
-               "supports :db/id"))
+               "supports :db/id")
+    (parsable?
+     "select 42, 1234N, -12, -69N, 3.14159, 6.626E34, 1e-2, 2.7182M, 1.6182F
+      from foobar"
+     "supports long, float, double, bigint, bigdec literals"))
 
   (testing "INSERT statements"
     (parsable?
@@ -223,7 +227,7 @@
                [:binary_comparison
                 [:column_name "b_table" "zebra_id"]
                 ">"
-                [:exact_numeric_literal "9000"]]
+                [:long_literal "9000"]]
                [:binary_comparison
                 [:column_name "b_table" "hired_on"]
                 "<"
@@ -254,8 +258,8 @@
               [:where_clause
                [:between_clause
                 [:column_name "product" "prod-id"]
-                [:exact_numeric_literal "1"]
-                [:exact_numeric_literal "10"]]
+                [:long_literal "1"]
+                [:long_literal "10"]]
                [:binary_comparison
                 [:column_name "product" "title"]
                 "<>"
@@ -277,8 +281,8 @@
               [:where_clause
                [:between_clause
                 [:column_name "product" "prod-id"]
-                [:exact_numeric_literal "4000"]
-                [:exact_numeric_literal "6000"]]
+                [:long_literal "4000"]
+                [:long_literal "6000"]]
                [:binary_comparison
                 [:column_name "product" "category"]
                 "<>"
@@ -361,8 +365,8 @@
            [:where_clause
             [:between_clause
              [:column_name "product" "prod-id"]
-             [:exact_numeric_literal "2000"]
-             [:exact_numeric_literal "3000"]]]]])
+             [:long_literal "2000"]
+             [:long_literal "3000"]]]]])
         {:type :select
          :fields [{:table "foo" :column "bar"}
                   [65 68 65 80 84 65 84 73 79 78 32 85 78 84 79 85 67
@@ -381,7 +385,7 @@
                [:binary_comparison
                 [:column_name "db" "id"]
                 "="
-                [:exact_numeric_literal "17592186045445"]]]]])
+                [:long_literal "17592186045445"]]]]])
            {:type :select,
             :fields [{:table "foo", :column "bar"}],
             :tables [{:name "product"}],
@@ -407,7 +411,7 @@
                [:binary_comparison
                 [:column_name "product" "prod-id"]
                 "="
-                [:exact_numeric_literal "1567"]]]]])
+                [:long_literal "1567"]]]]])
            {:type :update,
             :table "product",
             :assign-pairs
@@ -424,8 +428,8 @@
               [:where_clause
                [:between_clause
                 [:column_name "product" "prod-id"]
-                [:exact_numeric_literal "2000"]
-                [:exact_numeric_literal "4000"]]]]])
+                [:long_literal "2000"]
+                [:long_literal "4000"]]]]])
            {:type :delete,
             :table "product",
             :where ['(:between {:table "product", :column "prod-id"}
@@ -438,7 +442,7 @@
               [:table_name "product"]
               [:insert_cols "prod-id" "actor" "title" "category"]
               [:insert_vals
-               [:exact_numeric_literal "9999"]
+               [:long_literal "9999"]
                [:string_literal "'Naomi Watts'"]
                [:string_literal "'The Ring'"]
                [:keyword_literal "product.category/horror"]]]])
@@ -446,4 +450,33 @@
             :table "product",
             :cols ["prod-id" "actor" "title" "category"],
             :vals [9999 "Naomi Watts" "The Ring" :product.category/horror]}))
+
+    ;; "select 42, 1234N, -12, -69N, 3.14159, 6.626E34, 1e-2, 2.7182M, 1.6182F from foobar"
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:select_statement
+              [:select_list
+               [:long_literal "42"]
+               [:bigint_literal "1234N"]
+               [:long_literal "-12"]
+               [:bigint_literal "-69N"]
+               [:double_literal "3.14159"]
+               [:double_literal "6.626E34"]
+               [:double_literal "1e-2"]
+               [:bigdec_literal "2.7182M"]
+               [:float_literal "1.6182F"]
+               ]
+              [:from_clause [:table_ref [:table_name "foobar"]]]]])
+           {:type :select
+            :fields [42
+                     1234N
+                     -12
+                     -69N
+                     3.14159
+                     6.626E34
+                     0.01
+                     2.7182M
+                     (float 1.6182)
+                     ]
+            :tables [{:name "foobar"}]}))
     ))

@@ -73,7 +73,9 @@
        str
        inst/read-instant-date))
 
-;; FIXME: Unable to update/insert bigdec values.
+(defn transform-float-literal [s]
+  (->> (subs s 0 (-> s count dec))
+       Float/parseFloat))
 
 (def transform-options
   {:sql_data_statement identity
@@ -97,8 +99,11 @@
    :column_name (fn [t c] {:table (strip-doublequotes t)
                            :column (strip-doublequotes c)})
    :string_literal transform-string-literal
-   :exact_numeric_literal edn/read-string
-   :approximate_numeric_literal edn/read-string
+   :long_literal edn/read-string
+   :bigint_literal edn/read-string
+   :float_literal transform-float-literal
+   :double_literal edn/read-string
+   :bigdec_literal edn/read-string
    :keyword_literal keyword
    :boolean_literal identity
    :true (constantly true)

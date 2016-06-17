@@ -33,8 +33,11 @@ insert_cols ::= #"[-_A-Za-z][-\w]*" [ { <","> #"[-_A-Za-z][-\w]*" }+ ]
 
 insert_vals ::= ( string_literal
                 | boolean_literal
-                | exact_numeric_literal
-                | approximate_numeric_literal
+                | long_literal
+                | bigint_literal
+                | double_literal
+                | float_literal
+                | bigdec_literal
                 | keyword_literal
                 | date_literal
                 | datetime_literal
@@ -47,8 +50,11 @@ insert_vals ::= ( string_literal
                   <",">
                   ( string_literal
                   | boolean_literal
-                  | exact_numeric_literal
-                  | approximate_numeric_literal
+                  | long_literal
+                  | bigint_literal
+                  | double_literal
+                  | float_literal
+                  | bigdec_literal
                   | keyword_literal
                   | date_literal
                   | datetime_literal
@@ -69,9 +75,12 @@ select_list ::= ( column_name
                 | datetime_literal
                 | epochal_literal
                 | inst_literal
+                | long_literal
+                | bigint_literal
+                | double_literal
+                | float_literal
+                | bigdec_literal
                 | uuid_literal
-                | exact_numeric_literal
-                | approximate_numeric_literal
                 | uri_literal
                 | bytes_literal )
                 [ {
@@ -84,9 +93,12 @@ select_list ::= ( column_name
                   | datetime_literal
                   | epochal_literal
                   | inst_literal
+                  | long_literal
+                  | bigint_literal
+                  | double_literal
+                  | float_literal
+                  | bigdec_literal
                   | uuid_literal
-                  | exact_numeric_literal
-                  | approximate_numeric_literal
                   | uri_literal
                   | bytes_literal )
                   }+ ]
@@ -104,10 +116,18 @@ between_clause ::= column_name <"BETWEEN">
                  )
                  |
                  (
-                   ( exact_numeric_literal | approximate_numeric_literal
+                   ( long_literal
+                   | bigint_literal
+                   | double_literal
+                   | float_literal
+                   | bigdec_literal
                    | uuid_literal )
                    <"AND">
-                   ( exact_numeric_literal | approximate_numeric_literal
+                   ( long_literal
+                   | bigint_literal
+                   | double_literal
+                   | float_literal
+                   | bigdec_literal
                    | uuid_literal )
                  )
                }
@@ -120,8 +140,11 @@ binary_comparison ::= column_name
                       | datetime_literal
                       | epochal_literal
                       | inst_literal
-                      | exact_numeric_literal
-                      | approximate_numeric_literal
+                      | long_literal
+                      | bigint_literal
+                      | double_literal
+                      | float_literal
+                      | bigdec_literal
                       | uuid_literal ) )
                     |
                     ( #"(=|!=|<>)"
@@ -132,8 +155,11 @@ binary_comparison ::= column_name
                       | datetime_literal
                       | epochal_literal
                       | inst_literal
-                      | exact_numeric_literal
-                      | approximate_numeric_literal
+                      | long_literal
+                      | bigint_literal
+                      | double_literal
+                      | float_literal
+                      | bigdec_literal
                       | string_literal
                       | uuid_literal
                       | uri_literal ) )
@@ -141,9 +167,15 @@ binary_comparison ::= column_name
 
 string_literal ::= #"'(?:[^'\\]|\\.)*?'"
 
-exact_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)"
+long_literal ::= #"(?:-|\+)?(?:0|[1-9]\d*)"
 
-approximate_numeric_literal ::= #"(\d+(\.(\d+)?)?|\.\d+)[eE](?:\+|-)?\d+"
+bigint_literal ::= #"(?:-|\+)?(?:0|[1-9]\d*)N"
+
+double_literal ::= #"(?:(?i)[-+]?(?:\d(?:\.\d*)?E[-+]?\d+|\d+\.\d*))"
+
+float_literal ::= #"(?:(?i)[-+]?(?:\d(?:\.\d*)?E[-+]?\d+|\d+\.\d*))F"
+
+bigdec_literal ::= #"(?:(?i)[-+]?(?:\d(?:\.\d*)?E[-+]?\d+|\d+\.\d*))M"
 
 boolean_literal ::= true | false
 
@@ -190,8 +222,11 @@ qualified_asterisk ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)' <"."> <"*">
 assignment_pair ::= column_name <"=">
                     ( string_literal
                     | boolean_literal
-                    | exact_numeric_literal
-                    | approximate_numeric_literal
+                    | long_literal
+                    | bigint_literal
+                    | double_literal
+                    | float_literal
+                    | bigdec_literal
                     | keyword_literal
                     | date_literal
                     | datetime_literal
