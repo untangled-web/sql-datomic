@@ -154,10 +154,25 @@
         "ns-keyword in select list maps to column_name")
     (parsable? "select foo.bar from product where :db/id = 17592186045445"
                "supports :db/id")
-    (parsable?
-     "select 42, 1234N, -12, -69N, 3.14159, 6.626E34, 1e-2, 2.7182M, 1.6182F
-      from foobar"
-     "supports long, float, double, bigint, bigdec literals"))
+    (is (= (prs/parser
+            "select 42, 1234N, -12, -69N, 3.14159, 6.626E34, 1e-2, 2.7182M,
+                    1.6182F, #float 99.99999
+             from foobar")
+           [:sql_data_statement
+            [:select_statement
+             [:select_list
+              [:long_literal "42"]
+              [:bigint_literal "1234N"]
+              [:long_literal "-12"]
+              [:bigint_literal "-69N"]
+              [:double_literal "3.14159"]
+              [:double_literal "6.626E34"]
+              [:double_literal "1e-2"]
+              [:bigdec_literal "2.7182M"]
+              [:float_literal "1.6182F"]
+              [:float_literal "99.99999"]]
+             [:from_clause [:table_ref [:table_name "foobar"]]]]])
+        "supports long, float, double, bigint, bigdec literals"))
 
   (testing "INSERT statements"
     (parsable?
