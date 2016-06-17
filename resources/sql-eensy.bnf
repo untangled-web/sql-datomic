@@ -14,6 +14,7 @@ insert_statement ::=
                  <"("> insert_vals <")">
 
 select_statement ::= <"SELECT"> select_list from_clause [ where_clause ]
+                   | <"SELECT"> where_clause
 
 update_statement ::=
     <"UPDATE"> table_name <"SET"> set_clausen

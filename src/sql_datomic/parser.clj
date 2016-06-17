@@ -82,9 +82,12 @@
 (def transform-options
   {:sql_data_statement identity
    :select_statement (fn [& ps]
-                       (->> ps
-                            (zipmap [:fields :tables :where])
-                            (into {:type :select})))
+                       (let [ks (case (count ps)
+                                  1 [:where]
+                                  [:fields :tables :where])]
+                        (->> ps
+                             (zipmap ks)
+                             (into {:type :select}))))
    :update_statement (fn [& ps]
                        (->> ps
                             (zipmap [:table :assign-pairs :where])

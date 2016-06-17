@@ -172,7 +172,9 @@
               [:float_literal "1.6182F"]
               [:float_literal "99.99999"]]
              [:from_clause [:table_ref [:table_name "foobar"]]]]])
-        "supports long, float, double, bigint, bigdec literals"))
+        "supports long, float, double, bigint, bigdec literals")
+    (parsable? "select where :product/prod-id between 1567 and 6000"
+               "allow shortened where-only select statement"))
 
   (testing "INSERT statements"
     (parsable?
@@ -494,4 +496,17 @@
                      (float 1.6182)
                      ]
             :tables [{:name "foobar"}]}))
+
+    ;; select where :product/prod-id between 1567 and 6000
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:select_statement
+              [:where_clause
+               [:between_clause
+                [:column_name "product" "prod-id"]
+                [:long_literal "1567"]
+                [:long_literal "6000"]]]]])
+           {:type :select
+            :where ['(:between {:table "product", :column "prod-id"}
+                                1567 6000)]}))
     ))
