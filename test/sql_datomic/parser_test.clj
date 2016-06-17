@@ -387,4 +387,32 @@
             :tables [{:name "product"}],
             :where ['(:db-id 17592186045445)]})
         "`:db/id = eid` translates to :db-id clause, not :binary_comparison")
+
+    ;;
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:update_statement
+              [:table_name "product"]
+              [:set_clausen
+               [:assignment_pair
+                [:column_name "product" "category"]
+                [:keyword_literal "product.category/new"]]
+               [:assignment_pair
+                [:column_name "product" "tag"]
+                [:keyword_literal "foo-bar-baz"]]
+               [:assignment_pair
+                [:column_name "product" "actor"]
+                [:string_literal "'Quux the Great'"]]]
+              [:where_clause
+               [:binary_comparison
+                [:column_name "product" "prod-id"]
+                "="
+                [:exact_numeric_literal "1567"]]]]])
+           {:type :update,
+            :table "product",
+            :assign-pairs
+            [[{:table "product", :column "category"} :product.category/new]
+             [{:table "product", :column "tag"} :foo-bar-baz]
+             [{:table "product", :column "actor"} "Quux the Great"]],
+            :where ['(:= {:table "product", :column "prod-id"} 1567)]}))
     ))
