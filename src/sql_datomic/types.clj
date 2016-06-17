@@ -55,3 +55,25 @@
 ;; </quote>
 #_(defn bytes= [& bs]
   (apply = (map seq bs)))
+
+
+;; Float
+
+(defn ->float [v] (float v))
+
+(defmethod print-dup Float [f ^Writer writer]
+  (.write writer (str "#float " (.toString f) "")))
+
+(defmethod print-method Float [f ^Writer writer]
+  (print-dup f writer))
+
+
+
+;; Sometimes, clojure.lang.BigInt (e.g., 23N) will come back
+;; from Datomic as java.math.BigInteger.  Make them look similar.
+
+(defmethod print-dup java.math.BigInteger [bi ^Writer writer]
+  (.write writer (str bi \N)))
+
+(defmethod print-method java.math.BigInteger [bi ^Writer writer]
+  (print-dup bi writer))

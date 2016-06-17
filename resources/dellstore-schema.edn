@@ -311,6 +311,18 @@
   :db/cardinality :db.cardinality/one
   :db/doc "sample bytes field"
   :db.install/_attribute :db.part/db}
+ {:db/id #db/id[db.part/db]
+  :db/ident :product/rating
+  :db/valueType :db.type/float
+  :db/cardinality :db.cardinality/one
+  :db/doc "sample float field"
+  :db.install/_attribute :db.part/db}
+ {:db/id #db/id[db.part/db]
+  :db/ident :product/man-hours
+  :db/valueType :db.type/bigint
+  :db/cardinality :db.cardinality/one
+  :db/doc "sample bigint field"
+  :db.install/_attribute :db.part/db}
 
  ;; dellstore2=# \d categories
  ;;                                       Table "public.categories"

@@ -74,8 +74,10 @@
        inst/read-instant-date))
 
 (defn transform-float-literal [s]
-  (->> (subs s 0 (-> s count dec))
-       Float/parseFloat))
+  (let [s' (if (->> s last #{\F \f})
+             (subs s 0 (-> s count dec))
+             s)]
+   (Float/parseFloat s')))
 
 (def transform-options
   {:sql_data_statement identity
