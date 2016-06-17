@@ -77,11 +77,13 @@
 (defonce db-id-column {:table "db", :column "id"})
 (defn db-id? [c] (= c db-id-column))
 
+(defn column? [v]
+  (and (map? v)
+       (= #{:table :column}
+          (set (keys v)))))
+
 (defn extract-columns [where-clauses]
-  (let [column? (fn [v] (and (map? v)
-                             (= #{:table :column}
-                                (set (keys v)))))
-        extract-from-clause (fn [clause]
+  (let [extract-from-clause (fn [clause]
                               (->> (tree-seq coll? seq clause)
                                    (filter column?)))]
     (->> where-clauses
@@ -227,6 +229,28 @@
       :in ~'$ ~'%
       :where ~@ws]))
 
+(defn update-ir->base-transaction [{:keys [assign-pairs] :as ir}]
+  {:pre [(seq assign-pairs)
+         (vector? assign-pairs)
+         (every? vector? assign-pairs)
+         (every? (comp column? first) assign-pairs)
+         (every? (comp (complement nil?) second) assign-pairs)]}
+  (->> assign-pairs
+       (map (fn [[c v]] [(table-column->attr-kw c) v]))
+       (into {})))
+
+(defn stitch-transactions [base-transaction eids]
+  {:pre [(map? base-transaction)]}
+  (->> eids
+       (map (fn [id] (assoc base-transaction :db/id id)))
+       (into [])))
+
+(defn get-entities-by-eids [db eids]
+  (for [eid eids]
+    (->> eid
+         (d/entity db)
+         d/touch)))
+
 (comment
 
   (use 'clojure.repl)
@@ -287,5 +311,32 @@
               [?e]]
             db)
        (map bloom) )
+
+  (def target (->> (d/q '[:find [?e ...]
+                          :in $
+                          :where
+                          [?e :product/prod-id 1567]]
+                        db)
+                   (map bloom)
+                   first))
+  @(d/transact (sys-cxn) [{:db/id (:db/id target)
+                           :product/tag :ace-meet-greet-feet-beet-leet
+                           :product/special true}])
+  (def db (d/db (sys-cxn)))
+  (def bloom (comp d/touch (partial d/entity db)))
+  (->> (d/q '[:find [?e ...]
+              :in $
+              :where
+              [?e :product/prod-id 1567]]
+            db)
+       (map bloom)
+       first
+       (into {})
+       pp/pprint)
+
+  [:set_clausen
+   [:assignment_pair
+    {:table "product", :column "category"}
+    :product.category/new]]
 
   )

@@ -119,7 +119,9 @@
    :inst_literal inst/read-instant-date
    :uuid_literal (fn [s] (java.util.UUID/fromString s))
    :uri_literal types/->uri
-   :bytes_literal types/base64-str->bytes})
+   :bytes_literal types/base64-str->bytes
+   :set_clausen vector
+   :assignment_pair vector})
 
 (def transform (partial insta/transform transform-options))
 

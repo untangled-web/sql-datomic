@@ -115,7 +115,8 @@
                                 (flush)))))))
                     :update
                     (when-let [wheres (:where ir)]
-                      (let [db (->> sys :datomic :connection d/db)
+                      (let [conn (->> sys :datomic :connection)
+                            db (d/db conn)
                             query (dat/where->datomic-q db wheres)]
                         (when @dbg
                           (squawk "Datomic Rules" dat/rules)
@@ -124,13 +125,30 @@
                           (when @dbg (squawk "Raw Results" results))
                           (let [ids (mapcat identity results)]
                             (when @dbg
-                              (squawk "Entities Targetted for Update")
+                              (squawk "Entities Targeted for Update")
                               (when-not (seq results)
                                 (binding [*out* *err*] (println "None"))))
                             (doseq [id ids]
                               (let [entity (d/touch (d/entity db id))]
                                 (pp/pprint entity)
-                                (flush)))))))
+                                (flush)))
+                            (let [base-tx (dat/update-ir->base-transaction ir)
+                                  txs (dat/stitch-transactions base-tx ids)]
+                              (when @dbg (squawk "Transaction" txs))
+                              (if @loljk
+                                (println
+                                 "Halting transaction due to pretend mode ON")
+                                (do
+                                  (println @(d/transact conn txs))
+                                  (when @dbg
+                                    (squawk "Entities after Transaction")
+                                    (let [db' (d/db conn)
+                                          entities (dat/get-entities-by-eids
+                                                    db' ids)]
+                                      (doseq [entity entities]
+                                        (binding [*out* *err*]
+                                          (pp/pprint entity)
+                                          (flush))))))))))))
 
                     (:insert :delete)
                     (println "\n\n*** TBD ***")
