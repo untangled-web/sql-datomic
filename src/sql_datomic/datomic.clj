@@ -146,6 +146,7 @@
        (tree-seq coll? seq)
        (filter (fn [v] (ident-value db v)))))
 
+;; FIXME: Has trouble with unification when other clauses are present.
 (defn db-id->datomic [id]
   (let [e-var (gensym-datomic-entity-var)]
     [[(list 'ground id) e-var]

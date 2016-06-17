@@ -151,7 +151,9 @@
                [:column_name "foo" "quux"]
                "="
                [:keyword_literal "xyzzy.baz/foo"]]]]])
-        "ns-keyword in select list maps to column_name"))
+        "ns-keyword in select list maps to column_name")
+    (parsable? "select foo.bar from product where :db/id = 17592186045445"
+               "supports :db/id"))
 
   (testing "INSERT statements"
     (parsable?
@@ -367,4 +369,22 @@
                    72 65 66 76 69 83]]
          :tables [{:name "foo"}]
          :where ['(:between {:table "product" :column "prod-id"}
-                            2000 3000)]})))
+                            2000 3000)]})
+
+    ;; select foo.bar from product where :db/id = 17592186045445
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:select_statement
+              [:select_list [:column_name "foo" "bar"]]
+              [:from_clause [:table_ref [:table_name "product"]]]
+              [:where_clause
+               [:binary_comparison
+                [:column_name "db" "id"]
+                "="
+                [:exact_numeric_literal "17592186045445"]]]]])
+           {:type :select,
+            :fields [{:table "foo", :column "bar"}],
+            :tables [{:name "product"}],
+            :where ['(:db-id 17592186045445)]})
+        "`:db/id = eid` translates to :db-id clause, not :binary_comparison")
+    ))
