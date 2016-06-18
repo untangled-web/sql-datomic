@@ -217,7 +217,13 @@
      "update employees
       set    employees.salary = 40000.00
       where  employees.salary < 38000.00
-        and  employees.hired_on < date '2010-01-01'"))
+        and  employees.hired_on < date '2010-01-01'")
+    (parsable?
+     "update :product/rating = 3.5f where :product/prod-id = 1567"
+     "allow SET and table to be optional; requires WHERE")
+    (parsable?
+     "update set :product/rating = 2.4F where :product/prod-id = 1567"
+     "allow table to be optional; requires WHERE"))
 
   (testing "DELETE statements"
     (parsable?
@@ -235,7 +241,9 @@
          DATETIME '2013-11-15T00:00:00'
            AND
          DATETIME '2014-01-15T08:00:00'
-     ")))
+     ")
+    (parsable? "delete where :product/prod-id = 1567"
+               "allow shortened where-only form")))
 
 (deftest transform-tests
   (testing "SELECT AST -> IR"
@@ -571,4 +579,22 @@
            {:type :delete
             :where ['(:between {:table "product", :column "prod-id"}
                                1567 6000)]}))
+
+    ;; update :product/rating = 3.5f where :product/prod-id = 1567
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:update_statement
+              [:set_clausen
+               [:assignment_pair
+                [:column_name "product" "rating"]
+                [:float_literal "3.5f"]]]
+              [:where_clause
+               [:binary_comparison
+                [:column_name "product" "prod-id"]
+                "="
+                [:long_literal "1567"]]]]])
+           {:type :update
+            :assign-pairs [[{:table "product", :column "rating"}
+                             #float 3.5]]
+            :where ['(:= {:table "product", :column "prod-id"} 1567)]}))
     ))

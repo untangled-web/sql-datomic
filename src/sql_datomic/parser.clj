@@ -89,9 +89,12 @@
                               (zipmap ks)
                               (into {:type :select}))))
    :update_statement (fn [& ps]
-                       (->> ps
-                            (zipmap [:table :assign-pairs :where])
-                            (into {:type :update})))
+                       (let [ks (case (count ps)
+                                  2 [:assign-pairs :where]
+                                  [:table :assign-pairs :where])]
+                         (->> ps
+                              (zipmap ks)
+                              (into {:type :update}))))
    :insert_statement (fn [& ps]
                        (let [ks (case (count ps)
                                   1 [:assign-pairs]

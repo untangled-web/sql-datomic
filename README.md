@@ -93,6 +93,8 @@ therefore, they are not supported in `WHERE` clauses.
          :product/price = 21.99M`
 - delete:
     - `delete where :product/prod-id between 1567 and 6000`
+- update:
+    - `update :product/rating = 3.5f where :product/prod-id = 1567`
 
 ## License
 

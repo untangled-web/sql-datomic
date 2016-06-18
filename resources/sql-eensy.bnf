@@ -22,6 +22,7 @@ select_statement ::= <"SELECT"> select_list from_clause [ where_clause ]
 update_statement ::=
     <"UPDATE"> table_name <"SET"> set_clausen
     [ where_clause ]
+  | <"UPDATE"> [ <"SET"> ] set_clausen where_clause
 
 table_name ::= #"[-_A-Za-z][-\w]*"
 
