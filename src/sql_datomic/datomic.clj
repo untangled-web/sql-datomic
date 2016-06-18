@@ -259,7 +259,7 @@
 (defn add-tempid [entity]
   (assoc entity :db/id (d/tempid :db.part/user)))
 
-(defn insert-ir->tx-data [{:keys [table cols vals] :as ir}]
+(defn insert-ir-traditional->tx-data [{:keys [table cols vals] :as ir}]
   {:pre [(seq cols)
          (seq vals)
          (seq table)
@@ -270,6 +270,23 @@
     (->> (zipmap attrs vals)
          add-tempid
          vector)))
+
+(defn insert-ir-assign-pairs->tx-data [{:keys [assign-pairs] :as ir}]
+  {:pre [(seq assign-pairs)
+         (vector? assign-pairs)
+         (every? vector? assign-pairs)
+         (every? (comp column? first) assign-pairs)
+         (every? (comp (complement nil?) second) assign-pairs)]}
+  (->> assign-pairs
+       (map (fn [[c v]] [(table-column->attr-kw c) v]))
+       (into {})
+       add-tempid
+       vector))
+
+(defn insert-ir->tx-data [ir]
+  (if (:assign-pairs ir)
+    (insert-ir-assign-pairs->tx-data ir)
+    (insert-ir-traditional->tx-data ir)))
 
 (defn scrape-inserted-eids [transact-result]
   {:pre [(map? transact-result)]}

@@ -192,7 +192,17 @@
       (name, age, balance, joined_on)
       VALUES
       ('foo', 42, 1234.56, date '2016-04-01')"
-     "allows string, integral, float, and date literals as values"))
+     "allows string, integral, float, and date literals as values")
+    (parsable?
+     "insert into
+        :product/prod-id = 9999,
+        :product/actor = 'Naomi Watts',
+        :product/title = 'The Ring',
+        :product/category = :product.category/horror,
+        :product/rating = 4.5f,
+        :product/man-hours = 9001N,
+        :product/price = 21.99M")
+    "allows shortened assignment-pairs version of insert")
 
   (testing "UPDATE statements"
     (parsable?
@@ -508,5 +518,42 @@
                 [:long_literal "6000"]]]]])
            {:type :select
             :where ['(:between {:table "product", :column "prod-id"}
-                                1567 6000)]}))
+                               1567 6000)]}))
+
+    ;; insert into :product/prod-id = 9999, :product/actor = 'Naomi Watts', :product/title = 'The Ring', :product/category = :product.category/horror, :product/rating = 4.5f, :product/man-hours = 9001N, :product/price = 21.99M
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:insert_statement
+              [:set_clausen
+               [:assignment_pair
+                [:column_name "product" "prod-id"]
+                [:long_literal "9999"]]
+               [:assignment_pair
+                [:column_name "product" "actor"]
+                [:string_literal "'Naomi Watts'"]]
+               [:assignment_pair
+                [:column_name "product" "title"]
+                [:string_literal "'The Ring'"]]
+               [:assignment_pair
+                [:column_name "product" "category"]
+                [:keyword_literal "product.category/horror"]]
+               [:assignment_pair
+                [:column_name "product" "rating"]
+                [:float_literal "4.5f"]]
+               [:assignment_pair
+                [:column_name "product" "man-hours"]
+                [:bigint_literal "9001N"]]
+               [:assignment_pair
+                [:column_name "product" "price"]
+                [:bigdec_literal "21.99M"]]]]])
+           {:type :insert,
+            :assign-pairs
+            [[{:table "product", :column "prod-id"} 9999]
+             [{:table "product", :column "actor"} "Naomi Watts"]
+             [{:table "product", :column "title"} "The Ring"]
+             [{:table "product", :column "category"}
+              :product.category/horror]
+             [{:table "product", :column "rating"} #float 4.5]
+             [{:table "product", :column "man-hours"} 9001N]
+             [{:table "product", :column "price"} 21.99M]]}))
     ))

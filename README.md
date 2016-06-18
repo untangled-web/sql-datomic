@@ -81,6 +81,17 @@ SQL prompt, the following Tagged Literals are supported:
 Note that byte arrays are not value types (from Datomic's perspective);
 therefore, they are not supported in `WHERE` clauses.
 
+## Shortened convenience forms
+
+- select:
+    - `select where :product/prod-id between 1567 and 6000`
+- insert:
+    - `insert into
+         :product/prod-id = 1984,
+         :product/actor = 'Quux',
+         :product/title = 'Foo Bar',
+         :product/price = 21.99M`
+
 ## License
 
 Copyright © 2016 FIXME
