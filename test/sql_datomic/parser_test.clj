@@ -174,7 +174,9 @@
              [:from_clause [:table_ref [:table_name "foobar"]]]]])
         "supports long, float, double, bigint, bigdec literals")
     (parsable? "select where :product/prod-id between 1567 and 6000"
-               "allow shortened where-only select statement"))
+               "allow shortened where-only select statement")
+    (parsable? "delete where :product/prod-id between 1567 and 6000"
+               "allow shortened where-only delete statement"))
 
   (testing "INSERT statements"
     (parsable?
@@ -556,4 +558,17 @@
              [{:table "product", :column "rating"} #float 4.5]
              [{:table "product", :column "man-hours"} 9001N]
              [{:table "product", :column "price"} 21.99M]]}))
+
+    ;; delete where :product/prod-id between 1567 and 6000
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:delete_statement
+              [:where_clause
+               [:between_clause
+                [:column_name "product" "prod-id"]
+                [:long_literal "1567"]
+                [:long_literal "6000"]]]]])
+           {:type :delete
+            :where ['(:between {:table "product", :column "prod-id"}
+                               1567 6000)]}))
     ))

@@ -91,6 +91,8 @@ therefore, they are not supported in `WHERE` clauses.
          :product/actor = 'Quux',
          :product/title = 'Foo Bar',
          :product/price = 21.99M`
+- delete:
+    - `delete where :product/prod-id between 1567 and 6000`
 
 ## License
 

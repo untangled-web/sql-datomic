@@ -6,6 +6,7 @@ sql_data_statement ::= delete_statement
 delete_statement ::=
     <"DELETE"> <"FROM"> table_name
     [ where_clause ]
+  | <"DELETE"> where_clause
 
 insert_statement ::=
                  <"INSERT"> <"INTO"> table_name

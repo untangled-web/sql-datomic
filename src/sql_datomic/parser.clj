@@ -100,9 +100,12 @@
                               (zipmap ks)
                               (into {:type :insert}))))
    :delete_statement (fn [& ps]
-                       (->> ps
-                            (zipmap [:table :where])
-                            (into {:type :delete})))
+                       (let [ks (case (count ps)
+                                  1 [:where]
+                                  [:table :where])]
+                        (->> ps
+                             (zipmap ks)
+                             (into {:type :delete}))))
    :select_list vector
    :column_name (fn [t c] {:table (strip-doublequotes t)
                            :column (strip-doublequotes c)})
