@@ -280,7 +280,6 @@ assignment_pair ::= column_name <"=">
 table_alias ::= [ <"AS"> ] #'"[^\"]+"|[-_A-Za-z][-\w]*'
 
 (* TODO:
-- support IN clauses in WHERE
 - support OR in WHERE
 - support NOT (???)
 *)
