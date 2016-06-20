@@ -170,13 +170,22 @@
           (recur vs (apply conj result v))
           (recur vs (conj result v)))))))
 
+(defn in->datomic [col->var [c vs]]
+  (let [attr (table-column->attr-kw c)
+        {e-sym :entity} (get col->var c :unknown-column!)
+        clausen (map (fn [v] [e-sym attr v]) vs)]
+    (->> clausen
+         (into ['or])
+         rseq
+         (into '()))))
+
 (defn where->datomic [db clauses]
   {:pre [(not (empty? clauses))
          (every? list? clauses)
          (every? (comp keyword? first) clauses)
          (every? (fn [c]
                    (-> (first c)
-                       #{:between := :not= :< :> :<= :>= :db-id}))
+                       #{:between := :not= :< :> :<= :>= :db-id :in}))
                  clauses)]}
   (let [col->var (->> clauses
                       extract-columns
@@ -206,6 +215,8 @@
                      col->var ident-env op operands)
 
                     :db-id (db-id->datomic (first operands))
+
+                    :in (in->datomic col->var operands)
 
                     (throw (ex-info "unknown where-clause operator"
                                     {:operator op

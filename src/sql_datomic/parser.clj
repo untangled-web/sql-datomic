@@ -144,7 +144,9 @@
    :set_clausen vector
    :assignment_pair vector
    :insert_cols vector
-   :insert_vals vector})
+   :insert_vals vector
+   :in_clause (fn [c & vs]
+                (list :in c (into [] vs)))})
 
 (def transform (partial insta/transform transform-options))
 

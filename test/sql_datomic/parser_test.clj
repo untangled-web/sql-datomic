@@ -175,8 +175,11 @@
         "supports long, float, double, bigint, bigdec literals")
     (parsable? "select where :product/prod-id between 1567 and 6000"
                "allow shortened where-only select statement")
-    (parsable? "delete where :product/prod-id between 1567 and 6000"
-               "allow shortened where-only delete statement"))
+    (parsable?
+     "select :product/title
+      from product
+      where :product/actor in ('GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER')"
+     "supports IN clauses"))
 
   (testing "INSERT statements"
     (parsable?
@@ -597,4 +600,24 @@
             :assign-pairs [[{:table "product", :column "rating"}
                              #float 3.5]]
             :where ['(:= {:table "product", :column "prod-id"} 1567)]}))
+
+    ;; select :product/title from product where :product/actor in ('GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER')
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:select_statement
+              [:select_list [:column_name "product" "title"]]
+              [:from_clause [:table_ref [:table_name "product"]]]
+              [:where_clause
+               [:in_clause
+                [:column_name "product" "actor"]
+                [:string_literal "'GENE WILLIS'"]
+                [:string_literal "'RIP DOUGLAS'"]
+                [:string_literal "'KIM RYDER'"]]]]])
+           {:type :select
+            :fields [{:table "product", :column "title"}]
+            :tables [{:name "product"}]
+            :where
+            ['(:in
+              {:table "product", :column "actor"}
+              ["GENE WILLIS" "RIP DOUGLAS" "KIM RYDER"])]}))
     ))

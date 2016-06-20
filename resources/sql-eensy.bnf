@@ -28,10 +28,12 @@ table_name ::= #"[-_A-Za-z][-\w]*"
 
 where_clause ::= <"WHERE">
                  ( between_clause
-                 | binary_comparison )
+                 | binary_comparison
+                 | in_clause )
                  [ { <"AND">
                      ( between_clause
-                     | binary_comparison )
+                     | binary_comparison
+                     | in_clause )
                    }+ ]
 
 insert_cols ::= #"[-_A-Za-z][-\w]*" [ { <","> #"[-_A-Za-z][-\w]*" }+ ]
@@ -169,6 +171,39 @@ binary_comparison ::= column_name
                       | uuid_literal
                       | uri_literal ) )
                   }
+
+in_clause ::= column_name <"IN"> <"(">
+                      ( keyword_literal
+                      | boolean_literal
+                      | date_literal
+                      | datetime_literal
+                      | epochal_literal
+                      | inst_literal
+                      | long_literal
+                      | bigint_literal
+                      | double_literal
+                      | float_literal
+                      | bigdec_literal
+                      | string_literal
+                      | uuid_literal
+                      | uri_literal )
+                      [ { <",">
+                        ( keyword_literal
+                        | boolean_literal
+                        | date_literal
+                        | datetime_literal
+                        | epochal_literal
+                        | inst_literal
+                        | long_literal
+                        | bigint_literal
+                        | double_literal
+                        | float_literal
+                        | bigdec_literal
+                        | string_literal
+                        | uuid_literal
+                        | uri_literal )
+                      }+ ]
+                      <")">
 
 string_literal ::= #"'(?:[^'\\]|\\.)*?'"
 
