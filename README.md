@@ -30,6 +30,9 @@ following deviations:
 - Accepts only `SELECT`, `INSERT`, `UPDATE`, `DELETE` statements.
 - Column names must be fully qualified (`table_name.column_name`)
   for `select`, `update` and `delete`; `insert` are exempt from this.
+- Raw attribute keywords may be used in place of column names:
+    (e.g., using `:product/title` directly instead of
+    `product.title`).
 - No support for explicit `JOIN`s.  Instead, use implicit joins
   (which is more like Datomic's syntax anyhow).
 - No support for `NULL`, `IS NULL`, `IS NOT NULL` (no meaning in Datomic).
