@@ -156,7 +156,8 @@
   (let [{:keys [index reason line column text]} parse-error
         c (get text index)]
     (cond
-      (= c \")
+      (or (= c \")
+          (re-seq #"(?i)\bwhere\s+.*[^<>](?:=|!=|<>)\s*\"" text))
       "Did you use \" for string literal?  Strings are delimited by '."
 
       (and
@@ -167,4 +168,5 @@
       (str "Did you use a #bytes literal in a comparison?  "
            "Bytes arrays are not values"
            " and cannot be used with =, !=, <>, <, etc.")
-      )))
+
+      :else nil)))
