@@ -205,14 +205,15 @@
         clausen (map (fn [v] [e-sym attr v]) vs)]
     (util/vec->list (into ['or] clausen))))
 
-;; Hmm, these really need to be recursive.
-
-(defn and->datomic [{:keys [operands]}]
-  (println "\n***************************")
-  (prn {:called :and->datomic :operands operands})
-  (println "***************************\n")
-  (flush)
-  (apply ->squashable operands))
+(defn and->datomic [{:keys [operands] :as env}]
+  ;; Assumes any toplevel :and in :where has been raised.
+  ;; Therefore, this should only be called within the scope
+  ;; of a `or-join`.
+  (let [env' (dissoc env :op :operands)
+        dat-clausen (map (partial datomicify-clause env') operands)]
+    (->> dat-clausen
+         (into ['and])
+         util/vec->list)))
 
 (defn or->datomic [{:keys [operands] :as env}]
   (let [env' (dissoc env :op :operands)
