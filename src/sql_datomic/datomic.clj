@@ -83,7 +83,9 @@
        (= #{:table :column}
           (set (keys v)))))
 
-(defn extract-columns [where-clauses]
+(defn extract-columns
+  "Returns a set of `{:table t, :column c}`."
+  [where-clauses]
   (let [extract-from-clause (fn [clause]
                               (->> (tree-seq coll? seq clause)
                                    (filter column?)))]
@@ -100,7 +102,10 @@
 (defn gensym-datomic-ident-var []
   (gensym "?ident"))
 
-(defn build-datomic-var-map [columns]
+(defn build-datomic-var-map
+  "Returns a map, keyed by `{:table t, :column c}` with vals
+   `{:entity ?e1234, :value ?v2341, :attr :foo/bar}`"
+  [columns]
   ;; TODO: How do we deal with table aliases?
   ;;       This will naively unify based on table name alone.
   (let [name->entity (->> columns
@@ -114,8 +119,9 @@
                               :attr (table-column->attr-kw col)}]))
          (into {}))))
 
-(defn binary-comparison->datomic [col->var ident-env op vs]
-  (let [[c v] vs
+(defn binary-comparison->datomic
+  [{:keys [col->var ident-env op operands]}]
+  (let [[c v] operands
         {v-sym :value} (get col->var c :unknown-column!)
         v (get-in ident-env [v :var] v)
         kw->op {:= '=
@@ -126,8 +132,9 @@
                 :>= '>=}]
     [(list (kw->op op) v-sym v)]))
 
-(defn between->datomic [col->var [c v1 v2]]
-  (let [{v-sym :value} (get col->var c :unknown-column!)]
+(defn between->datomic [{:keys [col->var operands]}]
+  (let [[c v1 v2] operands
+        {v-sym :value} (get col->var c :unknown-column!)]
     (list 'between v1 v-sym v2)))
 
 (defn lookup-ref? [r]
@@ -150,12 +157,15 @@
        (filter (fn [v] (ident-value db v)))))
 
 ;; FIXME: Has trouble with unification when other clauses are present.
-(defn db-id->datomic [id]
-  (let [e-var (gensym-datomic-entity-var)]
+(defn db-id->datomic [{:keys [operands]}]
+  (let [id (first operands)
+        e-var (gensym-datomic-entity-var)]
     [[(list 'ground id) e-var]
      [e-var]]))
 
-(defn build-datomic-ident-var-map [ident->eid]
+(defn build-datomic-ident-var-map
+  "Returns a map, keyed by idents with vals `{:eid eid, :var ?id4321}`."
+  [ident->eid]
   (->> ident->eid
        (map (fn [[ident eid]]
               [ident {:eid eid
@@ -171,14 +181,20 @@
           (recur vs (apply conj result v))
           (recur vs (conj result v)))))))
 
-(defn in->datomic [col->var [c vs]]
-  (let [attr (table-column->attr-kw c)
+(defn in->datomic [{:keys [col->var operands]}]
+  (let [[c vs] operands
+        attr (table-column->attr-kw c)
         {e-sym :entity} (get col->var c :unknown-column!)
         clausen (map (fn [v] [e-sym attr v]) vs)]
     (util/vec->list (into ['or] clausen))))
 
-(defn and->datomic [clauses]
-  (vec clauses))
+;; Hmm, these really need to be recursive.
+
+(defn and->datomic [{:keys [operands]}]
+  (vec operands))
+
+(defn or->datomic [{:keys [operands]}]
+  )
 
 (defn where->datomic [db clauses]
   {:pre [(not (empty? clauses))
@@ -212,21 +228,24 @@
         base-where (apply conj base-where ident-where)]
     (->> clauses
          (map (fn [clause]
-                (let [[op & operands] clause]
+                (let [[op & operands] clause
+                      args {:col->var col->var
+                            :ident-env ident-env
+                            :op op
+                            :operands operands}]
                   (case op
-                    :between (between->datomic col->var operands)
+                    :between (between->datomic args)
 
                     (:= :not= :< :> :<= :>=)
-                    (binary-comparison->datomic
-                     col->var ident-env op operands)
+                    (binary-comparison->datomic args)
 
-                    :db-id (db-id->datomic (first operands))
+                    :db-id (db-id->datomic args)
 
-                    :in (in->datomic col->var operands)
+                    :in (in->datomic args)
 
-                    :and (and->datomic operands)
+                    :and (and->datomic args)
 
-                    ;; :or (or->datomic operands)
+                    ;; :or (or->datomic args)
 
                     (throw (ex-info "unknown where-clause operator"
                                     {:operator op
