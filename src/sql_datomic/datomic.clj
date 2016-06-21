@@ -206,9 +206,13 @@
 ;; Hmm, these really need to be recursive.
 
 (defn and->datomic [{:keys [operands]}]
-  (vec operands))
+  (println "\n***************************")
+  (prn {:called :and->datomic :operands operands})
+  (println "***************************\n")
+  (flush)
+  (apply ->squashable operands))
 
-(defn or->datomic [{:keys [operands]}]
+(defn or->datomic [{:keys [col->var ident-env operands]}]
   )
 
 (defn build-where-backbone [db clauses]
@@ -235,6 +239,31 @@
      :base-where base-where
      :ident-where ident-where}))
 
+(defn datomicify-clause [env clause]
+  (let [[op & operands] clause
+        args {:col->var (:col->var env)
+              :ident-env (:ident-env env)
+              :op op
+              :operands operands}]
+    (case op
+      :between (between->datomic args)
+
+      (:= :not= :< :> :<= :>=)
+      (binary-comparison->datomic args)
+
+      :db-id (db-id->datomic args)
+
+      :in (in->datomic args)
+
+      :and (and->datomic args)
+
+      ;; :or (or->datomic args)
+
+      (throw (ex-info "unknown where-clause operator"
+                      {:operator op
+                       :operands operands
+                       :clause clause})))))
+
 (defn where->datomic [db clauses]
   {:pre [(not (empty? clauses))
          (every? list? clauses)
@@ -249,32 +278,10 @@
                          :or}))
                  clauses)]}
   (let [{:keys [col->var ident-env ident-where
-                base-where]} (build-where-backbone db clauses)]
+                base-where]} (build-where-backbone db clauses)
+        clause-env {:col->var col->var :ident-env ident-env}]
     (->> clauses
-         (map (fn [clause]
-                (let [[op & operands] clause
-                      args {:col->var col->var
-                            :ident-env ident-env
-                            :op op
-                            :operands operands}]
-                  (case op
-                    :between (between->datomic args)
-
-                    (:= :not= :< :> :<= :>=)
-                    (binary-comparison->datomic args)
-
-                    :db-id (db-id->datomic args)
-
-                    :in (in->datomic args)
-
-                    :and (and->datomic args)
-
-                    ;; :or (or->datomic args)
-
-                    (throw (ex-info "unknown where-clause operator"
-                                    {:operator op
-                                     :operands operands
-                                     :clause clause}))))))
+         (map (partial datomicify-clause clause-env))
          squoosh
          (into base-where))))
 
