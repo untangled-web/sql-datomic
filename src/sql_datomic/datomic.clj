@@ -165,12 +165,18 @@
        (tree-seq coll? seq)
        (filter (fn [v] (ident-value db v)))))
 
+(defn ->squashable [& args]
+  {:squashable (vec args)})
+
+(defn squashable? [v]
+  (and (map? v) (= 1 (count v)) (-> v :squashable vector?)))
+
 ;; FIXME: Has trouble with unification when other clauses are present.
 (defn db-id->datomic [{:keys [operands]}]
   (let [id (first operands)
         e-var (gensym-datomic-entity-var)]
-    [[(list 'ground id) e-var]
-     [e-var]]))
+    (->squashable [(list 'ground id) e-var]
+                  [e-var])))
 
 (defn build-datomic-ident-var-map
   "Returns a map, keyed by idents with vals `{:eid eid, :var ?id4321}`."
@@ -186,8 +192,8 @@
     (if-not (seq remain)
       result
       (let [[v & vs] remain]
-        (if (and (vector? v) (vector? (first v)))
-          (recur vs (apply conj result v))
+        (if (squashable? v)
+          (recur vs (apply conj result (:squashable v)))
           (recur vs (conj result v)))))))
 
 (defn in->datomic [{:keys [col->var operands]}]
