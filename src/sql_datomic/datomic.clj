@@ -28,6 +28,8 @@
      [?var]]
     ])
 
+(declare datomicify-clause)
+
 (defn create-default-db []
   (d/create-database default-connection-uri)
   (let [connection (d/connect default-connection-uri)
@@ -212,8 +214,13 @@
   (flush)
   (apply ->squashable operands))
 
-(defn or->datomic [{:keys [col->var ident-env operands]}]
-  )
+(defn or->datomic [{:keys [operands] :as env}]
+  (let [env' (dissoc env :op :operands)
+        dat-clausen (map (partial datomicify-clause env') operands)
+        vars (scrape-datomic-vars dat-clausen)]
+    (->> dat-clausen
+         (into ['or-join (vec vars)])
+         util/vec->list)))
 
 (defn build-where-backbone [db clauses]
   (let [col->var (->> clauses
@@ -248,8 +255,7 @@
     (case op
       :between (between->datomic args)
 
-      (:= :not= :< :> :<= :>=)
-      (binary-comparison->datomic args)
+      (:= :not= :< :> :<= :>=) (binary-comparison->datomic args)
 
       :db-id (db-id->datomic args)
 
@@ -257,7 +263,7 @@
 
       :and (and->datomic args)
 
-      ;; :or (or->datomic args)
+      :or (or->datomic args)
 
       (throw (ex-info "unknown where-clause operator"
                       {:operator op
