@@ -133,6 +133,16 @@
    last
    last))
 
+(defn raise-toplevel-and [ir]
+  (if (and (->> ir :where vector?)
+           (->> ir :where count #{1})
+           (->> ir :where first list?)
+           (->> ir :where first first #{:and})
+           (> (->> ir :where first count) 1))
+    (let [and-args (-> ir (get-in [:where 0]) pop)]
+      (assoc ir :where (vec and-args)))
+    ir))
+
 (def transform-options
   {:sql_data_statement identity
    :select_statement (fn [& ps]
@@ -210,7 +220,8 @@
 (defn transform [ast]
   (->> ast
        (insta/transform transform-options)
-       flatten-nested-logical-connectives))
+       flatten-nested-logical-connectives
+       raise-toplevel-and))
 
 (defn parse [input]
   (->> (parser input)

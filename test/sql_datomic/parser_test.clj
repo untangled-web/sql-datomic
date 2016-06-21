@@ -294,18 +294,17 @@
             :fields [[:qualified_asterisk "a_table"]
                      {:table "b_table" :column "zebra_id"}]
             :tables [{:name "a_table"} {:name "b_table"}]
-            :where [(list :and
-                          (list :=
-                                {:table "a_table" :column "id"}
-                                {:table "b_table" :column "id"})
-                          (list :>
-                                {:table "b_table" :column "zebra_id"}
-                                9000)
-                          (list :<
-                                {:table "b_table" :column "hired_on"}
-                                (->> (tm/date-time 2011 11 11)
-                                     str
-                                     inst/read-instant-date)))]
+            :where [(list :=
+                          {:table "a_table" :column "id"}
+                          {:table "b_table" :column "id"})
+                    (list :>
+                          {:table "b_table" :column "zebra_id"}
+                          9000)
+                    (list :<
+                          {:table "b_table" :column "hired_on"}
+                          (->> (tm/date-time 2011 11 11)
+                               str
+                               inst/read-instant-date))]
             }))
 
     ;; select product.prod-id from product where product.prod-id between 1 and 2 and product.title <> 'foo'
@@ -336,9 +335,8 @@
             :fields [{:table "product", :column "prod-id"}],
             :tables [{:name "product"}],
             :where
-            ['(:and
-               (:between {:table "product", :column "prod-id"} 1 10)
-               (:not= {:table "product", :column "title"} "foo"))]}))
+            '[(:between {:table "product", :column "prod-id"} 1 10)
+              (:not= {:table "product", :column "title"} "foo")]}))
 
     ;; select foo.* from foo where product.prod-id between 4000 and 6000 and product.category <> :product.category/action
     (is (= (prs/transform
@@ -368,11 +366,10 @@
             :fields [[:qualified_asterisk "foo"]],
             :tables [{:name "foo"}],
             :where
-            '[(:and
-               (:between {:table "product", :column "prod-id"} 4000 6000)
-               (:not=
-                {:table "product", :column "category"}
-                :product.category/action))]}))
+            '[(:between {:table "product", :column "prod-id"} 4000 6000)
+              (:not=
+               {:table "product", :column "category"}
+               :product.category/action)]}))
 
     ;; select foo.bar from foo where product.tag = :alabama-exorcist-family
     (is (prs/transform
