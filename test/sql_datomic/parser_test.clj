@@ -315,21 +315,30 @@
               [:select_list [:column_name "product" "prod-id"]]
               [:from_clause [:table_ref [:table_name "product"]]]
               [:where_clause
-               [:between_clause
-                [:column_name "product" "prod-id"]
-                [:long_literal "1"]
-                [:long_literal "10"]]
-               [:binary_comparison
-                [:column_name "product" "title"]
-                "<>"
-                [:string_literal "'foo'"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_term
+                  [:boolean_factor
+                   [:boolean_test
+                    [:boolean_primary
+                     [:between_clause
+                      [:column_name "product" "prod-id"]
+                      [:long_literal "1"]
+                      [:long_literal "10"]]]]]]
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:binary_comparison
+                     [:column_name "product" "title"]
+                     "<>"
+                     [:string_literal "'foo'"]]]]]]]]]])
            {:type :select,
             :fields [{:table "product", :column "prod-id"}],
             :tables [{:name "product"}],
             :where
-            [(list :between {:table "product", :column "prod-id"} 1 10)
-             (list :not= {:table "product", :column "title"} "foo")]}
-           ))
+            ['(:and
+               (:between {:table "product", :column "prod-id"} 1 10)
+               (:not= {:table "product", :column "title"} "foo"))]}))
 
     ;; select foo.* from foo where product.prod-id between 4000 and 6000 and product.category <> :product.category/action
     (is (= (prs/transform
@@ -338,41 +347,54 @@
               [:select_list [:qualified_asterisk "foo"]]
               [:from_clause [:table_ref [:table_name "foo"]]]
               [:where_clause
-               [:between_clause
-                [:column_name "product" "prod-id"]
-                [:long_literal "4000"]
-                [:long_literal "6000"]]
-               [:binary_comparison
-                [:column_name "product" "category"]
-                "<>"
-                [:keyword_literal "product.category/action"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_term
+                  [:boolean_factor
+                   [:boolean_test
+                    [:boolean_primary
+                     [:between_clause
+                      [:column_name "product" "prod-id"]
+                      [:long_literal "4000"]
+                      [:long_literal "6000"]]]]]]
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:binary_comparison
+                     [:column_name "product" "category"]
+                     "<>"
+                     [:keyword_literal "product.category/action"]]]]]]]]]])
            {:type :select,
             :fields [[:qualified_asterisk "foo"]],
             :tables [{:name "foo"}],
             :where
-            ['(:between {:table "product", :column "prod-id"} 4000 6000)
-             '(:not=
-              {:table "product", :column "category"}
-              :product.category/action)]}))
+            '[(:and
+               (:between {:table "product", :column "prod-id"} 4000 6000)
+               (:not=
+                {:table "product", :column "category"}
+                :product.category/action))]}))
 
     ;; select foo.bar from foo where product.tag = :alabama-exorcist-family
     (is (prs/transform
          [:sql_data_statement
-           [:select_statement
-            [:select_list
-             [:column_name "foo" "bar"]]
-            [:from_clause [:table_ref [:table_name "foo"]]]
-            [:where_clause
-             [:binary_comparison
-              [:column_name "product" "tag"]
-              "="
-              [:keyword_literal "alabama-exorcist-family"]]]]])
+          [:select_statement
+           [:select_list [:column_name "foo" "bar"]]
+           [:from_clause [:table_ref [:table_name "foo"]]]
+           [:where_clause
+            [:search_condition
+             [:boolean_term
+              [:boolean_factor
+               [:boolean_test
+                [:boolean_primary
+                 [:binary_comparison
+                  [:column_name "product" "tag"]
+                  "="
+                  [:keyword_literal "alabama-exorcist-family"]]]]]]]]]])
         {:type :select,
-         :fields
-         [{:table "foo", :column "bar"}],
+         :fields [{:table "foo", :column "bar"}],
          :tables [{:name "foo"}],
          :where
-         ['(:= {:table "product", :column "tag"} :alabama-exorcist-family)]})
+         '[(:= {:table "product", :column "tag"} :alabama-exorcist-family)]})
 
     ;; select foo.bar from foo where product.uuid between #uuid "576073c3-24c5-4461-9b84-dfe65774d41b" and #uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0"
     (is (prs/transform
@@ -381,18 +403,23 @@
            [:select_list [:column_name "foo" "bar"]]
            [:from_clause [:table_ref [:table_name "foo"]]]
            [:where_clause
-            [:between_clause
-             [:column_name "product" "uuid"]
-             [:uuid_literal "576073c3-24c5-4461-9b84-dfe65774d41b"]
-             [:uuid_literal "5760745a-5bb5-4768-96f7-0f8aeb1a84f0"]]]]])
+            [:search_condition
+             [:boolean_term
+              [:boolean_factor
+               [:boolean_test
+                [:boolean_primary
+                 [:between_clause
+                  [:column_name "product" "uuid"]
+                  [:uuid_literal "576073c3-24c5-4461-9b84-dfe65774d41b"]
+                  [:uuid_literal "5760745a-5bb5-4768-96f7-0f8aeb1a84f0"]]]]]]]]]])
         {:type :select,
          :fields [{:table "foo", :column "bar"}],
          :tables [{:name "foo"}],
          :where
-         ['(:between
-           {:table "product", :column "uuid"}
-           #uuid "576073c3-24c5-4461-9b84-dfe65774d41b"
-           #uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0")]})
+         '[(:between
+            {:table "product", :column "uuid"}
+            #uuid "576073c3-24c5-4461-9b84-dfe65774d41b"
+            #uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0")]})
 
     ;; select foo.bar from foo where product.url = #uri "http://example.com/products/2290"
     (is (prs/transform
@@ -401,15 +428,20 @@
            [:select_list [:column_name "foo" "bar"]]
            [:from_clause [:table_ref [:table_name "foo"]]]
            [:where_clause
-            [:binary_comparison
-             [:column_name "product" "url"]
-             "="
-             [:uri_literal "http://example.com/products/2290"]]]]])
+            [:search_condition
+             [:boolean_term
+              [:boolean_factor
+               [:boolean_test
+                [:boolean_primary
+                 [:binary_comparison
+                  [:column_name "product" "url"]
+                  "="
+                  [:uri_literal "http://example.com/products/2290"]]]]]]]]]])
         {:type :select,
          :fields [{:table "foo", :column "bar"}],
          :tables [{:name "foo"}],
          :where
-         ['(:=
+         '[(:=
             {:table "product", :column "url"}
             #uri "http://example.com/products/2290")]})
 
@@ -422,10 +454,15 @@
             [:bytes_literal "QURBUFRBVElPTiBVTlRPVUNIQUJMRVM="]]
            [:from_clause [:table_ref [:table_name "foo"]]]
            [:where_clause
-            [:between_clause
-             [:column_name "product" "prod-id"]
-             [:long_literal "2000"]
-             [:long_literal "3000"]]]]])
+            [:search_condition
+             [:boolean_term
+              [:boolean_factor
+               [:boolean_test
+                [:boolean_primary
+                 [:between_clause
+                  [:column_name "product" "prod-id"]
+                  [:long_literal "2000"]
+                  [:long_literal "3000"]]]]]]]]]])
         {:type :select
          :fields [{:table "foo" :column "bar"}
                   [65 68 65 80 84 65 84 73 79 78 32 85 78 84 79 85 67
@@ -441,10 +478,15 @@
               [:select_list [:column_name "foo" "bar"]]
               [:from_clause [:table_ref [:table_name "product"]]]
               [:where_clause
-               [:binary_comparison
-                [:column_name "db" "id"]
-                "="
-                [:long_literal "17592186045445"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:binary_comparison
+                     [:column_name "db" "id"]
+                     "="
+                     [:long_literal "17592186045445"]]]]]]]]]])
            {:type :select,
             :fields [{:table "foo", :column "bar"}],
             :tables [{:name "product"}],
@@ -467,10 +509,15 @@
                 [:column_name "product" "actor"]
                 [:string_literal "'Quux the Great'"]]]
               [:where_clause
-               [:binary_comparison
-                [:column_name "product" "prod-id"]
-                "="
-                [:long_literal "1567"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:binary_comparison
+                     [:column_name "product" "prod-id"]
+                     "="
+                     [:long_literal "1567"]]]]]]]]]])
            {:type :update,
             :table "product",
             :assign-pairs
@@ -485,10 +532,15 @@
              [:delete_statement
               [:table_name "product"]
               [:where_clause
-               [:between_clause
-                [:column_name "product" "prod-id"]
-                [:long_literal "2000"]
-                [:long_literal "4000"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:between_clause
+                     [:column_name "product" "prod-id"]
+                     [:long_literal "2000"]
+                     [:long_literal "4000"]]]]]]]]]])
            {:type :delete,
             :table "product",
             :where ['(:between {:table "product", :column "prod-id"}
@@ -544,10 +596,15 @@
             [:sql_data_statement
              [:select_statement
               [:where_clause
-               [:between_clause
-                [:column_name "product" "prod-id"]
-                [:long_literal "1567"]
-                [:long_literal "6000"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:between_clause
+                     [:column_name "product" "prod-id"]
+                     [:long_literal "1567"]
+                     [:long_literal "6000"]]]]]]]]]])
            {:type :select
             :where ['(:between {:table "product", :column "prod-id"}
                                1567 6000)]}))
@@ -594,10 +651,15 @@
             [:sql_data_statement
              [:delete_statement
               [:where_clause
-               [:between_clause
-                [:column_name "product" "prod-id"]
-                [:long_literal "1567"]
-                [:long_literal "6000"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:between_clause
+                     [:column_name "product" "prod-id"]
+                     [:long_literal "1567"]
+                     [:long_literal "6000"]]]]]]]]]])
            {:type :delete
             :where ['(:between {:table "product", :column "prod-id"}
                                1567 6000)]}))
@@ -611,10 +673,15 @@
                 [:column_name "product" "rating"]
                 [:float_literal "3.5f"]]]
               [:where_clause
-               [:binary_comparison
-                [:column_name "product" "prod-id"]
-                "="
-                [:long_literal "1567"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:binary_comparison
+                     [:column_name "product" "prod-id"]
+                     "="
+                     [:long_literal "1567"]]]]]]]]]])
            {:type :update
             :assign-pairs [[{:table "product", :column "rating"}
                              #float 3.5]]
@@ -627,11 +694,16 @@
               [:select_list [:column_name "product" "title"]]
               [:from_clause [:table_ref [:table_name "product"]]]
               [:where_clause
-               [:in_clause
-                [:column_name "product" "actor"]
-                [:string_literal "'GENE WILLIS'"]
-                [:string_literal "'RIP DOUGLAS'"]
-                [:string_literal "'KIM RYDER'"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:in_clause
+                     [:column_name "product" "actor"]
+                     [:string_literal "'GENE WILLIS'"]
+                     [:string_literal "'RIP DOUGLAS'"]
+                     [:string_literal "'KIM RYDER'"]]]]]]]]]])
            {:type :select
             :fields [{:table "product", :column "title"}]
             :tables [{:name "product"}]
