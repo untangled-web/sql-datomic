@@ -225,6 +225,16 @@
                     :in (in->datomic col->var operands)
 
                     :and (and->datomic operands)
+                    ;; fixme: this is very busted
+                    ;; sql> select where product.prod-id = 2290 and :product/title = 'ADAPTATION EVERYONE'
+                    ;; [(:and
+                    ;;   (:= {:table "product", :column "prod-id"} 2290)
+                    ;;   (:= {:table "product", :column "title"} "ADAPTATION EVERYONE"))]
+                    ;; :where
+                    ;; [?e3174 :product/prod-id ?v3175]
+                    ;; [?e3174 :product/title ?v3176]
+                    ;; [(:= {:table "product", :column "prod-id"} 2290)
+                    ;;  (:= {:table "product", :column "title"} "ADAPTATION EVERYONE")]
 
                     ;; :or (or->datomic operands)
 
