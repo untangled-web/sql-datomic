@@ -147,10 +147,15 @@
              [:select_list [:column_name "foo" "bar"]]
              [:from_clause [:table_ref [:table_name "foo"]]]
              [:where_clause
-              [:binary_comparison
-               [:column_name "foo" "quux"]
-               "="
-               [:keyword_literal "xyzzy.baz/foo"]]]]])
+              [:search_condition
+               [:boolean_term
+                [:boolean_factor
+                 [:boolean_test
+                  [:boolean_primary
+                   [:binary_comparison
+                    [:column_name "foo" "quux"]
+                    "="
+                    [:keyword_literal "xyzzy.baz/foo"]]]]]]]]]])
         "ns-keyword in select list maps to column_name")
     (parsable? "select foo.bar from product where :db/id = 17592186045445"
                "supports :db/id")
@@ -260,33 +265,47 @@
                [:table_ref [:table_name "a_table"]]
                [:table_ref [:table_name "b_table"]]]
               [:where_clause
-               [:binary_comparison
-                [:column_name "a_table" "id"]
-                "="
-                [:column_name "b_table" "a_id"]]
-               [:binary_comparison
-                [:column_name "b_table" "zebra_id"]
-                ">"
-                [:long_literal "9000"]]
-               [:binary_comparison
-                [:column_name "b_table" "hired_on"]
-                "<"
-                [:date_literal "2011-11-11"]]]]])
+               [:search_condition
+                [:boolean_term
+                 [:boolean_term
+                  [:boolean_term
+                   [:boolean_factor
+                    [:boolean_test
+                     [:boolean_primary
+                      [:binary_comparison
+                       [:column_name "a_table" "id"]
+                       "="
+                       [:column_name "b_table" "id"]]]]]]
+                  [:boolean_factor
+                   [:boolean_test
+                    [:boolean_primary
+                     [:binary_comparison
+                      [:column_name "b_table" "zebra_id"]
+                      ">"
+                      [:long_literal "9000"]]]]]]
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:binary_comparison
+                     [:column_name "b_table" "hired_on"]
+                     "<"
+                     [:date_literal "2011-11-11"]]]]]]]]]])
            {:type :select
             :fields [[:qualified_asterisk "a_table"]
                      {:table "b_table" :column "zebra_id"}]
             :tables [{:name "a_table"} {:name "b_table"}]
-            :where [(list :=
-                          {:table "a_table" :column "id"}
-                          {:table "b_table" :column "a_id"})
-                    (list :>
-                          {:table "b_table" :column "zebra_id"}
-                          9000)
-                    (list :<
-                          {:table "b_table" :column "hired_on"}
-                          (->> (tm/date-time 2011 11 11)
-                               str
-                               inst/read-instant-date))]
+            :where [(list :and
+                          (list :=
+                                {:table "a_table" :column "id"}
+                                {:table "b_table" :column "id"})
+                          (list :>
+                                {:table "b_table" :column "zebra_id"}
+                                9000)
+                          (list :<
+                                {:table "b_table" :column "hired_on"}
+                                (->> (tm/date-time 2011 11 11)
+                                     str
+                                     inst/read-instant-date)))]
             }))
 
     ;; select product.prod-id from product where product.prod-id between 1 and 2 and product.title <> 'foo'

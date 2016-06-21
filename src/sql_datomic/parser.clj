@@ -7,7 +7,9 @@
             [clj-time.core :as tm]
             [clj-time.coerce :as coer]
             [clojure.instant :as inst]
-            [sql-datomic.types :as types]))
+            [sql-datomic.types :as types]
+            [sql-datomic.util :as util]
+            [clojure.walk :as walk]))
 
 (def parser
   (-> "resources/sql-eensy.bnf"
@@ -79,6 +81,58 @@
              s)]
    (Float/parseFloat s')))
 
+(defn reducible-or-tree [& vs]
+  (case (count vs)
+    1 (first vs)
+    (util/vec->list (into [:or] vs))))
+
+(defn reducible-and-tree [& vs]
+  (case (count vs)
+    1 (first vs)
+    (util/vec->list (into [:and] vs))))
+
+(defn flatten-nested-logical-connectives-1
+  "Flattens left-leaning `:and` or `:or` into single level.
+
+  (:and (:and :foo :bar) :baz) => (:and :foo :bar :baz)
+  (:or  (:or  :foo :bar) :baz) => (:or  :foo :bar :baz)
+  "
+  [tree]
+  (let [and-list? (fn [n]
+                    (and (list? n) (= :and (first n))))
+        nested-and-list? (fn [a-list]
+                           (and (and-list? a-list)
+                                (and-list? (second a-list))))
+        or-list? (fn [n]
+                   (and (list? n) (= :or (first n))))
+        nested-or-list? (fn [a-list]
+                          (and (or-list? a-list)
+                               (or-list? (second a-list))))
+        lift (fn [connective n]
+               (let [[_con [_con & targets] & vs] n]
+                 (-> [connective]
+                     (into targets)
+                     (into vs)
+                     util/vec->list)))
+        lift-and (partial lift :and)
+        lift-or (partial lift :or)]
+    (walk/prewalk
+     (fn [n]
+       (cond
+         (nested-and-list? n) (lift-and n)
+         (nested-or-list? n) (lift-or n)
+         :else n))
+     tree)))
+
+(defn flatten-nested-logical-connectives [tree]
+  (->>
+   (iterate (fn [[_ v]]
+              [v (flatten-nested-logical-connectives-1 v)])
+            [nil tree])
+   (take-while (fn [[old new]] (not= old new)))
+   last
+   last))
+
 (def transform-options
   {:sql_data_statement identity
    :select_statement (fn [& ps]
@@ -125,6 +179,11 @@
    :from_clause vector
    :table_ref (fn [& vs] (zipmap [:name :alias] vs))
    :where_clause vector
+   :search_condition reducible-or-tree
+   :boolean_term reducible-and-tree
+   :boolean_factor identity
+   :boolean_test identity
+   :boolean_primary identity
    :table_name strip-doublequotes
    :table_alias strip-doublequotes
    :binary_comparison (fn [c op v]
@@ -148,7 +207,10 @@
    :in_clause (fn [c & vs]
                 (list :in c (into [] vs)))})
 
-(def transform (partial insta/transform transform-options))
+(defn transform [ast]
+  (->> ast
+       (insta/transform transform-options)
+       flatten-nested-logical-connectives))
 
 (defn parse [input]
   (->> (parser input)

@@ -3,7 +3,8 @@
             [clojure.edn :as edn]
             [com.stuartsierra.component :as component]
             [clojure.pprint :as pp]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            [sql-datomic.util :as util])
   (:import [datomic.impl Exceptions$IllegalArgumentExceptionInfo]))
 
 (def default-connection-uri "datomic:mem://dellstore")
@@ -174,10 +175,10 @@
   (let [attr (table-column->attr-kw c)
         {e-sym :entity} (get col->var c :unknown-column!)
         clausen (map (fn [v] [e-sym attr v]) vs)]
-    (->> clausen
-         (into ['or])
-         rseq
-         (into '()))))
+    (util/vec->list (into ['or] clausen))))
+
+(defn and->datomic [clauses]
+  (vec clauses))
 
 (defn where->datomic [db clauses]
   {:pre [(not (empty? clauses))
@@ -185,7 +186,12 @@
          (every? (comp keyword? first) clauses)
          (every? (fn [c]
                    (-> (first c)
-                       #{:between := :not= :< :> :<= :>= :db-id :in}))
+                       #{:between
+                         := :not= :< :> :<= :>=
+                         :db-id
+                         :in
+                         :and
+                         :or}))
                  clauses)]}
   (let [col->var (->> clauses
                       extract-columns
@@ -205,8 +211,8 @@
                                 (list 'unify-ident ident var))))
         base-where (apply conj base-where ident-where)]
     (->> clauses
-         (map (fn [c]
-                (let [[op & operands] c]
+         (map (fn [clause]
+                (let [[op & operands] clause]
                   (case op
                     :between (between->datomic col->var operands)
 
@@ -218,10 +224,14 @@
 
                     :in (in->datomic col->var operands)
 
+                    :and (and->datomic operands)
+
+                    ;; :or (or->datomic operands)
+
                     (throw (ex-info "unknown where-clause operator"
                                     {:operator op
                                      :operands operands
-                                     :clause c}))))))
+                                     :clause clause}))))))
          squoosh
          (into base-where))))
 

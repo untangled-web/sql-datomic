@@ -26,15 +26,24 @@ update_statement ::=
 
 table_name ::= #"[-_A-Za-z][-\w]*"
 
-where_clause ::= <"WHERE">
-                 ( between_clause
-                 | binary_comparison
-                 | in_clause )
-                 [ { <"AND">
-                     ( between_clause
-                     | binary_comparison
-                     | in_clause )
-                   }+ ]
+search_condition ::= boolean_term
+                   | search_condition <"OR"> boolean_term
+
+boolean_term ::= boolean_factor
+               | boolean_term <"AND"> boolean_factor
+
+boolean_factor ::= (* [ "NOT" ] *)
+               boolean_test
+
+boolean_test ::= boolean_primary
+
+boolean_primary ::= predicate | <"("> search_condition <")">
+
+<predicate> ::= binary_comparison
+              | between_clause
+              | in_clause
+
+where_clause ::= <"WHERE"> search_condition
 
 insert_cols ::= #"[-_A-Za-z][-\w]*" [ { <","> #"[-_A-Za-z][-\w]*" }+ ]
 
