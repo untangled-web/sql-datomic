@@ -47,172 +47,52 @@ where_clause ::= <"WHERE"> search_condition
 
 insert_cols ::= #"[-_A-Za-z][-\w]*" [ { <","> #"[-_A-Za-z][-\w]*" }+ ]
 
-insert_vals ::= ( string_literal
-                | boolean_literal
-                | long_literal
-                | bigint_literal
-                | double_literal
-                | float_literal
-                | bigdec_literal
-                | keyword_literal
-                | date_literal
-                | datetime_literal
-                | epochal_literal
-                | inst_literal
-                | uuid_literal
-                | uri_literal
-                | bytes_literal )
-                [ {
-                  <",">
-                  ( string_literal
-                  | boolean_literal
-                  | long_literal
-                  | bigint_literal
-                  | double_literal
-                  | float_literal
-                  | bigdec_literal
-                  | keyword_literal
-                  | date_literal
-                  | datetime_literal
-                  | epochal_literal
-                  | inst_literal
-                  | uuid_literal
-                  | uri_literal
-                  | bytes_literal )
-                  }+ ]
+<insertable_val> ::= boolean_literal
+                   | bytes_literal
+                   | chrono_literal
+                   | keyword_literal
+                   | numeric_literal
+                   | string_literal
+                   | uri_literal
+                   | uuid_literal
+
+insert_vals ::= insertable_val [ { <","> insertable_val }+ ]
 
 from_clause ::= <"FROM"> table_ref [ { <","> table_ref }+ ]
 
-select_list ::= ( column_name
-                | qualified_asterisk
-                | string_literal
-                | boolean_literal
-                | date_literal
-                | datetime_literal
-                | epochal_literal
-                | inst_literal
-                | long_literal
-                | bigint_literal
-                | double_literal
-                | float_literal
-                | bigdec_literal
-                | uuid_literal
-                | uri_literal
-                | bytes_literal )
-                [ {
-                  <",">
-                  ( column_name
-                  | qualified_asterisk
-                  | string_literal
-                  | boolean_literal
-                  | date_literal
-                  | datetime_literal
-                  | epochal_literal
-                  | inst_literal
-                  | long_literal
-                  | bigint_literal
-                  | double_literal
-                  | float_literal
-                  | bigdec_literal
-                  | uuid_literal
-                  | uri_literal
-                  | bytes_literal )
-                  }+ ]
+<selectable_val> ::= column_name
+                   | qualified_asterisk
+                   | boolean_literal
+                   | bytes_literal
+                   | chrono_literal
+                   | numeric_literal
+                   | string_literal
+                   | uri_literal
+                   | uuid_literal
+
+select_list ::= selectable_val [ { <","> selectable_val }+ ]
 
 set_clausen ::= assignment_pair [ { <","> assignment_pair }+ ]
 
 between_clause ::= column_name <"BETWEEN">
                {
-                 (
-                   ( date_literal | datetime_literal | epochal_literal
-                   | inst_literal )
-                   <"AND">
-                   ( date_literal | datetime_literal | epochal_literal
-                   | inst_literal )
-                 )
+                 ( chrono_literal <"AND"> chrono_literal )
                  |
-                 (
-                   ( long_literal
-                   | bigint_literal
-                   | double_literal
-                   | float_literal
-                   | bigdec_literal
-                   | uuid_literal )
-                   <"AND">
-                   ( long_literal
-                   | bigint_literal
-                   | double_literal
-                   | float_literal
-                   | bigdec_literal
-                   | uuid_literal )
-                 )
+                 ( numeric_literal <"AND"> numeric_literal )
+                 |
+                 ( uuid_literal <"AND"> uuid_literal )
                }
 
 binary_comparison ::= column_name
                   {
-                    ( #"(<=|<|>=|>)"
-                      ( column_name
-                      | date_literal
-                      | datetime_literal
-                      | epochal_literal
-                      | inst_literal
-                      | long_literal
-                      | bigint_literal
-                      | double_literal
-                      | float_literal
-                      | bigdec_literal
-                      | uuid_literal ) )
+                    ( #"(<=|<|>=|>)" ( column_name | comparable_literal ) )
                     |
-                    ( #"(=|!=|<>)"
-                      ( column_name
-                      | keyword_literal
-                      | boolean_literal
-                      | date_literal
-                      | datetime_literal
-                      | epochal_literal
-                      | inst_literal
-                      | long_literal
-                      | bigint_literal
-                      | double_literal
-                      | float_literal
-                      | bigdec_literal
-                      | string_literal
-                      | uuid_literal
-                      | uri_literal ) )
+                    ( #"(=|!=|<>)" ( column_name | equalable_literal ) )
                   }
 
 in_clause ::= column_name <"IN"> <"(">
-                      ( keyword_literal
-                      | boolean_literal
-                      | date_literal
-                      | datetime_literal
-                      | epochal_literal
-                      | inst_literal
-                      | long_literal
-                      | bigint_literal
-                      | double_literal
-                      | float_literal
-                      | bigdec_literal
-                      | string_literal
-                      | uuid_literal
-                      | uri_literal )
-                      [ { <",">
-                        ( keyword_literal
-                        | boolean_literal
-                        | date_literal
-                        | datetime_literal
-                        | epochal_literal
-                        | inst_literal
-                        | long_literal
-                        | bigint_literal
-                        | double_literal
-                        | float_literal
-                        | bigdec_literal
-                        | string_literal
-                        | uuid_literal
-                        | uri_literal )
-                      }+ ]
-                      <")">
+                equalable_literal [ { <","> equalable_literal }+ ]
+              <")">
 
 string_literal ::= #"'(?:[^'\\]|\\.)*?'"
 
@@ -272,21 +152,39 @@ qualified_asterisk ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)' <"."> <"*">
 assignment_pair ::= column_name <"=">
                     ( string_literal
                     | boolean_literal
-                    | long_literal
-                    | bigint_literal
-                    | double_literal
-                    | float_literal
-                    | bigdec_literal
+                    | numeric_literal
                     | keyword_literal
-                    | date_literal
-                    | datetime_literal
-                    | epochal_literal
-                    | inst_literal
+                    | chrono_literal
                     | uuid_literal
                     | uri_literal
                     | bytes_literal )
 
 table_alias ::= [ <"AS"> ] #'"[^\"]+"|[-_A-Za-z][-\w]*'
+
+<integral_literal> ::= long_literal | bigint_literal
+
+<floating_literal> ::= float_literal | double_literal | bigdec_literal
+
+<numeric_literal> ::= integral_literal | floating_literal
+
+<chrono_literal> ::= date_literal
+                   | datetime_literal
+                   | epochal_literal
+                   | inst_literal
+
+(* literals supporting `=`, `<>`, `!=` *)
+<equalable_literal> ::= keyword_literal
+                      | boolean_literal
+                      | chrono_literal
+                      | numeric_literal
+                      | string_literal
+                      | uuid_literal
+                      | uri_literal
+
+(* literals supporting `<`, `<=`, `>`, `>=` *)
+<comparable_literal> ::= chrono_literal
+                       | numeric_literal
+                       | uuid_literal
 
 (* TODO:
 - support OR in WHERE
