@@ -402,3 +402,6 @@
     :product.category/new]]
 
   )
+
+;; fixme: sql> select :product/title from product where :product/actor in ('GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER') and :product/prod-id < 2000
+;; returns the three "rows" from the IN clause *and* (union) 9 others
