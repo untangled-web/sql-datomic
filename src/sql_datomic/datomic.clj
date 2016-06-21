@@ -196,19 +196,7 @@
 (defn or->datomic [{:keys [operands]}]
   )
 
-(defn where->datomic [db clauses]
-  {:pre [(not (empty? clauses))
-         (every? list? clauses)
-         (every? (comp keyword? first) clauses)
-         (every? (fn [c]
-                   (-> (first c)
-                       #{:between
-                         := :not= :< :> :<= :>=
-                         :db-id
-                         :in
-                         :and
-                         :or}))
-                 clauses)]}
+(defn build-where-backbone [db clauses]
   (let [col->var (->> clauses
                       extract-columns
                       build-datomic-var-map)
@@ -226,6 +214,27 @@
                          (map (fn [[ident {:keys [eid var]}]]
                                 (list 'unify-ident ident var))))
         base-where (apply conj base-where ident-where)]
+    {:col->var col->var
+     :ident->eid ident->eid
+     :ident-env ident-env
+     :base-where base-where
+     :ident-where ident-where}))
+
+(defn where->datomic [db clauses]
+  {:pre [(not (empty? clauses))
+         (every? list? clauses)
+         (every? (comp keyword? first) clauses)
+         (every? (fn [c]
+                   (-> (first c)
+                       #{:between
+                         := :not= :< :> :<= :>=
+                         :db-id
+                         :in
+                         :and
+                         :or}))
+                 clauses)]}
+  (let [{:keys [col->var ident-env ident-where
+                base-where]} (build-where-backbone db clauses)]
     (->> clauses
          (map (fn [clause]
                 (let [[op & operands] clause
