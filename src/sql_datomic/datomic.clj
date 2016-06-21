@@ -76,6 +76,7 @@
   (keyword table column))
 
 (defonce db-id-column {:table "db", :column "id"})
+
 (defn db-id? [c] (= c db-id-column))
 
 (defn column? [v]
@@ -101,6 +102,14 @@
 
 (defn gensym-datomic-ident-var []
   (gensym "?ident"))
+
+(defn datomic-var? [v]
+  (and (symbol? v) (re-seq #"^\?" (name v))))
+
+(defn scrape-datomic-vars [tree]
+  (->> (tree-seq coll? seq tree)
+       (filter datomic-var?)
+       (into #{})))
 
 (defn build-datomic-var-map
   "Returns a map, keyed by `{:table t, :column c}` with vals
@@ -428,5 +437,49 @@
    [:assignment_pair
     {:table "product", :column "category"}
     :product.category/new]]
+
+  (->> (d/q '[:find
+              [?e3160 ...]
+              :in
+              $
+              %
+              :where
+              [?e3160 :product/prod-id ?v3161]
+              [?e3160 :product/category ?v3162]
+              (unify-ident :product.category/action ?ident3163)
+              [(> ?v3161 1000)]
+              [(= ?v3162 ?ident3163)]]
+            db rules)
+       (map bloom)
+       (map (juxt :product/prod-id :product/category))
+       sort)
+  (->> (d/q '[:find
+              [?e3160 ...]
+              :in
+              $
+              %
+              :where
+              [?e3160 :product/prod-id ?v3161]
+              [?e3160 :product/category ?v3162]
+              (unify-ident :product.category/action ?ident3163)
+              (or-join [?v3161 ?v3162 ?ident3163]
+                       [(< ?v3161 5000)]
+                       [(= ?v3162 ?ident3163)])]
+            db rules)
+       (map bloom)
+       (map (juxt :product/prod-id :product/category))
+       sort)
+  ;; If used with just a plain `or`, we get this error:
+  ;;   AssertionError Assert failed: All clauses in 'or' must use same set of vars, had [#{?v3161} #{?v3162 ?ident3163}]
+  ;; If used with `or-join`, then seems to work.
+  ;; Implies the need to scrape `or-join` clauses for `?vars`.
+
+  ;; Regarding `not` vs `not-join`, `not` does not seem to have the
+  ;; same limitations re binding as does `or`.  In other words, this:
+  ;; (not (or-join [?v3161 ?v3162 ?ident3163]
+  ;;               [(< ?v3161 5000)]
+  ;;               [(= ?v3162 ?ident3163)]))
+  ;; is just fine.  Using `not-join` with the same bindings as
+  ;; `or-join` also works but seems to be unnecessary.
 
   )
