@@ -126,7 +126,7 @@
                               (flush))
                             (when-not @x-flag
                              (do
-                               (tab/print-table entities)
+                               (tab/print-simple-table entities)
                                (println)
                                (flush)))))))
 

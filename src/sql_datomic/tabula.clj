@@ -52,18 +52,24 @@
 (defn -print-row-count [rows]
   (printf "(%d rows)\n" (count rows)))
 
-(defn print-table
+(defn -print-simple-table [{:keys [ks rows print-fn]}]
+  (->> rows
+       (map process-entity)
+       (into [])
+       print-fn)
+  (-print-row-count rows)
+  (if (seq ks)
+    (-print-elided-cardinality-many-attrs ks rows)
+    (-print-elided-cardinality-many-attrs rows)))
+
+(defn print-simple-table
   ([ks rows]
-   (->> rows
-        (map process-entity)
-        (into [])
-        (partial pp/print-table ks))
-   (-print-row-count rows)
-   (-print-elided-cardinality-many-attrs ks rows))
+   (-print-simple-table {:ks ks
+                         :rows rows
+                         :print-fn (partial pp/print-table ks)}))
   ([rows]
-   (->> rows
-        (map process-entity)
-        (into [])
-        pp/print-table)
-   (-print-row-count rows)
-   (-print-elided-cardinality-many-attrs rows)))
+   (-print-simple-table {:rows rows
+                         :print-fn pp/print-table})))
+
+(defn print-expanded-table []
+  )
