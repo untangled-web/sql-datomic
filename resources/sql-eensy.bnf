@@ -32,12 +32,13 @@ search_condition ::= boolean_term
 boolean_term ::= boolean_factor
                | boolean_term <"AND"> boolean_factor
 
-boolean_factor ::= (* [ "NOT" ] *)
-               boolean_test
+boolean_negative ::= <"NOT"> boolean_test
+
+boolean_factor ::= boolean_negative | boolean_test
 
 boolean_test ::= boolean_primary
 
-boolean_primary ::= predicate | <"("> search_condition <")">
+<boolean_primary> ::= predicate | <"("> search_condition <")">
 
 <predicate> ::= binary_comparison
               | between_clause

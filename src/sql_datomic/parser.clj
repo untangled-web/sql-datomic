@@ -91,6 +91,10 @@
     1 (first vs)
     (util/vec->list (into [:and] vs))))
 
+(defn translate-boolean-negative [& vs]
+  ;; TODO: reduce nested nots
+  (util/vec->list (into [:not] vs)))
+
 (defn flatten-nested-logical-connectives-1
   "Flattens left-leaning `:and` or `:or` into single level.
 
@@ -192,6 +196,7 @@
    :search_condition reducible-or-tree
    :boolean_term reducible-and-tree
    :boolean_factor identity
+   :boolean_negative translate-boolean-negative
    :boolean_test identity
    :boolean_primary identity
    :table_name strip-doublequotes
