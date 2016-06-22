@@ -1,5 +1,6 @@
 (ns sql-datomic.tabula
-  (:require [clojure.pprint :as pp])
+  (:require [clojure.pprint :as pp]
+            [clojure.string :as str])
   (:import [datomic.query EntityMap]))
 
 (defn entity-map? [e]
@@ -29,9 +30,16 @@
        (remove (fn [[_ v]] (cardinality-many? v)))
        (into {})))
 
+(defn string->single-quoted-string [s]
+  (str \' (str/escape s {\' "\\'"}) \'))
+
 (defn entity->printable-row [entity]
   (->> entity
-       (map (fn [[k v]] [k (pr-str v)]))
+       (map (fn [[k v]]
+              (let [v' (if (string? v)
+                         (string->single-quoted-string v)
+                         (pr-str v))]
+                [k v'])))
        (into {})))
 
 (def process-entity (comp entity->printable-row
