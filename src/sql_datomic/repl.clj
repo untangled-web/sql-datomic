@@ -278,5 +278,5 @@
       (println "type `exit` or `quit` or ^D to exit")
       (println "type `debug` to toggle debug mode")
       (println "type `pretend` to toggle pretend mode")
-      (println "type `\x` to toggle extended display mode"))
+      (println "type `\\x` to toggle extended display mode"))
     (repl opts)))
