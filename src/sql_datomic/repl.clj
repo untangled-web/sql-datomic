@@ -5,7 +5,8 @@
             [clojure.tools.cli :as cli]
             [datomic.api :as d]
             clojure.repl
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [sql-datomic.tabula :as tab]))
 
 (def ^:dynamic *prompt* "sql> ")
 
@@ -49,9 +50,10 @@
        (println (ruler input))
        (flush)))))
 
-(defn repl [{:keys [debug pretend] :as opts}]
+(defn repl [{:keys [debug pretend expanded] :as opts}]
   (let [dbg (atom debug)
         loljk (atom pretend)
+        x-flag (atom expanded)
         noop (atom false)]
     (print *prompt*)
     (flush)
@@ -80,6 +82,12 @@
           (flush)
           (reset! dbg true)
           (reset! noop true))
+        (when (re-seq #"^(?i)\s*\\x\s*$" input)
+          (let [new-expand (not @x-flag)]
+            (println "Set expanded display to" (if new-expand "ON" "OFF"))
+            (flush)
+            (reset! x-flag new-expand)
+            (reset! noop true)))
 
         (when (and (not @noop) (re-seq #"(?ms)\S" input))
           (let [maybe-ast (parser/parser input)]
@@ -107,15 +115,20 @@
                           (squawk "Datomic Query" query))
                         (let [results (d/q query db dat/rules)]
                           (when @dbg (squawk "Raw Results" results))
-                          (let [ids (mapcat identity results)]
+                          (let [ids (mapcat identity results)
+                                entities (dat/get-entities-by-eids db ids)]
                             (when @dbg
                               (squawk "Entities")
                               (when-not (seq results)
                                 (binding [*out* *err*] (println "None"))))
-                            (doseq [id ids]
-                              (let [entity (d/touch (d/entity db id))]
-                                (pp/pprint entity)
-                                (flush)))))))
+                            (doseq [entity entities]
+                              (pp/pprint entity)
+                              (flush))
+                            (when-not @x-flag
+                             (do
+                               (tab/print-table entities)
+                               (println)
+                               (flush)))))))
 
                     :update
                     (when-let [wheres (:where ir)]
@@ -231,7 +244,10 @@
               (println (.toString ex)))
             (flush))))
 
-      (recur (assoc opts :debug @dbg :pretend @loljk)))))
+      (recur (assoc opts
+                    :debug @dbg
+                    :pretend @loljk
+                    :expanded @x-flag)))))
 
 (defn -main [& args]
   (let [[opts args banner]
