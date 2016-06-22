@@ -223,6 +223,14 @@
          (into ['or-join (vec vars)])
          util/vec->list)))
 
+;; TODO: This function is very similar to `and->datomic`; refactor?
+(defn not->datomic [{:keys [operands] :as env}]
+  (let [env' (dissoc env :op :operands)
+        dat-clausen (map (partial datomicify-clause env') operands)]
+    (->> dat-clausen
+         (into ['not])
+         util/vec->list)))
+
 (defn build-where-backbone [db clauses]
   (let [col->var (->> clauses
                       extract-columns
@@ -266,6 +274,8 @@
 
       :or (or->datomic args)
 
+      :not (not->datomic args)
+
       (throw (ex-info "unknown where-clause operator"
                       {:operator op
                        :operands operands
@@ -277,12 +287,10 @@
          (every? (comp keyword? first) clauses)
          (every? (fn [c]
                    (-> (first c)
-                       #{:between
+                       #{:between :in
                          := :not= :< :> :<= :>=
                          :db-id
-                         :in
-                         :and
-                         :or}))
+                         :and :or :not}))
                  clauses)]}
   (let [{:keys [col->var ident-env ident-where
                 base-where]} (build-where-backbone db clauses)

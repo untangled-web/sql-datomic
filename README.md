@@ -44,7 +44,7 @@ following deviations:
     - `select "la la la".foo from bar "la la la"`
     - `select lalala.foo from bar as lalala`
 - `FROM` clauses must consist of table names only (no subselects).
-- `WHERE` clauses support `AND` terms only.
+- `WHERE` clauses support `AND`, `OR`, and `NOT` terms.
 - `IN` clauses are supported in `WHERE`s.
 - `BETWEEN` clauses must operate on a column, and use either
   numeric literals or chronological literals (`DATE`, `DATETIME`, `TIME`)
