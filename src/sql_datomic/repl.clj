@@ -124,11 +124,13 @@
                             (doseq [entity entities]
                               (pp/pprint entity)
                               (flush))
-                            (when-not @x-flag
-                             (do
-                               (tab/print-simple-table entities)
-                               (println)
-                               (flush)))))))
+                            (if @x-flag
+                              (do
+                                (tab/print-expanded-table entities)
+                                (flush))
+                              (do
+                                (tab/print-simple-table entities)
+                                (flush)))))))
 
                     :update
                     (when-let [wheres (:where ir)]
@@ -275,5 +277,6 @@
         (println "*** using default in-mem database ***"))
       (println "type `exit` or `quit` or ^D to exit")
       (println "type `debug` to toggle debug mode")
-      (println "type `pretend` to toggle pretend mode"))
+      (println "type `pretend` to toggle pretend mode")
+      (println "type `\x` to toggle extended display mode"))
     (repl opts)))
