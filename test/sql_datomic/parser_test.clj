@@ -184,7 +184,14 @@
      "select :product/title
       from product
       where :product/actor in ('GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER')"
-     "supports IN clauses"))
+     "supports IN clauses")
+    (parsable?
+     "select where
+             :product/rating > 2.5f
+          or (:product/category = :product.category/new
+              and :product/prod-id < 5000)
+         and :product/price > 22.0M
+          or :product/prod-id between 6000 and 7000"))
 
   (testing "INSERT statements"
     (parsable?
@@ -708,4 +715,69 @@
             ['(:in
               {:table "product", :column "actor"}
               ["GENE WILLIS" "RIP DOUGLAS" "KIM RYDER"])]}))
+
+    ;;
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:select_statement
+              [:where_clause
+               [:search_condition
+                [:search_condition
+                 [:search_condition
+                  [:boolean_term
+                   [:boolean_factor
+                    [:boolean_test
+                     [:boolean_primary
+                      [:binary_comparison
+                       [:column_name "product" "rating"]
+                       ">"
+                       [:float_literal "2.5f"]]]]]]]
+                 [:boolean_term
+                  [:boolean_term
+                   [:boolean_factor
+                    [:boolean_test
+                     [:boolean_primary
+                      [:search_condition
+                       [:boolean_term
+                        [:boolean_term
+                         [:boolean_factor
+                          [:boolean_test
+                           [:boolean_primary
+                            [:binary_comparison
+                             [:column_name "product" "category"]
+                             "="
+                             [:keyword_literal "product.category/new"]]]]]]
+                        [:boolean_factor
+                         [:boolean_test
+                          [:boolean_primary
+                           [:binary_comparison
+                            [:column_name "product" "prod-id"]
+                            "<"
+                            [:long_literal "5000"]]]]]]]]]]]
+                  [:boolean_factor
+                   [:boolean_test
+                    [:boolean_primary
+                     [:binary_comparison
+                      [:column_name "product" "price"]
+                      ">"
+                      [:bigdec_literal "22.0M"]]]]]]]
+                [:boolean_term
+                 [:boolean_factor
+                  [:boolean_test
+                   [:boolean_primary
+                    [:between_clause
+                     [:column_name "product" "prod-id"]
+                     [:long_literal "6000"]
+                     [:long_literal "7000"]]]]]]]]]])
+           {:type :select,
+            :where
+            '[(:or
+               (:> {:table "product", :column "rating"} #float 2.5)
+               (:and
+                (:= {:table "product", :column "category"}
+                    :product.category/new)
+                (:< {:table "product", :column "prod-id"} 5000)
+                (:> {:table "product", :column "price"} 22.0M))
+               (:between {:table "product", :column "prod-id"}
+                         6000 7000))]}))
     ))
