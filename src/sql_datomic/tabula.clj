@@ -41,7 +41,6 @@
 (defn -print-elided-cardinality-many-attrs
   ([rows]
    (when (seq rows)
-     (prn (first rows))
      (let [attrs (select-cardinality-many-attrs (first rows))]
        (when (seq attrs)
          (println "Elided cardinality-many attrs: " attrs)))))
