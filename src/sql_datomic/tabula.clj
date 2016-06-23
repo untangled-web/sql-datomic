@@ -94,8 +94,9 @@
 
 (defn -print-expanded-table [{:keys [ks rows]}]
   (when (seq rows)
-    (let [r (first rows)
-          ks' (if (seq ks) ks (-> r keys sort))
+    (let [ks' (if (seq ks)
+                ks
+                (->> rows (mapcat keys) (into #{}) sort))
           k-max-len (->> ks'
                          (map (comp count str))
                          (sort >)
@@ -111,8 +112,12 @@
         (printf "-[ RECORD %d ]-%s\n"
                 (inc i)
                 (apply str (repeat 40 \-)))
-        (doseq [[k v] (map (fn [k] [k (get row k)]) ks')]
-          (printf row-fmt k v)))))
+        (let [xs (->> ks'
+                      (map (fn [k]
+                             [k (get row k)]))
+                      (filter second))]
+          (doseq [[k v] xs]
+            (printf row-fmt k v))))))
   (-print-row-count rows)
   (println))
 
