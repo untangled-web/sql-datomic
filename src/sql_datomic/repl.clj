@@ -50,6 +50,13 @@
        (println (ruler input))
        (flush)))))
 
+(defn -debug-display-entities [db ids]
+  (let [entities (dat/get-entities-by-eids db ids)]
+    (doseq [entity entities]
+      (binding [*out* *err*]
+        (pp/pprint entity)
+        (flush)))))
+
 (defn repl [{:keys [debug pretend expanded] :as opts}]
   (let [dbg (atom debug)
         loljk (atom pretend)
@@ -119,11 +126,12 @@
                                 entities (dat/get-entities-by-eids db ids)]
                             (when @dbg
                               (squawk "Entities")
-                              (when-not (seq results)
-                                (binding [*out* *err*] (println "None"))))
-                            (doseq [entity entities]
-                              (pp/pprint entity)
-                              (flush))
+                              (binding [*out* *err*]
+                                (when-not (seq results)
+                                  (println "None"))
+                                (doseq [entity entities]
+                                  (pp/pprint entity)
+                                  (flush))))
                             (if @x-flag
                               (do
                                 (tab/print-expanded-table entities)
@@ -145,12 +153,8 @@
                           (let [ids (mapcat identity results)]
                             (when @dbg
                               (squawk "Entities Targeted for Update"))
-                            (when-not (seq results)
-                              (println "None"))
-                            (doseq [id ids]
-                              (let [entity (d/touch (d/entity db id))]
-                                (pp/pprint entity)
-                                (flush)))
+                            (println (if (seq ids) ids "None"))
+                            (when @dbg (-debug-display-entities db ids))
                             (when (seq results)
                               (let [base-tx (dat/update-ir->base-tx-data ir)
                                     tx-data (dat/stitch-tx-data base-tx ids)]
@@ -163,13 +167,7 @@
                                     (println @(d/transact conn tx-data))
                                     (when @dbg
                                       (squawk "Entities after Transaction")
-                                      (let [db' (d/db conn)
-                                            entities (dat/get-entities-by-eids
-                                                      db' ids)]
-                                        (doseq [entity entities]
-                                          (binding [*out* *err*]
-                                            (pp/pprint entity)
-                                            (flush)))))))))))))
+                                      (-debug-display-entities (d/db conn) ids))))))))))
 
                     :delete
                     (when-let [wheres (:where ir)]
@@ -184,12 +182,10 @@
                           (let [ids (mapcat identity results)]
                             (when @dbg
                               (squawk "Entities Targeted for Delete"))
-                            (when-not (seq results)
-                              (println "None"))
-                            (doseq [id ids]
-                              (let [entity (d/touch (d/entity db id))]
-                                (pp/pprint entity)
-                                (flush)))
+                            ;; Always give indication of what will be deleted.
+                            (println (if (seq ids) ids "None"))
+                            (when @dbg
+                              (-debug-display-entities db ids))
                             (when (seq results)
                               (let [tx-data (dat/delete-eids->tx-data ids)]
                                 (when @dbg (squawk "Transaction" tx-data))
@@ -201,13 +197,7 @@
                                     (println @(d/transact conn tx-data))
                                     (when @dbg
                                       (squawk "Entities after Transaction")
-                                      (let [db' (d/db conn)
-                                            entities (dat/get-entities-by-eids
-                                                      db' ids)]
-                                        (doseq [entity entities]
-                                          (binding [*out* *err*]
-                                            (pp/pprint entity)
-                                            (flush)))))))))))))
+                                      (-debug-display-entities (d/db conn) ids))))))))))
 
                     :insert
                     (let [conn (->> sys :datomic :connection)
@@ -225,13 +215,7 @@
                             (prn ids)
                             (when @dbg
                               (squawk "Entities after Transaction")
-                              (let [db' (d/db conn)
-                                    entities (dat/get-entities-by-eids
-                                              db' ids)]
-                                (doseq [entity entities]
-                                  (binding [*out* *err*]
-                                    (pp/pprint entity)
-                                    (flush)))))))))
+                              (-debug-display-entities (d/db conn) ids))))))
 
                     ;; else
                     (throw (ex-info "Unknown query type" {:type (:type ir)
