@@ -565,7 +565,7 @@
             :cols ["prod-id" "actor" "title" "category"],
             :vals [9999 "Naomi Watts" "The Ring" :product.category/horror]}))
 
-    ;; "select 42, 1234N, -12, -69N, 3.14159, 6.626E34, 1e-2, 2.7182M, 1.6182F from foobar"
+    ;; select 42, 1234N, -12, -69N, 3.14159, 6.626E34, 1e-2, 2.7182M, 1.6182F from foobar
     (is (= (prs/transform
             [:sql_data_statement
              [:select_statement

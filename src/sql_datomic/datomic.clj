@@ -315,6 +315,64 @@
       :in ~'$ ~'%
       :where ~@ws]))
 
+(defn fields-ir->attrs [fields]
+  (->> fields
+       (map (fn [v]
+              (if (column? v)
+                (table-column->attr-kw v)
+                v)))
+       (into [])))
+
+(defn qualified-*-attr? [v]
+  (and (keyword? v)
+       (= "*" (name v))
+       (seq (namespace v))))
+
+(defn gather-attrs-from-entities [entities]
+  (->> entities (mapcat keys) (into #{})))
+
+(defn -resolve-qualified-attrs [qualified-*-kw attrs]
+  {:pre [(qualified-*-attr? qualified-*-kw)
+         (coll? attrs)
+         (every? keyword? attrs)]}
+  (let [nspace (namespace qualified-*-kw)]
+    (->> attrs
+         (map (fn [attr]
+                {:attr attr :nm (name attr) :ns (namespace attr)}))
+         (filter (fn [{:keys [ns]}] (= ns nspace)))
+         (remove (fn [{:keys [nm]}] (= "*" nm)))
+         (map :attr))))
+
+(defn resolve-qualified-attrs [qualified-*-kws attrs]
+  (let [qualified-*-kws (if (coll? qualified-*-kws)
+                          qualified-*-kws
+                          [qualified-*-kws])
+        q*-attrs (->> qualified-*-kws
+                      (filter qualified-*-attr?)
+                      (into #{}))]
+    (->> q*-attrs
+         (map (fn [q*] (-resolve-qualified-attrs q* attrs)))
+         flatten
+         (into #{}))))
+
+(defn resolve-attrs [given avail]
+  (let [univ (into #{} avail)]
+    ;; preserve given field order
+    (->> given
+         (mapcat (fn [attr]
+                   (if (qualified-*-attr? attr)
+                     (-resolve-qualified-attrs attr univ)
+                     [attr])))
+         distinct)))
+
+(defn supplement-with-consts [consts entities]
+  (let [cs (mapcat (partial repeat 2) consts)]
+    (for [e entities]
+      (let [m (into {} e)]
+        (if (seq cs)
+          (apply assoc m cs)
+          m)))))
+
 (defn update-ir->base-tx-data [{:keys [assign-pairs] :as ir}]
   {:pre [(seq assign-pairs)
          (vector? assign-pairs)

@@ -2,6 +2,7 @@
   (:require [instaparse.core :as insta]
             [clojure.zip :as zip]
             [clojure.string :as str]
+            [clojure.set :as set]
             [clojure.edn :as edn]
             [clj-time.format :as fmt]
             [clj-time.core :as tm]
@@ -147,37 +148,57 @@
       (assoc ir :where (vec and-args)))
     ir))
 
+(defn tag-type [obj type]
+  (vary-meta obj assoc :ast-type type))
+
+(defn by-tag-type [tagged-vs]
+  (->> tagged-vs
+       (group-by (comp :ast-type meta))
+       (map (fn [[k v]]
+              [k (first v)]))
+       (into {})))
+
+(defn wrap-with-tag-type [f type]
+  (fn [& vs]
+    (tag-type (apply f vs) type)))
+
+(defn -unpack-table [m]
+  (if (:table m) (update m :table first) m))
+
 (def transform-options
   {:sql_data_statement identity
    :select_statement (fn [& ps]
-                       (let [ks (case (count ps)
-                                  1 [:where]
-                                  [:fields :tables :where])]
-                         (->> ps
-                              (zipmap ks)
-                              (into {:type :select}))))
+                       (-> ps
+                           by-tag-type
+                           (set/rename-keys {:select_list :fields
+                                             :from_clause :tables
+                                             :where_clause :where})
+                           (assoc :type :select)))
    :update_statement (fn [& ps]
-                       (let [ks (case (count ps)
-                                  2 [:assign-pairs :where]
-                                  [:table :assign-pairs :where])]
-                         (->> ps
-                              (zipmap ks)
-                              (into {:type :update}))))
+                       (-> ps
+                           by-tag-type
+                           (set/rename-keys {:table_name :table
+                                             :set_clausen :assign-pairs
+                                             :where_clause :where})
+                           -unpack-table
+                           (assoc :type :update)))
    :insert_statement (fn [& ps]
-                       (let [ks (case (count ps)
-                                  1 [:assign-pairs]
-                                  [:table :cols :vals])]
-                         (->> ps
-                              (zipmap ks)
-                              (into {:type :insert}))))
+                       (-> ps
+                           by-tag-type
+                           (set/rename-keys {:table_name :table
+                                             :insert_cols :cols
+                                             :insert_vals :vals
+                                             :set_clausen :assign-pairs})
+                           -unpack-table
+                           (assoc :type :insert)))
    :delete_statement (fn [& ps]
-                       (let [ks (case (count ps)
-                                  1 [:where]
-                                  [:table :where])]
-                        (->> ps
-                             (zipmap ks)
-                             (into {:type :delete}))))
-   :select_list vector
+                       (-> ps
+                           by-tag-type
+                           (set/rename-keys {:table_name :table
+                                             :where_clause :where})
+                           -unpack-table
+                           (assoc :type :delete)))
+   :select_list (wrap-with-tag-type vector :select_list)
    :column_name (fn [t c] {:table (strip-doublequotes t)
                            :column (strip-doublequotes c)})
    :string_literal transform-string-literal
@@ -190,16 +211,20 @@
    :boolean_literal identity
    :true (constantly true)
    :false (constantly false)
-   :from_clause vector
-   :table_ref (fn [& vs] (zipmap [:name :alias] vs))
-   :where_clause vector
+   :from_clause (wrap-with-tag-type vector :from_clause)
+   :table_ref (fn [[name] & [alias]]
+                (cond-> {:name name}
+                  alias (assoc :alias alias)))
+   :where_clause (wrap-with-tag-type vector :where_clause)
    :search_condition reducible-or-tree
    :boolean_term reducible-and-tree
    :boolean_factor identity
    :boolean_negative translate-boolean-negative
    :boolean_test identity
    :boolean_primary identity
-   :table_name strip-doublequotes
+   :table_name (wrap-with-tag-type
+                ;; cannot hang metadata on string, so wrap in vector
+                (comp vector strip-doublequotes) :table_name)
    :table_alias strip-doublequotes
    :binary_comparison (fn [c op v]
                         (if (and (= c {:table "db", :column "id"})
@@ -215,12 +240,13 @@
    :uuid_literal (fn [s] (java.util.UUID/fromString s))
    :uri_literal types/->uri
    :bytes_literal types/base64-str->bytes
-   :set_clausen vector
-   :assignment_pair vector
-   :insert_cols vector
-   :insert_vals vector
+   :set_clausen (wrap-with-tag-type vector :set_clausen)
+   :assignment_pair (wrap-with-tag-type vector :assignment_pair)
+   :insert_cols (wrap-with-tag-type vector :insert_cols)
+   :insert_vals (wrap-with-tag-type vector :insert_vals)
    :in_clause (fn [c & vs]
-                (list :in c (into [] vs)))})
+                (list :in c (into [] vs)))
+   :qualified_asterisk (fn [s] (keyword s "*"))})
 
 (defn transform [ast]
   (->> ast

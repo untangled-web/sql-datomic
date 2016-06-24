@@ -45,13 +45,15 @@
 (defn string->single-quoted-string [s]
   (str \' (str/escape s {\' "\\'"}) \'))
 
+(defn ->printable [v]
+  (if (string? v)
+    (string->single-quoted-string v)
+    (pr-str v)))
+
 (defn entity->printable-row [entity]
   (->> entity
        (map (fn [[k v]]
-              (let [v' (if (string? v)
-                         (string->single-quoted-string v)
-                         (pr-str v))]
-                [k v'])))
+              [(->printable k) (->printable v)]))
        (into {})))
 
 (def process-entity (comp entity->printable-row
@@ -65,9 +67,10 @@
        (when (seq attrs)
          (println "Elided cardinality-many attrs: " attrs)))))
   ([ks rows]
-   (->> rows
-        (map (fn [row] (select-keys row ks)))
-        -print-elided-cardinality-many-attrs)))
+   (let [ks' (filter keyword? ks)]
+     (->> rows
+          (map (fn [row] (select-keys row ks')))
+          -print-elided-cardinality-many-attrs))))
 
 (defn -print-row-count [rows]
   (printf "(%d rows)\n" (count rows)))
@@ -85,9 +88,12 @@
 
 (defn print-simple-table
   ([ks rows]
-   (-print-simple-table {:ks ks
-                         :rows rows
-                         :print-fn (partial pp/print-table ks)}))
+   (if (seq ks)
+     (-print-simple-table
+      {:ks ks
+       :rows rows
+       :print-fn (partial pp/print-table (map ->printable ks))})
+     (print-simple-table rows)))
   ([rows]
    (-print-simple-table {:rows rows
                          :print-fn pp/print-table})))
@@ -97,7 +103,8 @@
     (let [ks' (if (seq ks)
                 ks
                 (->> rows (mapcat keys) (into #{}) sort))
-          k-max-len (->> ks'
+          pks (map ->printable ks')
+          k-max-len (->> pks
                          (map (comp count str))
                          (sort >)
                          first)
@@ -112,10 +119,12 @@
         (printf "-[ RECORD %d ]-%s\n"
                 (inc i)
                 (apply str (repeat 40 \-)))
-        (let [xs (->> ks'
-                      (map (fn [k]
-                             [k (get row k)]))
-                      (filter second))]
+        (let [xs (->>
+                  ;; Need ->printable keys for lookup
+                  ;; due to entity->printable-row applying ->printable
+                  ;; to row keys.
+                  pks
+                  (map (fn [k] [k (get row k "")])))]
           (doseq [[k v] xs]
             (printf row-fmt k v))))))
   (-print-row-count rows)

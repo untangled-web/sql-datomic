@@ -116,14 +116,20 @@
                     :select
                     (when-let [wheres (:where ir)]
                       (let [db (->> sys :datomic :connection d/db)
-                            query (dat/where->datomic-q db wheres)]
+                            query (dat/where->datomic-q db wheres)
+                            fattrs (dat/fields-ir->attrs (:fields ir))]
                         (when @dbg
                           (squawk "Datomic Rules" dat/rules)
                           (squawk "Datomic Query" query))
                         (let [results (d/q query db dat/rules)]
                           (when @dbg (squawk "Raw Results" results))
                           (let [ids (mapcat identity results)
-                                entities (dat/get-entities-by-eids db ids)]
+                                entities (dat/get-entities-by-eids db ids)
+                                eattrs (dat/gather-attrs-from-entities entities)
+                                attrs (dat/resolve-attrs fattrs eattrs)
+                                consts (remove keyword? attrs)
+                                entities' (dat/supplement-with-consts
+                                           consts entities)]
                             (when @dbg
                               (squawk "Entities")
                               (binding [*out* *err*]
@@ -134,10 +140,12 @@
                                   (flush))))
                             (if @x-flag
                               (do
-                                (tab/print-expanded-table entities)
+                                (tab/print-expanded-table
+                                 (seq attrs) entities')
                                 (flush))
                               (do
-                                (tab/print-simple-table entities)
+                                (tab/print-simple-table
+                                 (seq attrs) entities')
                                 (flush)))))))
 
                     :update
