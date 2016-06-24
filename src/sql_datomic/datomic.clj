@@ -133,15 +133,17 @@
 (defn binary-comparison->datomic
   [{:keys [col->var ident-env op operands]}]
   (let [[c v] operands
-        {v-sym :value} (get col->var c :unknown-column!)
-        v (get-in ident-env [v :var] v)
+        {c-sym :value} (get col->var c :unknown-column!)
+        v' (if-let [v-sym (get col->var v)]
+             (:value v-sym)
+             (get-in ident-env [v :var] v))
         kw->op {:= '=
                 :not= 'not=
                 :< '<
                 :> '>
                 :<= '<=
                 :>= '>=}]
-    [(list (kw->op op) v-sym v)]))
+    [(list (kw->op op) c-sym v')]))
 
 (defn between->datomic [{:keys [col->var operands]}]
   (let [[c v1 v2] operands
