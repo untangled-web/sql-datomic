@@ -157,6 +157,8 @@
                           (squawk "Datomic Query" query))
                         (let [results (d/q query db dat/rules)]
                           (when @dbg (squawk "Raw Results" results))
+                          ;; FIXME: this is *not* the case, transacts on *all*
+                          ;;        eids participating in joins.
                           ;; UPDATE pertains to only one "table" (i.e., no
                           ;; joins), so this flattened list of ids is okay.
                           (let [ids (mapcat identity results)]
@@ -188,6 +190,8 @@
                           (squawk "Datomic Query" query))
                         (let [results (d/q query db dat/rules)]
                           (when @dbg (squawk "Raw Results" results))
+                          ;; FIXME: this is *not* the case, transacts on *all*
+                          ;;        eids participating in joins.
                           ;; DELETE pertains to only one "table" (i.e., no
                           ;; joins), so this flattened list of ids is okay.
                           (let [ids (mapcat identity results)]

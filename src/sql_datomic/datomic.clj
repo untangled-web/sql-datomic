@@ -442,6 +442,42 @@
   (let [entity (->> entity-id (d/entity db) d/touch)]
     (into {:db/id (:db/id entity)} entity)))
 
+(defn -enumerated-key? [k]
+  (and (keyword? k) (re-seq #"--#\d+$" (name k))))
+
+(defn -decompose-key [k]
+  (if (-enumerated-key? k)
+    (if-let [match (re-matches #"^(.*)--#(\d+)$" (name k))]
+      (let [[_ base-name num] match]
+        {:name-space (namespace k)
+         :base-name base-name
+         :num (Long/parseLong num)})
+      (throw (ex-info "unable to split enumerated key" {:key k})))
+    {:name-space (namespace k)
+     :base-name (name k)
+     :num 1}))
+
+(defn -enumerate-key [k]
+  (let [{:keys [name-space base-name num]} (-decompose-key k)]
+    (keyword name-space (str base-name "--#" (inc num)))))
+
+(defn -merge-uniq-key [m1 m2]
+  {:pre [(map? m1)
+         (map? m2)]}
+  (let [seen (-> m1 keys set)]
+    (->> m2
+         (map (fn [[k v]]
+                (let [k' (if (seen k)
+                           (->> (iterate -enumerate-key k)
+                                (drop-while seen)
+                                first)
+                           k)]
+                  [k' v])))
+         (into m1))))
+
+(defn merge-with-enumerated-keys [& ms]
+  (reduce -merge-uniq-key ms))
+
 (defn hydrate-results [db relations]
   {:pre [(or (set? relations)
              (isa? (class relations) java.util.HashSet))
@@ -451,7 +487,7 @@
     (let [ent-maps (map (partial hydrate-entity db) tuple)]
       ;; Combine each entity in this "row" into a single row.
       (if (seq ent-maps)
-        (apply merge ent-maps)
+        (apply merge-with-enumerated-keys ent-maps)
         {}))))
 
 (comment
