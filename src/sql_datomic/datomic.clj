@@ -436,6 +436,23 @@
   {:pre [(map? transact-result)]}
   (->> transact-result :tempids vals (into [])))
 
+(defn hydrate-results [db relations]
+  {:pre [(or (set? relations)
+             (isa? (class relations) java.util.HashSet))
+         (every? vector? relations)
+         (every? (partial every? integer?) relations)]}
+  (for [tuple relations]
+    (let [ent-maps (->> tuple
+                        (map (fn [entity-id]
+                               (->> entity-id
+                                    (d/entity db)
+                                    d/touch
+                                    (into {})))))]
+      ;; Combine each entity in this "row" into a single row.
+      (if (seq ent-maps)
+        (apply merge ent-maps)
+        {}))))
+
 (comment
 
   (use 'clojure.repl)

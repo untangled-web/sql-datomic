@@ -123,8 +123,7 @@
                           (squawk "Datomic Query" query))
                         (let [results (d/q query db dat/rules)]
                           (when @dbg (squawk "Raw Results" results))
-                          (let [ids (mapcat identity results)
-                                entities (dat/get-entities-by-eids db ids)
+                          (let [entities (dat/hydrate-results db results)
                                 eattrs (dat/gather-attrs-from-entities entities)
                                 attrs (dat/resolve-attrs fattrs eattrs)
                                 consts (remove keyword? attrs)
@@ -158,6 +157,8 @@
                           (squawk "Datomic Query" query))
                         (let [results (d/q query db dat/rules)]
                           (when @dbg (squawk "Raw Results" results))
+                          ;; UPDATE pertains to only one "table" (i.e., no
+                          ;; joins), so this flattened list of ids is okay.
                           (let [ids (mapcat identity results)]
                             (when @dbg
                               (squawk "Entities Targeted for Update"))
@@ -187,6 +188,8 @@
                           (squawk "Datomic Query" query))
                         (let [results (d/q query db dat/rules)]
                           (when @dbg (squawk "Raw Results" results))
+                          ;; DELETE pertains to only one "table" (i.e., no
+                          ;; joins), so this flattened list of ids is okay.
                           (let [ids (mapcat identity results)]
                             (when @dbg
                               (squawk "Entities Targeted for Delete"))
