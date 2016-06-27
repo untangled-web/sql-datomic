@@ -186,8 +186,3 @@ table_alias ::= [ <"AS"> ] #'"[^\"]+"|[-_A-Za-z][-\w]*'
 <comparable_literal> ::= chrono_literal
                        | numeric_literal
                        | uuid_literal
-
-(* TODO:
-- support OR in WHERE
-- support NOT (???)
-*)
