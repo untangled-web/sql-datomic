@@ -85,6 +85,9 @@ SQL prompt, the following Tagged Literals are supported:
 Note that byte arrays are not value types (from Datomic's perspective);
 therefore, they are not supported in `WHERE` clauses.
 
+For more about Datomic native types, please
+[read the fine documentation](http://docs.datomic.com/schema.html#text-1-1).
+
 ## Shortened convenience forms
 
 - select:
