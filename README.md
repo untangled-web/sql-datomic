@@ -98,8 +98,7 @@ therefore, they are not supported in `WHERE` clauses.
 - delete:
     - `delete where #attr :product/prod-id between 1567 and 6000`
 - update:
-    - `update #attr :product/rating = 3.5f
-        where #attr :product/prod-id = 1567`
+    - `update product.rating = 3.5f where product.prod-id = 1567`
 
 ## License
 
