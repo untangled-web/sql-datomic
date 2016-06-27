@@ -104,7 +104,7 @@
                 (when-let [hint (parser/hint-for-parse-error maybe-ast)]
                   (binding [*out* *err*]
                     (println (str "\n*** Hint: " hint))))
-                (print-ruler input (:index maybe-ast)))
+                (print-ruler input (:column maybe-ast)))
               (do
                 (when @dbg (squawk "AST" maybe-ast))
                 (let [ir (parser/transform maybe-ast)]

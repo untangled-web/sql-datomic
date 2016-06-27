@@ -275,4 +275,12 @@
            "Bytes arrays are not values"
            " and cannot be used with =, !=, <>, <, etc.")
 
+      (and (= c \:)
+           (some (fn [{:keys [tag expecting]}]
+                   (and (= tag :string)
+                        "#attr"))
+                 reason))
+      (str "Expecting a column name.  "
+           "Did you forget to use #attr on a keyword?")
+
       :else nil)))

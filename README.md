@@ -31,7 +31,7 @@ following deviations:
 - Column names must be fully qualified (`table_name.column_name`)
   for `select`, `update` and `delete`; `insert` are exempt from this.
 - Raw attribute keywords may be used in place of column names:
-    (e.g., using `:product/title` directly instead of
+    (e.g., using `#attr :product/title` directly instead of
     `product.title`).
 - No support for explicit `JOIN`s.  Instead, use implicit joins
   (which is more like Datomic's syntax anyhow).
@@ -88,17 +88,18 @@ therefore, they are not supported in `WHERE` clauses.
 ## Shortened convenience forms
 
 - select:
-    - `select where :product/prod-id between 1567 and 6000`
+    - `select where #attr :product/prod-id between 1567 and 6000`
 - insert:
     - `insert into
-         :product/prod-id = 1984,
-         :product/actor = 'Quux',
-         :product/title = 'Foo Bar',
-         :product/price = 21.99M`
+         #attr :product/prod-id = 1984,
+         #attr :product/actor = 'Quux',
+         #attr :product/title = 'Foo Bar',
+         #attr :product/price = 21.99M`
 - delete:
-    - `delete where :product/prod-id between 1567 and 6000`
+    - `delete where #attr :product/prod-id between 1567 and 6000`
 - update:
-    - `update :product/rating = 3.5f where :product/prod-id = 1567`
+    - `update #attr :product/rating = 3.5f
+        where #attr :product/prod-id = 1567`
 
 ## License
 

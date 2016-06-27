@@ -522,6 +522,29 @@
   (defn sys-cxn [] (->> sys :datomic :connection))
   (def db (d/db (sys-cxn)))
   (def bloom (comp d/touch (partial d/entity db)))
+  (require '[sql-datomic/parser :as par])
+  ;; :product/prod-id = :orderline/prod-id ==> thinks :orderline/prod-id
+  ;;   is a keyword, not a "column" (a.k.a., attribute).
+  (->> "select :product/*, :orderline/quantity from product, orderline where
+        :product/prod-id = :orderline/prod-id and :product/prod-id > 8000"
+       par/parser
+       par/transform
+       :where
+       (where->datomic-q db))
+  ;; Do we enforce `orderline.prod-id` for joins?
+  ;; Should we introduce a reader literal for disambiguation?
+  ;;    #attr :orderline/prod-id
+  ;; Doing so would open the door to using keywords in select list and
+  ;; possibly having the "column" in WHERE clauses in positions other
+  ;; than the first operand (e.g., `10 < #attr :product/prod-id`).
+  ;; Contrariwise, we could instead introduce a keyword reader literal:
+  ;;    #keyword :ohai
+  ;;    #kw :product.category/comedy
+  ;; Under this scenario, there is no ambiguity, because users must
+  ;; always use the reader literal when talking about a non-attr keyword.
+  ;; Worried about adding that burden to the user; worried about the reader
+  ;; doing the wrong thing.
+  ;; A third option is to simply remove support for keyword attrs.
 
   (def where-clauses
     [(list :between {:table "product", :column "price"} 10 15)

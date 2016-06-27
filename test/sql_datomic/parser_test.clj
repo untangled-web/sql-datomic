@@ -137,11 +137,12 @@
      "supports #bytes (byte array) literals in select list")
     (parsable?
      "select foo.bar from foo where
-              :product/url = #uri \"http://example.com/products/2290\"
-          and :product/category = :product.category/documentary"
+          #attr :product/url = #uri \"http://example.com/products/2290\"
+      and #attr :product/category = :product.category/documentary"
      "supports namespaced keyword as column (attr) in where clause")
     (is (= (prs/parser
-            "select :foo/bar from foo where :foo/quux = :xyzzy.baz/foo")
+            "select #attr :foo/bar from foo
+              where #attr :foo/quux = :xyzzy.baz/foo")
            [:sql_data_statement
             [:select_statement
              [:select_list [:column_name "foo" "bar"]]
@@ -156,7 +157,8 @@
                    "="
                    [:keyword_literal "xyzzy.baz/foo"]]]]]]]]])
         "ns-keyword in select list maps to column_name")
-    (parsable? "select foo.bar from product where :db/id = 17592186045445"
+    (parsable? "select foo.bar from product
+                where #attr :db/id = 17592186045445"
                "supports :db/id")
     (is (= (prs/parser
             "select 42, 1234N, -12, -69N, 3.14159, 6.626E34, 1e-2, 2.7182M,
@@ -177,33 +179,34 @@
               [:float_literal "99.99999"]]
              [:from_clause [:table_ref [:table_name "foobar"]]]]])
         "supports long, float, double, bigint, bigdec literals")
-    (parsable? "select where :product/prod-id between 1567 and 6000"
+    (parsable? "select where #attr :product/prod-id between 1567 and 6000"
                "allow shortened where-only select statement")
     (parsable?
-     "select :product/title
+     "select #attr :product/title
       from product
-      where :product/actor in ('GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER')"
+      where #attr :product/actor in (
+        'GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER')"
      "supports IN clauses")
     (parsable?
      "select where
-             :product/rating > 2.5f
-          or (:product/category = :product.category/new
-              and :product/prod-id < 5000)
-         and :product/price > 22.0M
-          or :product/prod-id between 6000 and 7000"
+             #attr :product/rating > 2.5f
+          or (#attr :product/category = :product.category/new
+              and #attr :product/prod-id < 5000)
+         and #attr :product/price > 22.0M
+          or #attr :product/prod-id between 6000 and 7000"
      "supports nested AND-OR trees in WHERE")
     (parsable?
      "select where
-              :product/rating > 2.5f
-           or (:product/category = :product.category/new
+              #attr :product/rating > 2.5f
+           or (#attr :product/category = :product.category/new
                or (not (
-                         (:product/prod-id < 5000
-                           or (not :product/category in (
+                         (#attr :product/prod-id < 5000
+                           or (not #attr :product/category in (
                                    :product.category/action,
                                    :product.category/comedy
                                ))
-                           or :product/price > 20.0M
-                        and :product/prod-id >= 2000))))"
+                           or #attr :product/price > 20.0M
+                        and #attr :product/prod-id >= 2000))))"
      "supports nested AND-OR-NOT trees in WHERE"))
 
   (testing "INSERT statements"
@@ -225,13 +228,13 @@
      "allows string, integral, float, and date literals as values")
     (parsable?
      "insert into
-        :product/prod-id = 9999,
-        :product/actor = 'Naomi Watts',
-        :product/title = 'The Ring',
-        :product/category = :product.category/horror,
-        :product/rating = 4.5f,
-        :product/man-hours = 9001N,
-        :product/price = 21.99M")
+        #attr :product/prod-id = 9999,
+        #attr :product/actor = 'Naomi Watts',
+        #attr :product/title = 'The Ring',
+        #attr :product/category = :product.category/horror,
+        #attr :product/rating = 4.5f,
+        #attr :product/man-hours = 9001N,
+        #attr :product/price = 21.99M")
     "allows shortened assignment-pairs version of insert")
 
   (testing "UPDATE statements"
@@ -247,10 +250,12 @@
       where  employees.salary < 38000.00
         and  employees.hired_on < date '2010-01-01'")
     (parsable?
-     "update :product/rating = 3.5f where :product/prod-id = 1567"
+     "update #attr :product/rating = 3.5f
+       where #attr :product/prod-id = 1567"
      "allow SET and table to be optional; requires WHERE")
     (parsable?
-     "update set :product/rating = 2.4F where :product/prod-id = 1567"
+     "update set #attr :product/rating = 2.4F
+       where #attr :product/prod-id = 1567"
      "allow table to be optional; requires WHERE"))
 
   (testing "DELETE statements"
@@ -270,7 +275,7 @@
            AND
          DATETIME '2014-01-15T08:00:00'
      ")
-    (parsable? "delete where :product/prod-id = 1567"
+    (parsable? "delete where #attr :product/prod-id = 1567"
                "allow shortened where-only form")))
 
 (deftest transform-tests
@@ -308,7 +313,7 @@
                     "<"
                     [:date_literal "2011-11-11"]]]]]]]]])
            {:type :select
-            :fields [[:qualified_asterisk "a_table"]
+            :fields [:a_table/*
                      {:table "b_table" :column "zebra_id"}]
             :tables [{:name "a_table"} {:name "b_table"}]
             :where [(list :=
@@ -376,7 +381,7 @@
                     "<>"
                     [:keyword_literal "product.category/action"]]]]]]]]])
            {:type :select,
-            :fields [[:qualified_asterisk "foo"]],
+            :fields [:foo/*],
             :tables [{:name "foo"}],
             :where
             '[(:between {:table "product", :column "prod-id"} 4000 6000)
