@@ -19,18 +19,24 @@
       (pp/pprint entity)
       (flush))))
 
+(defn decorate-with-db-id [entity]
+  ;; Note:  Has side-effect of turning entity into a map.
+  (assoc (into {} entity) :db/id (:db/id entity)))
+
 (defn enhance-entities [entities fields]
-  (let [fattrs (dat/fields-ir->attrs fields)
-        eattrs (dat/gather-attrs-from-entities entities)
+  (let [ms (map decorate-with-db-id entities)
+        fattrs (dat/fields-ir->attrs fields)
+        eattrs (dat/gather-attrs-from-entities ms)
         attrs (dat/resolve-attrs fattrs eattrs)
         consts (remove keyword? attrs)]
-    {:entities (dat/supplement-with-consts consts entities)
+    {:entities (dat/supplement-with-consts consts ms)
      :attrs attrs}))
 
 (defn -run-db-id-select
   [db {:keys [where fields] :as ir} {:keys [debug]}]
   (let [ids (dat/db-id-clause-ir->eids ir)
-        raw-entities (dat/get-entities-by-eids db ids)
+        es (dat/get-entities-by-eids db ids)
+        raw-entities (dat/keep-genuine-entities es)
         {:keys [entities attrs]} (enhance-entities raw-entities fields)]
     (when debug (-display-raw-entities raw-entities))
     {:ids ids

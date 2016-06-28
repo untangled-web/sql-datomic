@@ -403,6 +403,22 @@
          (d/entity db)
          d/touch)))
 
+(defn genuine-entity? [entity]
+  "True iff arg is an entity with attributes.
+
+  `datomic.api/entity` will return an entity object even if the database
+  had no entity with the given eid.  This predicate's purpose is to help
+  disambiguate the yes-we-found-your-entity results from this other.
+  "
+  (and (isa? (class entity) datomic.query.EntityMap)
+       (not= (->> entity keys (into #{}))
+             #{})))
+
+(defn keep-genuine-entities [entities]
+  (->> entities
+       (map d/touch)
+       (filter genuine-entity?)))
+
 (defn delete-eids->tx-data [eids]
   (->> eids
        (map (fn [id] [:db.fn/retractEntity id]))
