@@ -482,28 +482,21 @@
          :where ['(:between {:table "product" :column "prod-id"}
                             2000 3000)]})
 
-    ;; select foo.bar from product where :db/id = 17592186045445
+    ;; select foo.bar from product where #attr :db/id = 17592186045445
     (is (= (prs/transform
             [:sql_data_statement
              [:select_statement
               [:select_list [:column_name "foo" "bar"]]
               [:from_clause [:table_ref [:table_name "product"]]]
               [:where_clause
-               [:search_condition
-                [:boolean_term
-                 [:boolean_factor
-                  [:boolean_test
-                   [:binary_comparison
-                    [:column_name "db" "id"]
-                    "="
-                    [:long_literal "17592186045445"]]]]]]]]])
+               [:db_id_clause [:long_literal "17592186045445"]]]]])
            {:type :select,
             :fields [{:table "foo", :column "bar"}],
             :tables [{:name "product"}],
-            :where ['(:db-id 17592186045445)]})
+            :where [#{17592186045445}]})
         "`:db/id = eid` translates to :db-id clause, not :binary_comparison")
 
-    ;; update product set :product/category = :product.category/new, :product/tag = :foo-bar-baz, :product/actor = 'Quux the Great' where :product/prod-id = 1567
+    ;; update product set #attr :product/category = :product.category/new, #attr :product/tag = :foo-bar-baz, #attr :product/actor = 'Quux the Great' where #attr :product/prod-id = 1567
     (is (= (prs/transform
             [:sql_data_statement
              [:update_statement
@@ -535,7 +528,7 @@
              [{:table "product", :column "actor"} "Quux the Great"]],
             :where ['(:= {:table "product", :column "prod-id"} 1567)]}))
 
-    ;; delete from product where :product/prod-id between 2000 and 4000
+    ;; delete from product where #attr :product/prod-id between 2000 and 4000
     (is (= (prs/transform
             [:sql_data_statement
              [:delete_statement
@@ -599,7 +592,7 @@
                      ]
             :tables [{:name "foobar"}]}))
 
-    ;; select where :product/prod-id between 1567 and 6000
+    ;; select where #attr :product/prod-id between 1567 and 6000
     (is (= (prs/transform
             [:sql_data_statement
              [:select_statement
@@ -616,7 +609,7 @@
             :where ['(:between {:table "product", :column "prod-id"}
                                1567 6000)]}))
 
-    ;; insert into :product/prod-id = 9999, :product/actor = 'Naomi Watts', :product/title = 'The Ring', :product/category = :product.category/horror, :product/rating = 4.5f, :product/man-hours = 9001N, :product/price = 21.99M
+    ;; insert into #attr :product/prod-id = 9999, #attr :product/actor = 'Naomi Watts', #attr :product/title = 'The Ring', #attr :product/category = :product.category/horror, #attr :product/rating = 4.5f, #attr :product/man-hours = 9001N, #attr :product/price = 21.99M
     (is (= (prs/transform
             [:sql_data_statement
              [:insert_statement
@@ -653,7 +646,7 @@
              [{:table "product", :column "man-hours"} 9001N]
              [{:table "product", :column "price"} 21.99M]]}))
 
-    ;; delete where :product/prod-id between 1567 and 6000
+    ;; delete where #attr :product/prod-id between 1567 and 6000
     (is (= (prs/transform
             [:sql_data_statement
              [:delete_statement
@@ -670,7 +663,7 @@
             :where ['(:between {:table "product", :column "prod-id"}
                                1567 6000)]}))
 
-    ;; update :product/rating = 3.5f where :product/prod-id = 1567
+    ;; update #attr :product/rating = 3.5f where #attr :product/prod-id = 1567
     (is (= (prs/transform
             [:sql_data_statement
              [:update_statement
@@ -692,7 +685,7 @@
                              #float 3.5]]
             :where ['(:= {:table "product", :column "prod-id"} 1567)]}))
 
-    ;; select :product/title from product where :product/actor in ('GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER')
+    ;; select #attr :product/title from product where #attr :product/actor in ('GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER')
     (is (= (prs/transform
             [:sql_data_statement
              [:select_statement
@@ -716,7 +709,7 @@
               {:table "product", :column "actor"}
               ["GENE WILLIS" "RIP DOUGLAS" "KIM RYDER"])]}))
 
-    ;; select where :product/rating > 2.5f or (:product/category = :product.category/new and :product/prod-id < 5000) and :product/price > 22.0M or :product/prod-id between 6000 and 7000
+    ;; select where #attr :product/rating > 2.5f or (#attr :product/category = :product.category/new and #attr :product/prod-id < 5000) and #attr :product/price > 22.0M or #attr :product/prod-id between 6000 and 7000
     (is (= (prs/transform
             [:sql_data_statement
              [:select_statement
@@ -775,7 +768,7 @@
                (:between {:table "product", :column "prod-id"}
                          6000 7000))]}))
 
-    ;; select where :product/rating > 2.5f or (:product/category = :product.category/new or (not ( (:product/prod-id < 5000 or (not :product/category in (:product.category/action, :product.category/comedy)) or :product/price > 20.0M) and :product/prod-id >= 2000)))
+    ;; select where #attr :product/rating > 2.5f or (#attr :product/category = :product.category/new or (not ( (#attr :product/prod-id < 5000 or (not #attr :product/category in (:product.category/action, :product.category/comedy)) or #attr :product/price > 20.0M) and #attr :product/prod-id >= 2000)))
     (is (= (prs/transform
             [:sql_data_statement
              [:select_statement

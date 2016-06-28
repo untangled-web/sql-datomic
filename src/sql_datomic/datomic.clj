@@ -317,6 +317,12 @@
       :in ~'$ ~'%
       :where ~@ws]))
 
+(defn db-id-clause? [clauses]
+  (some set? clauses))
+
+(defn db-id-clause-ir->eids [ir]
+  (->> ir :where first))
+
 (defn fields-ir->attrs [fields]
   (->> fields
        (map (fn [v]
@@ -522,7 +528,7 @@
   (defn sys-cxn [] (->> sys :datomic :connection))
   (def db (d/db (sys-cxn)))
   (def bloom (comp d/touch (partial d/entity db)))
-  (require '[sql-datomic.parser :as par])
+  (require '[sql-datomic.parser :as par] :reload)
 
   (def where-clauses
     [(list :between {:table "product", :column "price"} 10 15)

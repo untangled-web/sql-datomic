@@ -107,7 +107,9 @@
                 (print-ruler input (:column maybe-ast)))
               (do
                 (when @dbg (squawk "AST" maybe-ast))
-                (let [ir (parser/transform maybe-ast)]
+                (let [conn (->> sys :datomic :connection)
+                      db (d/db conn)
+                      ir (parser/transform maybe-ast)]
                   (when @dbg (squawk "Intermediate Repr" ir))
 
                   ;; FIXME: Sooooo much copy-pasta ...
@@ -115,109 +117,168 @@
 
                     :select
                     (when-let [wheres (:where ir)]
-                      (let [db (->> sys :datomic :connection d/db)
-                            query (dat/where->datomic-q db wheres)
-                            fattrs (dat/fields-ir->attrs (:fields ir))]
-                        (when @dbg
-                          (squawk "Datomic Rules" dat/rules)
-                          (squawk "Datomic Query" query))
-                        (let [results (d/q query db dat/rules)]
-                          (when @dbg (squawk "Raw Results" results))
-                          (let [entities (dat/hydrate-results db results)
-                                eattrs (dat/gather-attrs-from-entities entities)
-                                attrs (dat/resolve-attrs fattrs eattrs)
-                                consts (remove keyword? attrs)
-                                entities' (dat/supplement-with-consts
-                                           consts entities)]
+                      (let [fattrs (dat/fields-ir->attrs (:fields ir))]
+                        (if (dat/db-id-clause? wheres)
+                          (let [eids (dat/db-id-clause-ir->eids ir)
+                                entities (dat/get-entities-by-eids db eids)]
+                            (let [eattrs (dat/gather-attrs-from-entities entities)
+                                  attrs (dat/resolve-attrs fattrs eattrs)
+                                  consts (remove keyword? attrs)
+                                  entities' (dat/supplement-with-consts
+                                             consts entities)]
+                              (when @dbg
+                                (squawk "Entities")
+                                (binding [*out* *err*]
+                                  (when-not (seq eids)
+                                    (println "None"))
+                                  (doseq [entity entities]
+                                    (pp/pprint entity)
+                                    (flush))))
+                              (if @x-flag
+                                (do
+                                  (tab/print-expanded-table
+                                   (seq attrs) entities')
+                                  (flush))
+                                (do
+                                  (tab/print-simple-table
+                                   (seq attrs) entities')
+                                  (flush)))))
+                          (let [query (dat/where->datomic-q db wheres)]
                             (when @dbg
-                              (squawk "Entities")
-                              (binding [*out* *err*]
-                                (when-not (seq results)
-                                  (println "None"))
-                                (doseq [entity entities]
-                                  (pp/pprint entity)
-                                  (flush))))
-                            (if @x-flag
-                              (do
-                                (tab/print-expanded-table
-                                 (seq attrs) entities')
-                                (flush))
-                              (do
-                                (tab/print-simple-table
-                                 (seq attrs) entities')
-                                (flush)))))))
+                              (squawk "Datomic Rules" dat/rules)
+                              (squawk "Datomic Query" query))
+                            (let [results (d/q query db dat/rules)]
+                              (when @dbg (squawk "Raw Results" results))
+                              (let [entities (dat/hydrate-results db results)
+                                    eattrs (dat/gather-attrs-from-entities entities)
+                                    attrs (dat/resolve-attrs fattrs eattrs)
+                                    consts (remove keyword? attrs)
+                                    entities' (dat/supplement-with-consts
+                                               consts entities)]
+                                (when @dbg
+                                  (squawk "Entities")
+                                  (binding [*out* *err*]
+                                    (when-not (seq results)
+                                      (println "None"))
+                                    (doseq [entity entities]
+                                      (pp/pprint entity)
+                                      (flush))))
+                                (if @x-flag
+                                  (do
+                                    (tab/print-expanded-table
+                                     (seq attrs) entities')
+                                    (flush))
+                                  (do
+                                    (tab/print-simple-table
+                                     (seq attrs) entities')
+                                    (flush)))))))))
 
                     :update
                     (when-let [wheres (:where ir)]
-                      (let [conn (->> sys :datomic :connection)
-                            db (d/db conn)
-                            query (dat/where->datomic-q db wheres)]
-                        (when @dbg
-                          (squawk "Datomic Rules" dat/rules)
-                          (squawk "Datomic Query" query))
-                        (let [results (d/q query db dat/rules)]
-                          (when @dbg (squawk "Raw Results" results))
-                          ;; FIXME: this is *not* the case, transacts on *all*
-                          ;;        eids participating in joins.
-                          ;; UPDATE pertains to only one "table" (i.e., no
-                          ;; joins), so this flattened list of ids is okay.
-                          (let [ids (mapcat identity results)]
-                            (when @dbg
-                              (squawk "Entities Targeted for Update"))
-                            (println (if (seq ids) ids "None"))
-                            (when @dbg (-debug-display-entities db ids))
-                            (when (seq results)
-                              (let [base-tx (dat/update-ir->base-tx-data ir)
-                                    tx-data (dat/stitch-tx-data base-tx ids)]
-                                (when @dbg (squawk "Transaction" tx-data))
-                                (if @loljk
-                                  (println
-                                   "Halting transaction due to pretend mode ON")
-                                  (do
-                                    (println)
-                                    (println @(d/transact conn tx-data))
-                                    (when @dbg
-                                      (squawk "Entities after Transaction")
-                                      (-debug-display-entities (d/db conn) ids))))))))))
+                      (if (dat/db-id-clause? wheres)
+                        (let [ids (dat/db-id-clause-ir->eids ir)
+                              entities (dat/get-entities-by-eids db ids)]
+                          (when @dbg
+                            (squawk "Entities Targeted for Update"))
+                          (println (if (seq ids) ids "None"))
+                          (when @dbg (-debug-display-entities db ids))
+                          (when (seq entities)
+                            (let [base-tx (dat/update-ir->base-tx-data ir)
+                                  tx-data (dat/stitch-tx-data base-tx ids)]
+                              (when @dbg (squawk "Transaction" tx-data))
+                              (if @loljk
+                                (println
+                                 "Halting transaction due to pretend mode ON")
+                                (do
+                                  (println)
+                                  (println @(d/transact conn tx-data))
+                                  (when @dbg
+                                    (squawk "Entities after Transaction")
+                                    (-debug-display-entities (d/db conn) ids)))))))
+                        (let [query (dat/where->datomic-q db wheres)]
+                          (when @dbg
+                            (squawk "Datomic Rules" dat/rules)
+                            (squawk "Datomic Query" query))
+                          (let [results (d/q query db dat/rules)]
+                            (when @dbg (squawk "Raw Results" results))
+                            ;; FIXME: this is *not* the case, transacts on *all*
+                            ;;        eids participating in joins.
+                            ;; UPDATE pertains to only one "table" (i.e., no
+                            ;; joins), so this flattened list of ids is okay.
+                            (let [ids (mapcat identity results)]
+                              (when @dbg
+                                (squawk "Entities Targeted for Update"))
+                              (println (if (seq ids) ids "None"))
+                              (when @dbg (-debug-display-entities db ids))
+                              (when (seq results)
+                                (let [base-tx (dat/update-ir->base-tx-data ir)
+                                      tx-data (dat/stitch-tx-data base-tx ids)]
+                                  (when @dbg (squawk "Transaction" tx-data))
+                                  (if @loljk
+                                    (println
+                                     "Halting transaction due to pretend mode ON")
+                                    (do
+                                      (println)
+                                      (println @(d/transact conn tx-data))
+                                      (when @dbg
+                                        (squawk "Entities after Transaction")
+                                        (-debug-display-entities (d/db conn) ids)))))))))))
 
                     :delete
                     (when-let [wheres (:where ir)]
-                      (let [conn (->> sys :datomic :connection)
-                            db (d/db conn)
-                            query (dat/where->datomic-q db wheres)]
-                        (when @dbg
-                          (squawk "Datomic Rules" dat/rules)
-                          (squawk "Datomic Query" query))
-                        (let [results (d/q query db dat/rules)]
-                          (when @dbg (squawk "Raw Results" results))
-                          ;; FIXME: this is *not* the case, transacts on *all*
-                          ;;        eids participating in joins.
-                          ;; DELETE pertains to only one "table" (i.e., no
-                          ;; joins), so this flattened list of ids is okay.
-                          (let [ids (mapcat identity results)]
-                            (when @dbg
-                              (squawk "Entities Targeted for Delete"))
-                            ;; Always give indication of what will be deleted.
-                            (println (if (seq ids) ids "None"))
-                            (when @dbg
-                              (-debug-display-entities db ids))
-                            (when (seq results)
-                              (let [tx-data (dat/delete-eids->tx-data ids)]
-                                (when @dbg (squawk "Transaction" tx-data))
-                                (if @loljk
-                                  (println
-                                   "Halting transaction due to pretend mode ON")
-                                  (do
-                                    (println)
-                                    (println @(d/transact conn tx-data))
-                                    (when @dbg
-                                      (squawk "Entities after Transaction")
-                                      (-debug-display-entities (d/db conn) ids))))))))))
+                      (if (dat/db-id-clause? wheres)
+                        (let [ids (dat/db-id-clause-ir->eids ir)
+                              entities (dat/get-entities-by-eids db ids)]
+                          (when @dbg
+                            (squawk "Entities Targeted for Delete"))
+                          ;; Always give indication of what will be deleted.
+                          (println (if (seq ids) ids "None"))
+                          (when @dbg
+                            (-debug-display-entities db ids))
+                          (when (seq entities)
+                            (let [tx-data (dat/delete-eids->tx-data ids)]
+                              (when @dbg (squawk "Transaction" tx-data))
+                              (if @loljk
+                                (println
+                                 "Halting transaction due to pretend mode ON")
+                                (do
+                                  (println)
+                                  (println @(d/transact conn tx-data))
+                                  (when @dbg
+                                    (squawk "Entities after Transaction")
+                                    (-debug-display-entities (d/db conn) ids)))))))
+                        (let [query (dat/where->datomic-q db wheres)]
+                          (when @dbg
+                            (squawk "Datomic Rules" dat/rules)
+                            (squawk "Datomic Query" query))
+                          (let [results (d/q query db dat/rules)]
+                            (when @dbg (squawk "Raw Results" results))
+                            ;; FIXME: this is *not* the case, transacts on *all*
+                            ;;        eids participating in joins.
+                            ;; DELETE pertains to only one "table" (i.e., no
+                            ;; joins), so this flattened list of ids is okay.
+                            (let [ids (mapcat identity results)]
+                              (when @dbg
+                                (squawk "Entities Targeted for Delete"))
+                              ;; Always give indication of what will be deleted.
+                              (println (if (seq ids) ids "None"))
+                              (when @dbg
+                                (-debug-display-entities db ids))
+                              (when (seq results)
+                                (let [tx-data (dat/delete-eids->tx-data ids)]
+                                  (when @dbg (squawk "Transaction" tx-data))
+                                  (if @loljk
+                                    (println
+                                     "Halting transaction due to pretend mode ON")
+                                    (do
+                                      (println)
+                                      (println @(d/transact conn tx-data))
+                                      (when @dbg
+                                        (squawk "Entities after Transaction")
+                                        (-debug-display-entities (d/db conn) ids)))))))))))
 
                     :insert
-                    (let [conn (->> sys :datomic :connection)
-                          db (d/db conn)
-                          tx-data (dat/insert-ir->tx-data ir)]
+                    (let [tx-data (dat/insert-ir->tx-data ir)]
                       (when @dbg (squawk "Transaction" tx-data))
                       (if @loljk
                         (println

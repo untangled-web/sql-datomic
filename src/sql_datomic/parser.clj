@@ -217,6 +217,7 @@
                   alias (assoc :alias alias)))
    :where_clause (wrap-with-tag-type vector :where_clause)
    :search_condition reducible-or-tree
+   :db_id_clause (fn [& eids] (into #{} eids))
    :boolean_term reducible-and-tree
    :boolean_factor identity
    :boolean_negative translate-boolean-negative
@@ -227,10 +228,7 @@
                 (comp vector strip-doublequotes) :table_name)
    :table_alias strip-doublequotes
    :binary_comparison (fn [c op v]
-                        (if (and (= c {:table "db", :column "id"})
-                                 (= op "="))
-                          (list :db-id v)
-                          (list (comparison-ops op) c v)))
+                        (list (comparison-ops op) c v))
    :between_clause (fn [c v1 v2]
                      (list :between c v1 v2))
    :date_literal transform-date-literal

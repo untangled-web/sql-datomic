@@ -44,7 +44,18 @@ boolean_test ::= boolean_primary
               | between_clause
               | in_clause
 
-where_clause ::= <"WHERE"> search_condition
+(* disallow mixing of db_id-based where with general where *)
+where_clause ::= <"WHERE"> ( db_id_clause | search_condition )
+
+db_id_clause ::= < ("db.id" | <"#attr"> ":db/id") >
+                 (
+                     <"="> long_literal
+                 |
+                     <"IN"> <"(">
+                     long_literal [ { [<",">] long_literal }+ ] <")">
+                 |   (* be flexible with :db/id selections *)
+                     long_literal [ { [<",">] long_literal }+ ]
+                 )
 
 insert_cols ::= #"[-_A-Za-z][-\w]*" [ { <","> #"[-_A-Za-z][-\w]*" }+ ]
 
@@ -75,7 +86,7 @@ select_list ::= selectable_val [ { <","> selectable_val }+ ]
 
 set_clausen ::= assignment_pair [ { <","> assignment_pair }+ ]
 
-between_clause ::= column_name <"BETWEEN">
+between_clause ::= non_db_id_column_name <"BETWEEN">
                {
                  ( chrono_literal <"AND"> chrono_literal )
                  |
@@ -84,14 +95,16 @@ between_clause ::= column_name <"BETWEEN">
                  ( uuid_literal <"AND"> uuid_literal )
                }
 
-binary_comparison ::= column_name
+binary_comparison ::= non_db_id_column_name
                   {
-                    ( #"(<=|<|>=|>)" ( column_name | comparable_literal ) )
+                    ( #"(<=|<|>=|>)" ( non_db_id_column_name
+                                     | comparable_literal ) )
                     |
-                    ( #"(=|!=|<>)" ( column_name | equalable_literal ) )
+                    ( #"(=|!=|<>)" ( non_db_id_column_name
+                                   | equalable_literal ) )
                   }
 
-in_clause ::= column_name <"IN"> <"(">
+in_clause ::= non_db_id_column_name <"IN"> <"(">
                 equalable_literal [ { <","> equalable_literal }+ ]
               <")">
 
@@ -141,7 +154,12 @@ bytes_literal ::= <#"#(bytes|base64)"> <"\""> #"[A-Za-z0-9+/=]+" <"\"">
 
 table_ref ::= table_name [ table_alias ]
 
-column_name ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)'
+<non_db_id_column_name> ::=
+                ! #"db.id|#attr\s+:db/id"
+                column_name
+
+column_name ::=
+                #'("[^\"]+"|[-_A-Za-z][-\w]*)'
                 <"."> #'("[^\"]+"|[-_A-Za-z][-\w]*)'
               | <"#attr"> <":">
                 #"([-\.\*\+\$\?\|_<>=%!#\w]+)"
@@ -150,7 +168,7 @@ column_name ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)'
 
 qualified_asterisk ::= #'("[^\"]+"|[-_A-Za-z][-\w]*)' <"."> <"*">
 
-assignment_pair ::= column_name <"=">
+assignment_pair ::= non_db_id_column_name <"=">
                     ( string_literal
                     | boolean_literal
                     | numeric_literal
