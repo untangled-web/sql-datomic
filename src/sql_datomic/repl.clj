@@ -1,6 +1,8 @@
 (ns sql-datomic.repl
   (:require [sql-datomic.parser :as parser]
             [sql-datomic.datomic :as dat]
+            [sql-datomic.util :refer [squawk]]
+            [sql-datomic.select-command :as sel]
             [clojure.pprint :as pp]
             [clojure.tools.cli :as cli]
             [datomic.api :as d]
@@ -11,17 +13,6 @@
 (def ^:dynamic *prompt* "sql> ")
 
 (declare sys)
-
-(defn squawk
-  ([title] (squawk title nil))
-  ([title data]
-   (let [s (str title ":")
-         sep (str/join (repeat (count s) \=))]
-     (binding [*out* *err*]
-       (println (str "\n" s "\n" sep))
-       (when data
-         (pp/pprint data))
-       (flush)))))
 
 (defn pointer [s index]
   (str/join (conj (into [] (repeat (dec index) \space)) \^)))
@@ -116,62 +107,14 @@
                   (case (:type ir)
 
                     :select
-                    (when-let [wheres (:where ir)]
-                      (let [fattrs (dat/fields-ir->attrs (:fields ir))]
-                        (if (dat/db-id-clause? wheres)
-                          (let [eids (dat/db-id-clause-ir->eids ir)
-                                entities (dat/get-entities-by-eids db eids)]
-                            (let [eattrs (dat/gather-attrs-from-entities entities)
-                                  attrs (dat/resolve-attrs fattrs eattrs)
-                                  consts (remove keyword? attrs)
-                                  entities' (dat/supplement-with-consts
-                                             consts entities)]
-                              (when @dbg
-                                (squawk "Entities")
-                                (binding [*out* *err*]
-                                  (when-not (seq eids)
-                                    (println "None"))
-                                  (doseq [entity entities]
-                                    (pp/pprint entity)
-                                    (flush))))
-                              (if @x-flag
-                                (do
-                                  (tab/print-expanded-table
-                                   (seq attrs) entities')
-                                  (flush))
-                                (do
-                                  (tab/print-simple-table
-                                   (seq attrs) entities')
-                                  (flush)))))
-                          (let [query (dat/where->datomic-q db wheres)]
-                            (when @dbg
-                              (squawk "Datomic Rules" dat/rules)
-                              (squawk "Datomic Query" query))
-                            (let [results (d/q query db dat/rules)]
-                              (when @dbg (squawk "Raw Results" results))
-                              (let [entities (dat/hydrate-results db results)
-                                    eattrs (dat/gather-attrs-from-entities entities)
-                                    attrs (dat/resolve-attrs fattrs eattrs)
-                                    consts (remove keyword? attrs)
-                                    entities' (dat/supplement-with-consts
-                                               consts entities)]
-                                (when @dbg
-                                  (squawk "Entities")
-                                  (binding [*out* *err*]
-                                    (when-not (seq results)
-                                      (println "None"))
-                                    (doseq [entity entities]
-                                      (pp/pprint entity)
-                                      (flush))))
-                                (if @x-flag
-                                  (do
-                                    (tab/print-expanded-table
-                                     (seq attrs) entities')
-                                    (flush))
-                                  (do
-                                    (tab/print-simple-table
-                                     (seq attrs) entities')
-                                    (flush)))))))))
+                    (let [result (sel/run-select db ir {:debug @dbg})
+                          entities (:entities result)
+                          attrs (:attrs result)
+                          print-table-fn (if @x-flag
+                                           tab/print-expanded-table
+                                           tab/print-simple-table)]
+                      (print-table-fn (seq attrs) entities)
+                      (flush))
 
                     :update
                     (when-let [wheres (:where ir)]
