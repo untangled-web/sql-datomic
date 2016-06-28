@@ -15,3 +15,9 @@
        (when data
          (pp/pprint data))
        (flush)))))
+
+(defn -debug-display-entities [entities]
+  (doseq [entity entities]
+    (binding [*out* *err*]
+      (pp/pprint entity)
+      (flush))))

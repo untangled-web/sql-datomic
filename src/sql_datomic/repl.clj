@@ -3,6 +3,7 @@
             [sql-datomic.datomic :as dat]
             [sql-datomic.util :refer [squawk]]
             [sql-datomic.select-command :as sel]
+            [sql-datomic.update-command :as upd]
             [clojure.pprint :as pp]
             [clojure.tools.cli :as cli]
             [datomic.api :as d]
@@ -117,55 +118,7 @@
                       (flush))
 
                     :update
-                    (when-let [wheres (:where ir)]
-                      (if (dat/db-id-clause? wheres)
-                        (let [ids (dat/db-id-clause-ir->eids ir)
-                              entities (dat/get-entities-by-eids db ids)]
-                          (when @dbg
-                            (squawk "Entities Targeted for Update"))
-                          (println (if (seq ids) ids "None"))
-                          (when @dbg (-debug-display-entities db ids))
-                          (when (seq entities)
-                            (let [base-tx (dat/update-ir->base-tx-data ir)
-                                  tx-data (dat/stitch-tx-data base-tx ids)]
-                              (when @dbg (squawk "Transaction" tx-data))
-                              (if @loljk
-                                (println
-                                 "Halting transaction due to pretend mode ON")
-                                (do
-                                  (println)
-                                  (println @(d/transact conn tx-data))
-                                  (when @dbg
-                                    (squawk "Entities after Transaction")
-                                    (-debug-display-entities (d/db conn) ids)))))))
-                        (let [query (dat/where->datomic-q db wheres)]
-                          (when @dbg
-                            (squawk "Datomic Rules" dat/rules)
-                            (squawk "Datomic Query" query))
-                          (let [results (d/q query db dat/rules)]
-                            (when @dbg (squawk "Raw Results" results))
-                            ;; FIXME: this is *not* the case, transacts on *all*
-                            ;;        eids participating in joins.
-                            ;; UPDATE pertains to only one "table" (i.e., no
-                            ;; joins), so this flattened list of ids is okay.
-                            (let [ids (mapcat identity results)]
-                              (when @dbg
-                                (squawk "Entities Targeted for Update"))
-                              (println (if (seq ids) ids "None"))
-                              (when @dbg (-debug-display-entities db ids))
-                              (when (seq results)
-                                (let [base-tx (dat/update-ir->base-tx-data ir)
-                                      tx-data (dat/stitch-tx-data base-tx ids)]
-                                  (when @dbg (squawk "Transaction" tx-data))
-                                  (if @loljk
-                                    (println
-                                     "Halting transaction due to pretend mode ON")
-                                    (do
-                                      (println)
-                                      (println @(d/transact conn tx-data))
-                                      (when @dbg
-                                        (squawk "Entities after Transaction")
-                                        (-debug-display-entities (d/db conn) ids)))))))))))
+                    (upd/run-update conn db ir {:debug @dbg :pretend @loljk})
 
                     :delete
                     (when-let [wheres (:where ir)]
@@ -283,3 +236,32 @@
       (println "type `pretend` to toggle pretend mode")
       (println "type `\\x` to toggle extended display mode"))
     (repl opts)))
+
+(comment
+
+  (def sys (.start (dat/system {})))
+  (def conn (->> sys :datomic :connection))
+  (def db (d/db conn))
+
+  (let [stmt "select where product.prod-id = 9990"
+        ir (->> stmt parser/parser parser/transform)]
+    (->>
+     (sel/run-select db ir #_{:debug true})
+     :entities
+     pp/pprint))
+
+  (let [stmt "update product.rating = 3.14f where product.prod-id > 8000"
+        ir (->> stmt parser/parser parser/transform)]
+    (->>
+     (upd/run-update conn db ir #_{:debug true :pretend nil})
+     pp/pprint)
+    (->> (d/q '[:find [?e ...]
+                :where
+                [?e :product/prod-id ?pid]
+                [(> ?pid 8000)]]
+              (d/db conn))
+         (map #(d/touch (d/entity (d/db conn) %)))
+         (map #(into {} %))
+         pp/pprint))
+
+)
