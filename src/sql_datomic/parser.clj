@@ -24,6 +24,9 @@
 
 (def good-ast? (complement insta/failure?))
 
+(def reserved #{"and" "or" "select" "where" "not" "insert" "update"
+                "set" "delete" "from" "into" "in" "between"})
+
 (defn strip-doublequotes [s]
   (-> s
       (str/replace #"^\"" "")
@@ -256,6 +259,22 @@
   (->> (parser input)
        transform))
 
+(defn seems-to-mix-db-id-in-where? [sql-text]
+  (let [s (str/lower-case sql-text)]
+    (if-let [s' (re-seq #"\bwhere\b.+$" s)]
+      (let [tokens (str/split (first s') #"\s+")
+            m (->> tokens
+                   (mapcat #(str/split % #"(?:<=|>=|=|!=|<>|>|<|[()]+)"))
+                   (filter seq)
+                   (remove reserved)
+                   (filter #(re-seq #"^[-a-z_:]" %))
+                   (group-by #(if (#{":db/id" "db.id"} %) :db-id :other)))]
+        (if (and (-> m :db-id seq)
+                 (-> m :other seq))
+          m ; more useful true value
+          false))
+      false)))
+
 (defn hint-for-parse-error [parse-error]
   (let [{:keys [index reason line column text]} parse-error
         c (get text index)]
@@ -280,5 +299,9 @@
                  reason))
       (str "Expecting a column name.  "
            "Did you forget to use #attr on a keyword?")
+
+      (seems-to-mix-db-id-in-where? text)
+      (str "#attr :db/id cannot be mixed with regular attrs/columns"
+           " in WHERE clauses.")
 
       :else nil)))
