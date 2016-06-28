@@ -1,7 +1,7 @@
 (ns sql-datomic.repl
   (:require [sql-datomic.parser :as parser]
             [sql-datomic.datomic :as dat]
-            [sql-datomic.util :refer [squawk]]
+            [sql-datomic.util :refer [squawk] :as util]
             [sql-datomic.select-command :as sel]
             [sql-datomic.update-command :as upd]
             [clojure.pprint :as pp]
@@ -41,13 +41,6 @@
          (println (pointer input index)))
        (println (ruler input))
        (flush)))))
-
-(defn -debug-display-entities [db ids]
-  (let [entities (dat/get-entities-by-eids db ids)]
-    (doseq [entity entities]
-      (binding [*out* *err*]
-        (pp/pprint entity)
-        (flush)))))
 
 (defn repl [{:keys [debug pretend expanded] :as opts}]
   (let [dbg (atom debug)
@@ -124,13 +117,13 @@
                     (when-let [wheres (:where ir)]
                       (if (dat/db-id-clause? wheres)
                         (let [ids (dat/db-id-clause-ir->eids ir)
-                              entities (dat/get-entities-by-eids db ids)]
+                              entities (util/get-entities-by-eids db ids)]
                           (when @dbg
                             (squawk "Entities Targeted for Delete"))
                           ;; Always give indication of what will be deleted.
                           (println (if (seq ids) ids "None"))
                           (when @dbg
-                            (-debug-display-entities db ids))
+                            (util/-debug-display-entities-by-ids db ids))
                           (when (seq entities)
                             (let [tx-data (dat/delete-eids->tx-data ids)]
                               (when @dbg (squawk "Transaction" tx-data))
@@ -142,7 +135,7 @@
                                   (println @(d/transact conn tx-data))
                                   (when @dbg
                                     (squawk "Entities after Transaction")
-                                    (-debug-display-entities (d/db conn) ids)))))))
+                                    (util/-debug-display-entities-by-ids (d/db conn) ids)))))))
                         (let [query (dat/where->datomic-q db wheres)]
                           (when @dbg
                             (squawk "Datomic Rules" dat/rules)
@@ -159,7 +152,7 @@
                               ;; Always give indication of what will be deleted.
                               (println (if (seq ids) ids "None"))
                               (when @dbg
-                                (-debug-display-entities db ids))
+                                (util/-debug-display-entities-by-ids db ids))
                               (when (seq results)
                                 (let [tx-data (dat/delete-eids->tx-data ids)]
                                   (when @dbg (squawk "Transaction" tx-data))
@@ -171,7 +164,7 @@
                                       (println @(d/transact conn tx-data))
                                       (when @dbg
                                         (squawk "Entities after Transaction")
-                                        (-debug-display-entities (d/db conn) ids)))))))))))
+                                        (util/-debug-display-entities-by-ids (d/db conn) ids)))))))))))
 
                     :insert
                     (let [tx-data (dat/insert-ir->tx-data ir)]
@@ -187,7 +180,7 @@
                             (prn ids)
                             (when @dbg
                               (squawk "Entities after Transaction")
-                              (-debug-display-entities (d/db conn) ids))))))
+                              (util/-debug-display-entities-by-ids (d/db conn) ids))))))
 
                     ;; else
                     (throw (ex-info "Unknown query type" {:type (:type ir)

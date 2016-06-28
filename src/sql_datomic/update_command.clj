@@ -1,13 +1,14 @@
 (ns sql-datomic.update-command
   (:require [sql-datomic.datomic :as dat]
-            [sql-datomic.util :refer [squawk -debug-display-entities]]
+            [sql-datomic.util :as util
+             :refer [squawk -debug-display-entities]]
             [datomic.api :as d]
             [clojure.pprint :as pp]))
 
 (defn -run-harness [{:keys [conn db ir options ids]}]
   (let [{:keys [where]} ir
         {:keys [debug pretend]} options
-        entities (->> (dat/get-entities-by-eids db ids)
+        entities (->> (util/get-entities-by-eids db ids)
                       dat/keep-genuine-entities)]
     (when debug (squawk "Entities Targeted for Update"))
     (println (if (seq entities) ids "None"))
@@ -32,7 +33,7 @@
           (let [result @(d/transact conn tx-data)]
             (println)
             (println result)
-            (let [entities' (dat/get-entities-by-eids (d/db conn) ids)]
+            (let [entities' (util/get-entities-by-eids (d/db conn) ids)]
               (when debug
                 (squawk "Entities after Transaction")
                 (-debug-display-entities entities'))

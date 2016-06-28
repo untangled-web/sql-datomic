@@ -4,7 +4,7 @@
             [com.stuartsierra.component :as component]
             [clojure.pprint :as pp]
             [clojure.walk :as walk]
-            [sql-datomic.util :as util])
+            [sql-datomic.util :as util :refer [get-entities-by-eids]])
   (:import [datomic.impl Exceptions$IllegalArgumentExceptionInfo]))
 
 (def default-connection-uri "datomic:mem://dellstore")
@@ -397,7 +397,7 @@
        (map (fn [id] (assoc base-tx :db/id id)))
        (into [])))
 
-(defn get-entities-by-eids [db eids]
+#_(defn get-entities-by-eids [db eids]
   (for [eid eids]
     (->> eid
          (d/entity db)

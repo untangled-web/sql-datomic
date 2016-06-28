@@ -1,14 +1,8 @@
 (ns sql-datomic.select-command
   (:require [sql-datomic.datomic :as dat]
-            [sql-datomic.util :refer [squawk]]
+            [sql-datomic.util :as util :refer [squawk]]
             [datomic.api :as d]
             [clojure.pprint :as pp]))
-
-#_(defprotocol Command
-  (run [this conn]))
-
-#_(defrecord SelectCommand [db conn ir options]
-    Command)
 
 (defn -display-raw-entities [entities]
   (squawk "Entities")
@@ -35,7 +29,7 @@
 (defn -run-db-id-select
   [db {:keys [where fields] :as ir} {:keys [debug]}]
   (let [ids (dat/db-id-clause-ir->eids ir)
-        es (dat/get-entities-by-eids db ids)
+        es (util/get-entities-by-eids db ids)
         raw-entities (dat/keep-genuine-entities es)
         {:keys [entities attrs]} (enhance-entities raw-entities fields)]
     (when debug (-display-raw-entities raw-entities))
