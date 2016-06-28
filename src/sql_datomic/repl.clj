@@ -4,6 +4,7 @@
             [sql-datomic.util :refer [squawk] :as util]
             [sql-datomic.select-command :as sel]
             [sql-datomic.update-command :as upd]
+            [sql-datomic.delete-command :as del]
             [clojure.pprint :as pp]
             [clojure.tools.cli :as cli]
             [datomic.api :as d]
@@ -114,57 +115,7 @@
                     (upd/run-update conn db ir {:debug @dbg :pretend @loljk})
 
                     :delete
-                    (when-let [wheres (:where ir)]
-                      (if (dat/db-id-clause? wheres)
-                        (let [ids (dat/db-id-clause-ir->eids ir)
-                              entities (util/get-entities-by-eids db ids)]
-                          (when @dbg
-                            (squawk "Entities Targeted for Delete"))
-                          ;; Always give indication of what will be deleted.
-                          (println (if (seq ids) ids "None"))
-                          (when @dbg
-                            (util/-debug-display-entities-by-ids db ids))
-                          (when (seq entities)
-                            (let [tx-data (dat/delete-eids->tx-data ids)]
-                              (when @dbg (squawk "Transaction" tx-data))
-                              (if @loljk
-                                (println
-                                 "Halting transaction due to pretend mode ON")
-                                (do
-                                  (println)
-                                  (println @(d/transact conn tx-data))
-                                  (when @dbg
-                                    (squawk "Entities after Transaction")
-                                    (util/-debug-display-entities-by-ids (d/db conn) ids)))))))
-                        (let [query (dat/where->datomic-q db wheres)]
-                          (when @dbg
-                            (squawk "Datomic Rules" dat/rules)
-                            (squawk "Datomic Query" query))
-                          (let [results (d/q query db dat/rules)]
-                            (when @dbg (squawk "Raw Results" results))
-                            ;; FIXME: this is *not* the case, transacts on *all*
-                            ;;        eids participating in joins.
-                            ;; DELETE pertains to only one "table" (i.e., no
-                            ;; joins), so this flattened list of ids is okay.
-                            (let [ids (mapcat identity results)]
-                              (when @dbg
-                                (squawk "Entities Targeted for Delete"))
-                              ;; Always give indication of what will be deleted.
-                              (println (if (seq ids) ids "None"))
-                              (when @dbg
-                                (util/-debug-display-entities-by-ids db ids))
-                              (when (seq results)
-                                (let [tx-data (dat/delete-eids->tx-data ids)]
-                                  (when @dbg (squawk "Transaction" tx-data))
-                                  (if @loljk
-                                    (println
-                                     "Halting transaction due to pretend mode ON")
-                                    (do
-                                      (println)
-                                      (println @(d/transact conn tx-data))
-                                      (when @dbg
-                                        (squawk "Entities after Transaction")
-                                        (util/-debug-display-entities-by-ids (d/db conn) ids)))))))))))
+                    (del/run-delete conn db ir {:debug @dbg :pretend @loljk})
 
                     :insert
                     (let [tx-data (dat/insert-ir->tx-data ir)]
@@ -255,6 +206,22 @@
               (d/db conn))
          (map #(d/touch (d/entity (d/db conn) %)))
          (map #(into {} %))
+         pp/pprint))
+
+  (let [stmt "delete where order.orderid = 2"
+        ir (->> stmt parser/parser parser/transform)]
+    (->> (d/q '[:find ?e ?oid
+                :where
+                [?e :order/orderid ?oid]]
+              (d/db conn))
+         pp/pprint)
+    (->>
+     (del/run-delete conn db ir #_{:debug true :pretend nil})
+     #_pp/pprint)
+    (->> (d/q '[:find ?e ?oid
+                :where
+                [?e :order/orderid ?oid]]
+              (d/db conn))
          pp/pprint))
 
 )
