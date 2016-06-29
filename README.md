@@ -1,6 +1,8 @@
 # sql-datomic
 
-A Clojure library designed to translate basic SQL statements into
+Interpreter of a SQL-ish dialect that runs against Datomic databases.
+
+Designed to translate basic SQL statements into
 legal Datomic-compatible datalog.
 
 Assumes that the Datomic schema makes use of the `:entity/attribute`
@@ -8,7 +10,7 @@ convention for all attributes.
 
 ## Usage
 
-To use the REPL, run:
+To use the interpreter (REPL), run:
 ```
   $ bin/repl
 ```
@@ -73,7 +75,7 @@ following deviations:
 In addition to the usual data types expected in a database
 (e.g., string, ints, floats, booleans), Datomic also supports some
 interesting additional data types.  To better support them at the
-SQL prompt, the following Tagged Literals are supported:
+SQL prompt, the following are supported (most with Tagged Literals):
 
 - UUID: `#uuid "5760745a-5bb5-4768-96f7-0f8aeb1a84f0"`
 - URI: `#uri "http://slashdot.org/"`
@@ -88,12 +90,15 @@ therefore, they are not supported in `WHERE` clauses.
 For more about Datomic native types, please
 [read the fine documentation](http://docs.datomic.com/schema.html#text-1-1).
 
+For more about Tagged Literals, please
+[have a look at this](http://clojure.org/reference/reader#_tagged_literals).
+
 ## Shortened convenience forms
 
 - select:
     - `select where #attr :product/prod-id between 1567 and 6000`
 - insert:
-    - `insert into
+    - `insert
          #attr :product/prod-id = 1984,
          #attr :product/actor = 'Quux',
          #attr :product/title = 'Foo Bar',
