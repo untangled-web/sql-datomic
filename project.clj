@@ -13,4 +13,7 @@
                  [com.datastax.cassandra/cassandra-driver-core "2.0.6"
                   :exclusions [com.google.guava/guava
                                org.slf4j/slf4j-api]]]
-  :main sql-datomic.repl)
+  :repositories
+  [["releases" "https://artifacts.buehner-fry.com/artifactory/release"]]
+  :main sql-datomic.repl
+  :aot [sql-datomic.repl])

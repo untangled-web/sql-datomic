@@ -11,7 +11,8 @@
             [datomic.api :as d]
             clojure.repl
             [clojure.string :as str]
-            [sql-datomic.tabula :as tab]))
+            [sql-datomic.tabula :as tab])
+  (:gen-class))
 
 (def ^:dynamic *prompt* "sql> ")
 
