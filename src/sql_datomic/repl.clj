@@ -46,6 +46,15 @@
        (println (ruler input))
        (flush)))))
 
+(defn print-help []
+  (println "type `exit` or `quit` or ^D to exit")
+  (println "type `debug` to toggle debug mode")
+  (println "type `pretend` to toggle pretend mode")
+  (println "type `\\x` to toggle extended display mode")
+  (println "type `\\?`, `?`, `h` or `help` to see this listing")
+  (flush))
+
+
 (defn repl [{:keys [debug pretend expanded] :as opts}]
   (let [dbg (atom debug)
         loljk (atom pretend)
@@ -83,6 +92,9 @@
             (flush)
             (reset! x-flag new-expand)
             (reset! noop true)))
+        (when (re-seq #"^(?i)\s*(?:h|help|\?+|\\\?)\s*$" input)
+          (print-help)
+          (reset! noop true))
 
         (when (and (not @noop) (re-seq #"(?ms)\S" input))
           (let [maybe-ast (parser/parser input)]
@@ -163,10 +175,7 @@
       (println "connected to:" uri)
       (when (dat/default-uri? uri)
         (println "*** using default in-mem database ***"))
-      (println "type `exit` or `quit` or ^D to exit")
-      (println "type `debug` to toggle debug mode")
-      (println "type `pretend` to toggle pretend mode")
-      (println "type `\\x` to toggle extended display mode"))
+      (print-help))
     (repl opts)))
 
 (comment
