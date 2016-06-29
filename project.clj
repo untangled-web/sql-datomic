@@ -16,4 +16,5 @@
   :repositories
   [["releases" "https://artifacts.buehner-fry.com/artifactory/release"]]
   :main sql-datomic.repl
-  :aot [sql-datomic.repl])
+  ;; :aot [sql-datomic.repl]
+  )
