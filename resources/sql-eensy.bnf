@@ -13,7 +13,7 @@ insert_statement ::=
                  <"("> insert_cols <")">
                  <"VALUES">
                  <"("> insert_vals <")">
-               | <"INSERT"> <"INTO">
+               | <"INSERT"> [<"INTO">]
                  set_clausen
 
 select_statement ::= <"SELECT"> select_list from_clause [ where_clause ]
