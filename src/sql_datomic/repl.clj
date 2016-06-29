@@ -5,6 +5,7 @@
             [sql-datomic.select-command :as sel]
             [sql-datomic.update-command :as upd]
             [sql-datomic.delete-command :as del]
+            [sql-datomic.insert-command :as ins]
             [clojure.pprint :as pp]
             [clojure.tools.cli :as cli]
             [datomic.api :as d]
@@ -56,7 +57,6 @@
       (when (re-seq #"^(?ims)\s*(?:quit|exit)\s*$" input)
         (System/exit 0))
 
-      ;; FIXME: Behold, the great leaning tower of REPL code.
       (try
         (when (re-seq #"^(?i)\s*debug\s*$" input)
           (let [new-debug (not @dbg)]
@@ -98,7 +98,6 @@
                       ir (parser/transform maybe-ast)]
                   (when @dbg (squawk "Intermediate Repr" ir))
 
-                  ;; FIXME: Sooooo much copy-pasta ...
                   (case (:type ir)
 
                     :select
@@ -118,20 +117,7 @@
                     (del/run-delete conn db ir {:debug @dbg :pretend @loljk})
 
                     :insert
-                    (let [tx-data (dat/insert-ir->tx-data ir)]
-                      (when @dbg (squawk "Transaction" tx-data))
-                      (if @loljk
-                        (println
-                         "Halting transaction due to pretend mode ON")
-                        (do
-                          (println)
-                          (let [transact-result @(d/transact conn tx-data)
-                                ids (dat/scrape-inserted-eids
-                                     transact-result)]
-                            (prn ids)
-                            (when @dbg
-                              (squawk "Entities after Transaction")
-                              (util/-debug-display-entities-by-ids (d/db conn) ids))))))
+                    (ins/run-insert conn ir {:debug @dbg :pretend @loljk})
 
                     ;; else
                     (throw (ex-info "Unknown query type" {:type (:type ir)
@@ -221,6 +207,23 @@
     (->> (d/q '[:find ?e ?oid
                 :where
                 [?e :order/orderid ?oid]]
+              (d/db conn))
+         pp/pprint))
+
+    (let [stmt "insert customer.customerid = 1234,
+                       customer.email = 'foo@example.com'"
+        ir (->> stmt parser/parser parser/transform)]
+    (->> (d/q '[:find ?e ?cid
+                :where
+                [?e :customer/customerid ?cid]]
+              (d/db conn))
+         pp/pprint)
+    (->>
+     (ins/run-insert conn ir #_{:debug true :pretend nil})
+     pp/pprint)
+    (->> (d/q '[:find ?e ?cid
+                :where
+                [?e :customer/customerid ?cid]]
               (d/db conn))
          pp/pprint))
 
