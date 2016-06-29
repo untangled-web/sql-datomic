@@ -68,7 +68,7 @@
 
 (defn run-delete
   ([conn db ir] (run-delete conn db ir {}))
-  ([conn db {:keys [where] :as ir} {:keys [debug] :as opts}]
+  ([conn db {:keys [where] :as ir} opts]
    {:pre [(= :delete (:type ir))]}
    (when (seq where)
      (if (dat/db-id-clause? where)

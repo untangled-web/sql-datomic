@@ -57,7 +57,7 @@
 
 (defn run-select
   ([db ir] (run-select db ir {}))
-  ([db {:keys [where fields] :as ir} {:keys [debug] :as opts}]
+  ([db {:keys [where fields] :as ir} opts]
    {:pre [(= :select (:type ir))]}
    (when (seq where)
      (if (dat/db-id-clause? where)
