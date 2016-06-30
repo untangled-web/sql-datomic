@@ -50,7 +50,7 @@
   (println "type `exit` or `quit` or ^D to exit")
   (println "type `debug` to toggle debug mode")
   (println "type `pretend` to toggle pretend mode")
-  (println "type `\\x` to toggle extended display mode")
+  (println "type `expanded` or `\\x` to toggle expanded display mode")
   (println "type `\\?`, `?`, `h` or `help` to see this listing")
   (flush))
 
@@ -86,7 +86,7 @@
           (flush)
           (reset! dbg true)
           (reset! noop true))
-        (when (re-seq #"^(?i)\s*\\x\s*$" input)
+        (when (re-seq #"^(?i)\s*(?:\\x|expanded)\s*$" input)
           (let [new-expand (not @x-flag)]
             (println "Set expanded display to" (if new-expand "ON" "OFF"))
             (flush)
