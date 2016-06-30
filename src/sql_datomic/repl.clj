@@ -54,6 +54,10 @@
   (printf "describing table %s\n" name)
   (flush))
 
+(defn show-status [m]
+  (pp/pprint m)
+  (flush))
+
 (defn print-help []
   (println "type `exit` or `quit` or ^D to exit")
   (println "type `debug` to toggle debug mode")
@@ -61,6 +65,7 @@
   (println "type `expanded` or `\\x` to toggle expanded display mode")
   (println "type `show tables` or `\\d` to show Datomic \"tables\"")
   (println "type `describe $table` or `\\d $table` to describe a Datomic \"table\"")
+  (println "type `status` to show toggle values, conn strings, etc.")
   (println "type `\\?`, `?`, `h` or `help` to see this listing")
   (flush))
 
@@ -111,6 +116,9 @@
           (let [[_ table] match]
             (describe-table table)
             (reset! noop true)))
+        (when (re-seq #"^(?i)\s*status\s*$" input)
+          (show-status opts)
+          (reset! noop true))
 
         (when (and (not @noop) (re-seq #"(?ms)\S" input))
           (let [maybe-ast (parser/parser input)]
@@ -179,6 +187,10 @@
                  ["-p" "--pretend" "Run without transacting; turns on debug"
                   :flag true
                   :default false]
+                 ["-x" "--expanded"
+                  "Display resultsets in expanded output format"
+                  :flag true
+                  :default false]
                  ["-u" "--connection-uri"
                   "URI to Datomic DB; if missing, uses default mem db"])]
     (when (:help opts)
@@ -191,8 +203,9 @@
       (println "connected to:" uri)
       (when (dat/default-uri? uri)
         (println "*** using default in-mem database ***"))
-      (print-help))
-    (repl opts)))
+      (print-help)
+      (repl (assoc opts
+                   :connection-uri uri)))))
 
 (comment
 
