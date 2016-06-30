@@ -113,6 +113,9 @@
        (filter datomic-var?)
        (into #{})))
 
+(defn tag-entity-var [var name]
+  (vary-meta var update :ir (fnil conj #{}) name))
+
 (defn build-datomic-var-map
   "Returns a map, keyed by `{:table t, :column c}` with vals
    `{:entity ?e1234, :value ?v2341, :attr :foo/bar}`"
@@ -122,7 +125,8 @@
   (let [name->entity (->> columns
                           (group-by :table)
                           (map (fn [[name _]]
-                                 [name (gensym-datomic-entity-var)]))
+                                 [name (-> (gensym-datomic-entity-var)
+                                           (tag-entity-var name))]))
                           (into {}))]
     (->> columns
          (map (fn [col] [col {:entity (get name->entity (:table col))
@@ -175,7 +179,7 @@
 (defn squashable? [v]
   (and (map? v) (= 1 (count v)) (-> v :squashable vector?)))
 
-;; FIXME: Has trouble with unification when other clauses are present.
+;; TODO: remove this
 (defn db-id->datomic [{:keys [operands]}]
   (let [id (first operands)
         e-var (gensym-datomic-entity-var)]
@@ -233,6 +237,9 @@
          (into ['not])
          util/vec->list)))
 
+(defn tag-clause [clause c]
+  (vary-meta clause assoc :ir c))
+
 (defn build-where-backbone [db clauses]
   (let [col->var (->> clauses
                       extract-columns
@@ -245,7 +252,8 @@
         ident-env (build-datomic-ident-var-map ident->eid)
         base-where (->> col->var
                         (map (fn [[c {:keys [entity value]}]]
-                               [entity (table-column->attr-kw c) value]))
+                               (-> [entity (table-column->attr-kw c) value]
+                                   (tag-clause c))))
                         (into []))
         ident-where (->> ident-env
                          (map (fn [[ident {:keys [eid var]}]]
