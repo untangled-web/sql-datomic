@@ -48,7 +48,11 @@
        (flush)))))
 
 (defn show-tables []
-  (println "showing so many tables")
+  (let [db (->> sys :datomic :connection d/db)
+        summary (sch/summarize-schema db)
+        table-names (->> summary :tables keys sort)]
+    (doseq [t table-names]
+      (println t)))
   (flush))
 
 (defn describe-table [name]

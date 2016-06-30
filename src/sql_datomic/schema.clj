@@ -78,8 +78,8 @@
 
 (defn summarize-schema [db]
   (let [s (->> db infer-schema tidy-schema)
-        e (filter looks-like-enum? s)]
-    {:tables (group-as-entities s)
+        {e true, t false} (group-by (comp boolean looks-like-enum?) s)]
+    {:tables (group-as-entities t)
      :enums (group-enums-as-entities e)}))
 
 (defn infer-schema-of-entity [db e])
