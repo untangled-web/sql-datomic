@@ -55,7 +55,20 @@
   (flush))
 
 (defn show-status [m]
-  (pp/pprint m)
+  (let [m' (dissoc m :help)
+        ks (-> m' keys sort)
+        pks (map name ks)
+        k-max-len (->> pks
+                       (map (comp count str))
+                       (sort >)
+                       first)
+        row-fmt (str "%-" k-max-len "s : %s\n")]
+    (doseq [[k pk] (map vector ks pks)]
+      (let [v (get m' k)
+            v' (if (instance? Boolean v)
+                 (if v "ON" "OFF")
+                 v)]
+        (printf row-fmt pk v'))))
   (flush))
 
 (defn print-help []
