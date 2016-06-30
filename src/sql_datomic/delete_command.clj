@@ -17,6 +17,7 @@
       {:ids ids
        :entities entities}
 
+      ;; else
       (let [tx-data (dat/delete-eids->tx-data ids)]
         (when debug (squawk "Transaction" tx-data))
         (if pretend
@@ -27,6 +28,7 @@
              :pretend pretend
              :tx-data tx-data})
 
+          ;; else
           (let [result @(d/transact conn tx-data)]
             (println)
             (println result)
@@ -48,23 +50,44 @@
                    :ids ids})))
 
 (defn -run-normal-delete
-  [conn db {:keys [where] :as ir} {:keys [debug] :as opts}]
+  [conn db {:keys [where table] :as ir} {:keys [debug] :as opts}]
   (let [query (dat/where->datomic-q db where)]
     (when debug
       (squawk "Datomic Rules" dat/rules)
       (squawk "Datomic Query" query))
+
     (let [results (d/q query db dat/rules)]
       (when debug (squawk "Raw Results" results))
-      ;; FIXME: this is *not* the case, transacts on *all*
-      ;;        eids participating in joins.
-      ;; DELETE pertains to only one "table" (i.e., no
-      ;; joins), so this flattened list of ids is okay.
-      (let [ids (mapcat identity results)]
-        (-run-harness {:conn conn
-                       :db db
-                       :ir ir
-                       :options opts
-                       :ids ids})))))
+      (cond
+        (or (->> results seq not)
+            (->> results first count (= 1)))
+        (let [ids (mapcat identity results)]
+          (-run-harness {:conn conn
+                         :db db
+                         :ir ir
+                         :options opts
+                         :ids ids}))
+
+        ;; Assertion:  results is non-empty
+        ;; Assertion:  tuples in results have arity > 1
+        (seq table)
+        (let [i (util/infer-entity-index ir query)
+              ids (map (fn [row] (nth row i)) results)]
+          (when debug
+            (binding [*out* *err*]
+              (printf "Narrowing entity vars to index: %d\n" i)
+              (prn [:ids ids])))
+          (-run-harness {:conn conn
+                         :db db
+                         :ir ir
+                         :options opts
+                         :ids ids}))
+
+        ;; Assertion:  no given table
+        :else
+        (throw
+         (IllegalArgumentException.
+          "\n!!! Missing delete target. Necessary with joins. Aborting delete !!!\n"))))))
 
 (defn run-delete
   ([conn db ir] (run-delete conn db ir {}))
