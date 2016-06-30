@@ -154,8 +154,10 @@
         (seq table)
         (let [i (infer-update-entity-index ir query)
               ids (map (fn [row] (nth row i)) results)]
-          (printf "Narrowing entity vars to index: %d\n" i)
-          (prn [:ids ids])
+          (when debug
+            (binding [*out* *err*]
+              (printf "Narrowing entity vars to index: %d\n" i)
+              (prn [:ids ids])))
           (-run-harness {:conn conn
                          :db db
                          :ir ir
@@ -171,8 +173,10 @@
             (let [t (first table-names)
                   i (infer-update-entity-index ir query t)
                   ids (map (fn [row] (nth row i)) results)]
-              (printf "Narrowing entity vars to index: %d\n" i)
-              (prn [:ids ids])
+              (when debug
+                (binding [*out* *err*]
+                  (printf "Narrowing entity vars to index: %d\n" i)
+                  (prn [:ids ids])))
               (-run-harness {:conn conn
                              :db db
                              :ir ir
