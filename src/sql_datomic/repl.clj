@@ -50,12 +50,17 @@
   (println "showing so many tables")
   (flush))
 
+(defn describe-table [name]
+  (printf "describing table %s\n" name)
+  (flush))
+
 (defn print-help []
   (println "type `exit` or `quit` or ^D to exit")
   (println "type `debug` to toggle debug mode")
   (println "type `pretend` to toggle pretend mode")
   (println "type `expanded` or `\\x` to toggle expanded display mode")
   (println "type `show tables` or `\\d` to show Datomic \"tables\"")
+  (println "type `describe $table` or `\\d $table` to describe a Datomic \"table\"")
   (println "type `\\?`, `?`, `h` or `help` to see this listing")
   (flush))
 
@@ -102,6 +107,10 @@
         (when (re-seq #"^(?i)\s*(?:show\s+tables|\\d)\s*$" input)
           (show-tables)
           (reset! noop true))
+        (when-let [match (re-matches #"^(?i)\s*(?:desc(?:ribe)?|\\d)\s+(\S+)\s*$" input)]
+          (let [[_ table] match]
+            (describe-table table)
+            (reset! noop true)))
 
         (when (and (not @noop) (re-seq #"(?ms)\S" input))
           (let [maybe-ast (parser/parser input)]
