@@ -46,14 +46,18 @@
        (println (ruler input))
        (flush)))))
 
+(defn show-tables []
+  (println "showing so many tables")
+  (flush))
+
 (defn print-help []
   (println "type `exit` or `quit` or ^D to exit")
   (println "type `debug` to toggle debug mode")
   (println "type `pretend` to toggle pretend mode")
   (println "type `expanded` or `\\x` to toggle expanded display mode")
+  (println "type `show tables` or `\\d` to show Datomic \"tables\"")
   (println "type `\\?`, `?`, `h` or `help` to see this listing")
   (flush))
-
 
 (defn repl [{:keys [debug pretend expanded] :as opts}]
   (let [dbg (atom debug)
@@ -94,6 +98,9 @@
             (reset! noop true)))
         (when (re-seq #"^(?i)\s*(?:h|help|\?+|\\\?)\s*$" input)
           (print-help)
+          (reset! noop true))
+        (when (re-seq #"^(?i)\s*(?:show\s+tables|\\d)\s*$" input)
+          (show-tables)
           (reset! noop true))
 
         (when (and (not @noop) (re-seq #"(?ms)\S" input))
