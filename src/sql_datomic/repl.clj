@@ -1,7 +1,7 @@
 (ns sql-datomic.repl
   (:require [sql-datomic.parser :as par]
             [sql-datomic.datomic :as dat]
-            [sql-datomic.util :refer [squawk] :as util]
+            [sql-datomic.util :as util :refer [squawk]]
             [sql-datomic.select-command :as sel]
             [sql-datomic.update-command :as upd]
             [sql-datomic.delete-command :as del]
@@ -11,7 +11,8 @@
             [datomic.api :as d]
             clojure.repl
             [clojure.string :as str]
-            [sql-datomic.tabula :as tab])
+            [sql-datomic.tabula :as tab]
+            [sql-datomic.schema :as sch])
   ;; (:gen-class)
   )
 
