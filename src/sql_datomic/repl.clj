@@ -1,5 +1,5 @@
 (ns sql-datomic.repl
-  (:require [sql-datomic.parser :as parser]
+  (:require [sql-datomic.parser :as par]
             [sql-datomic.datomic :as dat]
             [sql-datomic.util :refer [squawk] :as util]
             [sql-datomic.select-command :as sel]
@@ -134,11 +134,11 @@
           (reset! noop true))
 
         (when (and (not @noop) (re-seq #"(?ms)\S" input))
-          (let [maybe-ast (parser/parser input)]
-            (if-not (parser/good-ast? maybe-ast)
+          (let [maybe-ast (par/parser input)]
+            (if-not (par/good-ast? maybe-ast)
               (do
                 (squawk "Parse error" maybe-ast)
-                (when-let [hint (parser/hint-for-parse-error maybe-ast)]
+                (when-let [hint (par/hint-for-parse-error maybe-ast)]
                   (binding [*out* *err*]
                     (println (str "\n*** Hint: " hint))))
                 (print-ruler input (:column maybe-ast)))
@@ -146,7 +146,7 @@
                 (when @dbg (squawk "AST" maybe-ast))
                 (let [conn (->> sys :datomic :connection)
                       db (d/db conn)
-                      ir (parser/transform maybe-ast)]
+                      ir (par/transform maybe-ast)]
                   (when @dbg (squawk "Intermediate Repr" ir))
 
                   (case (:type ir)
@@ -227,14 +227,14 @@
   (def db (d/db conn))
 
   (let [stmt "select where product.prod-id = 9990"
-        ir (->> stmt parser/parser parser/transform)]
+        ir (->> stmt par/parser par/transform)]
     (->>
      (sel/run-select db ir #_{:debug true})
      :entities
      pp/pprint))
 
   (let [stmt "update product.rating = 3.14f where product.prod-id > 8000"
-        ir (->> stmt parser/parser parser/transform)]
+        ir (->> stmt par/parser par/transform)]
     (->>
      (upd/run-update conn db ir #_{:debug true :pretend nil})
      pp/pprint)
@@ -248,7 +248,7 @@
          pp/pprint))
 
   (let [stmt "delete where order.orderid = 2"
-        ir (->> stmt parser/parser parser/transform)]
+        ir (->> stmt par/parser par/transform)]
     (->> (d/q '[:find ?e ?oid
                 :where
                 [?e :order/orderid ?oid]]
@@ -265,7 +265,7 @@
 
     (let [stmt "insert customer.customerid = 1234,
                        customer.email = 'foo@example.com'"
-        ir (->> stmt parser/parser parser/transform)]
+        ir (->> stmt par/parser par/transform)]
     (->> (d/q '[:find ?e ?cid
                 :where
                 [?e :customer/customerid ?cid]]
