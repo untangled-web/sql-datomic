@@ -56,7 +56,20 @@
   (flush))
 
 (defn describe-table [name]
-  (printf "describing table %s\n" name)
+  (let [db (->> sys :datomic :connection d/db)
+        summary (sch/summarize-schema db)
+        table (get-in summary [:tables name])
+        enums (get-in summary [:enums name])]
+    (if-not (seq table)
+      (println "Unknown table")
+
+      (do
+        (pp/print-table [:db/ident :db/valueType :db/cardinality
+                         :db/unique :db/doc]
+                        table)
+        (when (seq enums)
+          (println "Related Enums")
+          (println (str/join " " enums))))))
   (flush))
 
 (defn show-status [m]
