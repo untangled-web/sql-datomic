@@ -30,6 +30,12 @@ The SQL used by this tool is largely a subset of ANSI SQL-92, with the
 following deviations:
 
 - Accepts only `SELECT`, `INSERT`, `UPDATE`, `DELETE` statements.
+- Adds the notion of a `RETRACT` statement as a way to drop a field
+  from a given "row" (really, entity).  Affects that entity alone; does
+  not affect schema for other rows / entities:
+    `RETRACT actor.realname WHERE db.id = 123245`
+  (In Datomic parlance, this retracts that E-A-V fact; V is gathered
+   automatically on the user's behalf.)
 - Column names must be fully qualified (`table_name.column_name`)
   for `select`, `update` and `delete`; `insert` are exempt from this.
 - Raw attribute keywords may be used in place of column names:
