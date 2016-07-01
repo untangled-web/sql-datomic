@@ -69,8 +69,8 @@
                         table)
         (when (seq enums)
           (println "Related Enums")
-          (println (str/join " " enums))))))
-  (flush))
+          (println (str/join " " enums)))))
+    (flush)))
 
 (defn show-status [m]
   (let [m' (dissoc m :help)
