@@ -56,6 +56,13 @@
       (println t)))
   (flush))
 
+(defn -show-enums [es]
+  (when (seq es)
+    (println "Related Enums")
+    (let [by-ns (group-by namespace es)]
+      (doseq [k (-> by-ns keys sort)]
+        (println (str/join " " (get by-ns k)))))))
+
 (defn describe-table [name]
   (let [db (->> sys :datomic :connection d/db)
         summary (sch/summarize-schema db)
@@ -68,11 +75,7 @@
         (pp/print-table [:db/ident :db/valueType :db/cardinality
                          :db/unique :db/doc]
                         table)
-        (when (seq enums)
-          (println "Related Enums")
-          (let [by-ns (group-by namespace enums)]
-            (doseq [k (-> by-ns keys sort)]
-              (println (str/join " " (get by-ns k))))))))
+        (-show-enums enums)))
     (flush)))
 
 (defn describe-entity [eid]
@@ -81,11 +84,22 @@
         s (sch/infer-schema-of-entity db e)]
     (if-not (seq s)
       (println "Unable to find schema")
+      (pp/print-table [:db/ident :db/valueType :db/cardinality
+                       :db/unique :db/doc]
+                      s))
+    (flush)))
 
-      (do
-        (pp/print-table [:db/ident :db/valueType :db/cardinality
-                         :db/unique :db/doc]
-                        s)))
+(defn show-schema []
+  (let [db (->> sys :datomic :connection d/db)
+        summary (sch/summarize-schema db)
+        table-map (get-in summary [:tables])
+        ts (->> table-map (mapcat second) (sort-by :db/ident))
+        enums-map (get-in summary [:enums])
+        es (->> enums-map (mapcat second) (sort-by :db/ident))]
+    (pp/print-table [:db/ident :db/valueType :db/cardinality
+                     :db/unique :db/doc]
+                    ts)
+    (-show-enums es)
     (flush)))
 
 (defn show-status [m]
@@ -111,6 +125,7 @@
   (println "type `pretend` to toggle pretend mode")
   (println "type `expanded` or `\\x` to toggle expanded display mode")
   (println "type `show tables` or `\\d` to show Datomic \"tables\"")
+  (println "type `show schema` or `\\dn` to show all user Datomic schema")
   (println "type `describe $table` or `\\d $table` to describe a Datomic \"table\"")
   (println "type `describe $dbid` or `\\d $dbid` to describe the schema of an entity")
   (println "type `status` to show toggle values, conn strings, etc.")
@@ -159,6 +174,9 @@
           (reset! noop true))
         (when (re-seq #"^(?i)\s*(?:show\s+tables|\\d)\s*$" input)
           (show-tables)
+          (reset! noop true))
+        (when (re-seq #"^(?i)\s*(?:show\s+schema|\\dn)\s*$" input)
+          (show-schema)
           (reset! noop true))
         (when-let [match (re-matches #"^(?i)\s*(?:desc(?:ribe)?|\\d)\s+(\S+)\s*$" input)]
           (let [[_ x] match]
@@ -244,9 +262,8 @@
                  ["-u" "--connection-uri"
                   "URI to Datomic DB; if missing, uses default mem db"]
                  ["-s" "--default-schema-name"
-                  ":dellstore or :starfighter"
+                  ":dellstore or :starfighter, for default in-mem db"
                   :parse-fn (fn [s]
-                              (prn [:got s])
                               (if-let [m (re-matches #"^:+(.+)$" s)]
                                 (keyword (second m))
                                 (keyword s)))
