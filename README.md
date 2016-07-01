@@ -35,7 +35,8 @@ following deviations:
   not affect schema for other rows / entities:
     `RETRACT actor.realname WHERE db.id = 123245`
   (In Datomic parlance, this retracts that E-A-V fact; V is gathered
-   automatically on the user's behalf.)
+   automatically on the user's behalf.  For more on retraction,
+   [please refer to the documentation](http://docs.datomic.com/transactions.html#retracting-data).)
 - Column names must be fully qualified (`table_name.column_name`)
   for `select`, `update` and `delete`; `insert` are exempt from this.
 - Raw attribute keywords may be used in place of column names:
