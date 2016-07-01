@@ -6,6 +6,7 @@
             [sql-datomic.update-command :as upd]
             [sql-datomic.delete-command :as del]
             [sql-datomic.insert-command :as ins]
+            [sql-datomic.retract-command :as rtr]
             [clojure.pprint :as pp]
             [clojure.tools.cli :as cli]
             [datomic.api :as d]
@@ -201,13 +202,14 @@
                 (when @dbg (squawk "AST" maybe-ast))
                 (let [conn (->> sys :datomic :connection)
                       db (d/db conn)
-                      ir (par/transform maybe-ast)]
+                      ir (par/transform maybe-ast)
+                      opts' {:debug @dbg :pretend @loljk}]
                   (when @dbg (squawk "Intermediate Repr" ir))
 
                   (case (:type ir)
 
                     :select
-                    (let [result (sel/run-select db ir {:debug @dbg})
+                    (let [result (sel/run-select db ir opts')
                           entities (:entities result)
                           attrs (:attrs result)
                           print-table-fn (if @x-flag
@@ -217,13 +219,16 @@
                       (flush))
 
                     :update
-                    (upd/run-update conn db ir {:debug @dbg :pretend @loljk})
+                    (upd/run-update conn db ir opts')
 
                     :delete
-                    (del/run-delete conn db ir {:debug @dbg :pretend @loljk})
+                    (del/run-delete conn db ir opts')
 
                     :insert
-                    (ins/run-insert conn ir {:debug @dbg :pretend @loljk})
+                    (ins/run-insert conn ir opts')
+
+                    :retract
+                    (rtr/run-retract conn db ir opts')
 
                     ;; else
                     (throw (ex-info "Unknown query type" {:type (:type ir)

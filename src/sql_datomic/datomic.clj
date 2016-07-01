@@ -545,6 +545,27 @@
         (apply merge-with-enumerated-keys ent-maps)
         {}))))
 
+;; Note: `e a v` form is required, including the assumed current value.
+;; @(d/transact conn [[:db/retract 17592186045444 :product/uuid
+;;                     #uuid "57607426-cdd4-49fa-aecb-0a2572976db9"]])
+;; Note: If value has changed, then that :db/retract is ignored, but
+;;       any other :db/retract's in the given transaction vector
+;;       will be carried out.
+(defn retract-ir->tx-data
+  ([db {:keys [ids] :as ir}]
+   (let [entities (->> (util/get-entities-by-eids db ids)
+                       keep-genuine-entities)]
+     (retract-ir->tx-data db ir entities)))
+
+  ([db {:keys [attrs] :as ir} entities]
+   (let [kws (map table-column->attr-kw attrs)]
+     (->> (for [e entities
+                kw kws]
+            (let [eid (:db/id e)
+                  v (get e kw)]
+              [:db/retract eid kw v]))
+          (into [])))))
+
 (comment
 
   (use 'clojure.repl)

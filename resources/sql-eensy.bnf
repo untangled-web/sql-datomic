@@ -2,6 +2,7 @@ sql_data_statement ::= delete_statement
                      | select_statement
                      | insert_statement
                      | update_statement
+                     | retract_statement
 
 delete_statement ::=
     <"DELETE"> <"FROM"> table_name
@@ -20,9 +21,13 @@ select_statement ::= <"SELECT"> select_list from_clause [ where_clause ]
                    | <"SELECT"> [ select_list ] where_clause
 
 update_statement ::=
-    <"UPDATE"> table_name <"SET"> set_clausen
-    [ where_clause ]
-  | <"UPDATE"> [ <"SET"> ] set_clausen where_clause
+    <"UPDATE"> table_name <"SET"> set_clausen     [ where_clause ]
+  | <"UPDATE"> [ <"SET"> ]        set_clausen       where_clause
+
+(* reduce ease-of-use intentionally via db_id_clause and not where_clause
+   in order to make the user more mindful of these changes *)
+retract_statement ::=
+    <"RETRACT"> retract_attrs <"WHERE"> db_id_clause
 
 table_name ::= #"[-_A-Za-z][-\w]*"
 
@@ -85,6 +90,8 @@ from_clause ::= <"FROM"> table_ref [ { <","> table_ref }+ ]
 select_list ::= selectable_val [ { <","> selectable_val }+ ]
 
 set_clausen ::= assignment_pair [ { <","> assignment_pair }+ ]
+
+retract_attrs ::= non_db_id_column_name [ { <","> non_db_id_column_name }+ ]
 
 between_clause ::= non_db_id_column_name <"BETWEEN">
                {

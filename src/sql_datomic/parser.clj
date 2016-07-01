@@ -14,7 +14,6 @@
 
 (def parser
   (-> "resources/sql-eensy.bnf"
-      #_"resources/sql.bnf"
       slurp
       (insta/parser
        :input-format :ebnf
@@ -201,6 +200,11 @@
                                              :where_clause :where})
                            -unpack-table
                            (assoc :type :delete)))
+   :retract_statement (fn [& ps]
+                        (let [[attrs ids] ps]
+                          {:type :retract
+                           :ids ids
+                           :attrs attrs}))
    :select_list (wrap-with-tag-type vector :select_list)
    :column_name (fn [t c] {:table (strip-doublequotes t)
                            :column (strip-doublequotes c)})
@@ -243,6 +247,8 @@
    :bytes_literal types/base64-str->bytes
    :set_clausen (wrap-with-tag-type vector :set_clausen)
    :assignment_pair (wrap-with-tag-type vector :assignment_pair)
+   :retract_clausen (wrap-with-tag-type vector :retract_clausen)
+   :retract_attrs vector
    :insert_cols (wrap-with-tag-type vector :insert_cols)
    :insert_vals (wrap-with-tag-type vector :insert_vals)
    :in_clause (fn [c & vs]
