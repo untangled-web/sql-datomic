@@ -7,7 +7,7 @@
             [sql-datomic.util :as util :refer [get-entities-by-eids]])
   (:import [datomic.impl Exceptions$IllegalArgumentExceptionInfo]))
 
-(def default-connection-uri "datomic:mem://dellstore")
+(def default-connection-uri "datomic:mem://somewhere")
 
 (def rules
   '[
@@ -30,7 +30,7 @@
 
 (declare datomicify-clause)
 
-(defn create-default-db []
+(defn -create-dellstore-db []
   (d/create-database default-connection-uri)
   (let [connection (d/connect default-connection-uri)
         load-edn (fn [path]
@@ -48,31 +48,56 @@
     @(d/transact connection orders-tx)
     connection))
 
+(defn -create-starfighter-db []
+  (d/create-database default-connection-uri)
+  (let [connection (d/connect default-connection-uri)
+        load-edn (fn [path]
+                   (->> path
+                        slurp
+                        (edn/read-string {:readers *data-readers*})))
+        schema-tx (load-edn "resources/starfighter-schema.edn")
+        starfighter-tx (load-edn "resources/starfighter-data.edn")]
+    @(d/transact connection schema-tx)
+    @(d/transact connection starfighter-tx)
+    connection))
+
+(defn create-default-db
+  ([] (create-default-db :dellstore))
+  ([which-schema]
+   (case which-schema
+     :starfighter (-create-starfighter-db)
+     :dellstore (-create-dellstore-db)
+     ;; else
+     (-create-dellstore-db))))
+
 (defn delete-default-db []
   (d/delete-database default-connection-uri))
 
-(defn recreate-default-db []
-  (delete-default-db)
-  (create-default-db))
+(defn recreate-default-db
+  ([] (recreate-default-db :dellstore))
+  ([which-schema]
+   (delete-default-db)
+   (create-default-db which-schema)))
 
 (def default-uri? (partial = default-connection-uri))
 
-(defrecord DatomicConnection [connection-uri connection]
+(defrecord DatomicConnection [connection-uri connection schema-name]
   component/Lifecycle
   (start [component]
     (if (default-uri? (:connection-uri component))
-      (assoc component :connection (create-default-db))
+      (assoc component :connection (create-default-db schema-name))
       (assoc component :connection (d/connect (:connection-uri component)))))
   (stop [component]
     (when (default-uri? (:connection-uri component))
       (delete-default-db))
     (assoc component :connection nil)))
 
-(defn system [{:keys [connection connection-uri]
+(defn system [{:keys [connection connection-uri schema-name]
                :or {connection-uri default-connection-uri}}]
   (component/system-map
    :datomic (map->DatomicConnection {:connection connection
-                                     :connection-uri connection-uri})))
+                                     :connection-uri connection-uri
+                                     :schema-name schema-name})))
 
 (defn table-column->attr-kw [{:keys [table column]}]
   (keyword table column))

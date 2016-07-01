@@ -11,6 +11,7 @@
             [datomic.api :as d]
             clojure.repl
             [clojure.string :as str]
+            [clojure.set :as set]
             [sql-datomic.tabula :as tab]
             [sql-datomic.schema :as sch])
   ;; (:gen-class)
@@ -69,7 +70,9 @@
                         table)
         (when (seq enums)
           (println "Related Enums")
-          (println (str/join " " enums)))))
+          (let [by-ns (group-by namespace enums)]
+            (doseq [k (-> by-ns keys sort)]
+              (println (str/join " " (get by-ns k))))))))
     (flush)))
 
 (defn describe-entity [eid]
@@ -82,10 +85,7 @@
       (do
         (pp/print-table [:db/ident :db/valueType :db/cardinality
                          :db/unique :db/doc]
-                        s)
-        #_(when (seq enums)
-          (println "Related Enums")
-          (println (str/join " " enums)))))
+                        s)))
     (flush)))
 
 (defn show-status [m]
@@ -242,20 +242,29 @@
                   :flag true
                   :default false]
                  ["-u" "--connection-uri"
-                  "URI to Datomic DB; if missing, uses default mem db"])]
+                  "URI to Datomic DB; if missing, uses default mem db"]
+                 ["-s" "--default-schema-name"
+                  ":dellstore or :starfighter"
+                  :parse-fn (fn [s]
+                              (prn [:got s])
+                              (if-let [m (re-matches #"^:+(.+)$" s)]
+                                (keyword (second m))
+                                (keyword s)))
+                  :default :dellstore])]
     (when (:help opts)
       (println banner)
       (System/exit 0))
 
-    (def sys (.start (dat/system opts)))
+    (let [opts' (set/rename-keys opts {:default-schema-name :schema-name})]
 
-    (let [uri (->> sys :datomic :connection-uri)]
-      (println "connected to:" uri)
-      (when (dat/default-uri? uri)
-        (println "*** using default in-mem database ***"))
-      (print-help)
-      (repl (assoc opts
-                   :connection-uri uri)))))
+      (def sys (.start (dat/system opts')))
+
+      (let [uri (->> sys :datomic :connection-uri)]
+        (when (dat/default-uri? uri)
+          (println "*** using default in-mem database ***"))
+        (print-help)
+        (repl (assoc opts'
+                     :connection-uri uri))))))
 
 (comment
 

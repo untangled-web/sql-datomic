@@ -7,7 +7,10 @@
   (isa? (class e) EntityMap))
 
 (defn abbreviate-entity [entity]
-  (select-keys entity [:db/id]))
+  (if (and (map? entity)
+           (:db/id entity))
+    (select-keys entity [:db/id])
+    entity))
 
 (defn abbreviate-entity-maps [entity]
   (->> entity

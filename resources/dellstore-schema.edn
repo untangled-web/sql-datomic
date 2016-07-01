@@ -546,5 +546,4 @@
   :db/cardinality :db.cardinality/one
   :db/doc ""
   :db.install/_attribute :db.part/db}
-
  ]

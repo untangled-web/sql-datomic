@@ -1,0 +1,65 @@
+[{:db/id #db/id[:db.part/user]
+  :starfighter/ship-id 1000
+  :starfighter/ship-class :starfighter.ship-class/x-wing
+  :pilot/name "Wedge Antilles"
+  :alliance/uuid #uuid "15094ef3-0350-3edf-9246-70a34ecd8644"
+  :kills/capital-ships 4N
+  :kills/battle-stations 1
+  :ship/warp-capable? true
+  :ship/shields-capable? true
+  :maneuverability/rating #float 7.0
+  :starfighter/armament #{:starfighter.armament/laser-cannon
+                          :starfighter.armament/photon-torpedo}}
+ {:db/id #db/id[:db.part/user]
+  :starfighter/ship-id 1001
+  :starfighter/ship-class :starfighter.ship-class/x-wing
+  :pilot/name "Chump McDeadface"
+  :alliance/uuid #uuid "ee08df6e-64cf-3809-8001-e50eb79c38f7"
+  :kills/capital-ships 0N
+  :kills/battle-stations 0
+  :ship/warp-capable? true
+  :ship/shields-capable? false ;; ohnoes
+  :maneuverability/rating #float 5.0
+  :starfighter/armament #{:starfighter.armament/laser-cannon
+                          :starfighter.armament/concussion-missle}}
+ {:db/id #db/id[:db.part/user]
+  :starfighter/ship-id 1002
+  :starfighter/ship-class :starfighter.ship-class/y-wing
+  :pilot/name "Yellow Leader"
+  :alliance/uuid #uuid "f42dafac-e21f-307a-b62f-2006c2aa081e"
+  :kills/capital-ships 20N
+  :kills/battle-stations 5
+  :ship/warp-capable? true
+  :ship/shields-capable? true
+  :maneuverability/rating #float 3.5
+  :starfighter/armament #{:starfighter.armament/laser-cannon
+                          :starfighter.armament/ion-cannon
+                          :starfighter.armament/photon-torpedo
+                          :starfighter.armament/concussion-missle}}
+ {:db/id #db/id[:db.part/user]
+  :starfighter/ship-id 1003
+  :starfighter/ship-class :starfighter.ship-class/a-wing
+  :pilot/name "Gold Leader"
+  :alliance/uuid #uuid "1ee67752-e94a-3eda-b978-def5b5373bca"
+  :kills/capital-ships 5N
+  :kills/battle-stations 1
+  :ship/warp-capable? true
+  :ship/shields-capable? true
+  :maneuverability/rating #float 8.2
+  :starfighter/armament #{:starfighter.armament/laser-cannon
+                          :starfighter.armament/photon-torpedo
+                          :starfighter.armament/concussion-missle}}
+ {:db/id #db/id[:db.part/user]
+  :starfighter/ship-id 1004
+  :starfighter/ship-class :starfighter.ship-class/b-wing
+  :pilot/name "Blue Leader"
+  :alliance/uuid #uuid "663c9313-0dab-3eca-ac86-dedf403f30cc"
+  :kills/capital-ships 7N
+  :kills/battle-stations 2
+  :ship/warp-capable? true
+  :ship/shields-capable? true
+  :maneuverability/rating #float 6.5
+  :starfighter/armament #{:starfighter.armament/laser-cannon
+                          :starfighter.armament/ion-cannon
+                          :starfighter.armament/photon-torpedo
+                          :starfighter.armament/concussion-missle}}]
