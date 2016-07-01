@@ -82,7 +82,14 @@
     {:tables (group-as-entities t)
      :enums (group-enums-as-entities e)}))
 
-(defn infer-schema-of-entity [db e])
+(defn infer-schema-of-entity [db e]
+  (let [attrs (keys e)
+        summary (summarize-schema db)
+        t (->> summary :tables vals flatten)
+        m (group-by :db/ident t)]
+    (->> attrs
+         (mapcat (fn [attr]
+                   (get m attr))))))
 
 (comment
 

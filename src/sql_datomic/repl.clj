@@ -72,6 +72,23 @@
           (println (str/join " " enums)))))
     (flush)))
 
+(defn describe-entity [eid]
+  (let [db (->> sys :datomic :connection d/db)
+        e (sch/eid->map db eid)
+        s (sch/infer-schema-of-entity db e)]
+    (if-not (seq s)
+      (println "Unable to find schema")
+
+      (do
+        (pp/pprint s)
+        (pp/print-table [:db/ident :db/valueType :db/cardinality
+                         :db/unique :db/doc]
+                        s)
+        #_(when (seq enums)
+          (println "Related Enums")
+          (println (str/join " " enums)))))
+    (flush)))
+
 (defn show-status [m]
   (let [m' (dissoc m :help)
         ks (-> m' keys sort)
@@ -96,6 +113,7 @@
   (println "type `expanded` or `\\x` to toggle expanded display mode")
   (println "type `show tables` or `\\d` to show Datomic \"tables\"")
   (println "type `describe $table` or `\\d $table` to describe a Datomic \"table\"")
+  (println "type `describe $dbid` or `\\d $dbid` to describe the schema of an entity")
   (println "type `status` to show toggle values, conn strings, etc.")
   (println "type `\\?`, `?`, `h` or `help` to see this listing")
   (flush))
@@ -144,8 +162,10 @@
           (show-tables)
           (reset! noop true))
         (when-let [match (re-matches #"^(?i)\s*(?:desc(?:ribe)?|\\d)\s+(\S+)\s*$" input)]
-          (let [[_ table] match]
-            (describe-table table)
+          (let [[_ x] match]
+            (if (re-seq #"^\d+$" x)
+              (describe-entity (Long/parseLong x))
+              (describe-table x))
             (reset! noop true)))
         (when (re-seq #"^(?i)\s*status\s*$" input)
           (show-status opts)
