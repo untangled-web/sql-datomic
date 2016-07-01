@@ -80,7 +80,6 @@
       (println "Unable to find schema")
 
       (do
-        (pp/pprint s)
         (pp/print-table [:db/ident :db/valueType :db/cardinality
                          :db/unique :db/doc]
                         s)
