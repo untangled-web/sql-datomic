@@ -276,7 +276,20 @@
          DATETIME '2014-01-15T08:00:00'
      ")
     (parsable? "delete where #attr :product/prod-id = 1567"
-               "allow shortened where-only form")))
+               "allow shortened where-only form"))
+
+  (testing "RETRACT statements"
+    (parsable? "RETRACT product.uuid WHERE db.id = 12345")
+    (parsable?
+     "retract #attr :product/actor,
+              #attr :product/rating,
+              #attr :product/url
+      where db.id 12345 54321 42")
+    (parsable?
+     "retract #attr :customer/email,
+              #attr :customer/zip,
+              #attr :customer/firstname
+      where db.id in (11111 22222 33333)")))
 
 (deftest transform-tests
   (testing "SELECT AST -> IR"
@@ -861,4 +874,23 @@
                      [:product.category/action :product.category/comedy]))
                    (:> {:table "product", :column "price"} 20.0M))
                   (:>= {:table "product", :column "prod-id"} 2000)))))]}))
+
+    ;; retract #attr :product/actor, #attr :product/rating, #attr :product/url where db.id 12345 54321 42
+    (is (= (prs/transform
+            [:sql_data_statement
+             [:retract_statement
+              [:retract_attrs
+               [:column_name "product" "actor"]
+               [:column_name "product" "rating"]
+               [:column_name "product" "url"]]
+              [:db_id_clause
+               [:long_literal "12345"]
+               [:long_literal "54321"]
+               [:long_literal "42"]]]])
+           {:type :retract
+            :ids #{12345 54321 42}
+            :attrs
+            [{:table "product" :column "actor"}
+             {:table "product" :column "rating"}
+             {:table "product" :column "url"}]}))
     ))
