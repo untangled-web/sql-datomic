@@ -1,6 +1,7 @@
 (ns sql-datomic.tabula
   (:require [clojure.pprint :as pp]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.set :as set])
   (:import [datomic.query EntityMap]))
 
 (defn entity-map? [e]
@@ -78,10 +79,29 @@
 (defn -print-row-count [rows]
   (printf "(%d rows)\n" (count rows)))
 
+(defn -doctor-lead-row [rows]
+  (if-not (seq rows)
+    rows
+    ;; pp/print-table will use the keys of the first row as a
+    ;; template for the columns to display.
+    (let [all-keys (->> rows
+                        (mapcat keys)
+                        (into #{}))
+          lead-row (first rows)
+          tail-rows (rest rows)
+          missing-keys (set/difference all-keys
+                                       (->> lead-row keys (into #{})))
+          missing-map (->> missing-keys
+                           (map (fn [k] [k nil]))
+                           (into {}))
+          doc-row (merge missing-map lead-row)]
+      (into [doc-row] tail-rows))))
+
 (defn -print-simple-table [{:keys [ks rows print-fn]}]
   (->> rows
        (map process-entity)
        (into [])
+       -doctor-lead-row
        print-fn)
   (-print-row-count rows)
   (if (seq ks)
