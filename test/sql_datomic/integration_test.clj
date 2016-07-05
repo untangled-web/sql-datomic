@@ -26,6 +26,9 @@
 (defn -select-keys [ks m]
   (select-keys m ks))
 
+(defn -select-resultset [{:keys [entities attrs]}]
+  (into #{} (map (partial -select-keys attrs) entities)))
+
 (defn db-fixture [f]
   (let [sys (.start (dat/system {}))]
     #_(do (println "=== db set-up") (flush))
@@ -112,27 +115,62 @@
   (let [ir (select-stmt->ir
             "select where
              order.orderdate between #inst \"2004-01-01\"
-                                 and #inst \"2004-01-05\" ")
-        expected #{{:order/orderid 2
-                    :order/orderdate #inst "2004-01-01T08:00:00.000-00:00"}}]
+                                 and #inst \"2004-01-05\" ")]
     (is (= (->> (sel/run-select *db* ir)
                 :entities
                 (map (partial -select-keys
                               [:order/orderid :order/orderdate]))
                 (into #{}))
-           expected))))
+            #{{:order/orderid 2
+               :order/orderdate #inst "2004-01-01T08:00:00.000-00:00"}}))))
 
 (deftest select-cols-of-product-by-prod-id
   (let [ir (select-stmt->ir
             "select product.prod-id, #attr :product/tag, product.title
              where product.prod-id = 9990")]
-    (let [got (sel/run-select *db* ir)
-          expected [{:product/prod-id 9990
-                     :product/tag :aladdin-world-music
-                     :product/title "ALADDIN WORLD"}]]
-      (is (= (->> (:entities got)
-                  (map (partial -select-keys (:attrs got))))
-             expected)))))
+    (is (= (-select-resultset (sel/run-select *db* ir))
+           #{{:product/prod-id 9990
+              :product/tag :aladdin-world-music
+              :product/title "ALADDIN WORLD"}}))))
+
+(deftest select-join
+  (let [ir (select-stmt->ir
+            "select order.orderid,
+                    order.totalamount,
+                    order.customerid,
+                    customer.email,
+                    orderline.orderlineid,
+                    orderline.prod-id,
+                    product.uuid,
+                    product.category,
+                    orderline.quantity
+              where order.orderid     = orderline.orderid
+                and order.customerid  = customer.customerid
+                and orderline.prod-id = product.prod-id
+
+                and order.orderid in (1, 2, 3)
+                and orderline.quantity > 2
+                and product.category <> :product.category/new
+            ")]
+    (is (= (-select-resultset (sel/run-select *db* ir))
+           #{{:order/orderid 2
+              :order/totalamount 59.43M
+              :order/customerid 4858
+              :customer/email "OVWOIYIDDL@dell.com"
+              :orderline/orderlineid 8
+              :orderline/prod-id 2926
+              :product/uuid #uuid "576073e7-d671-45ba-af1a-f08a9a355b81"
+              :product/category :product.category/music
+              :orderline/quantity 3}
+             {:order/orderid 2
+              :order/totalamount 59.43M
+              :order/customerid 4858
+              :customer/email "OVWOIYIDDL@dell.com"
+              :orderline/orderlineid 4
+              :orderline/prod-id 5130
+              :product/uuid #uuid "5760740c-4f24-4f3d-8455-f79a1cc57fa9"
+              :product/category :product.category/action
+              :orderline/quantity 3}}))))
 
 (comment
 
