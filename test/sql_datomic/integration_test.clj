@@ -72,6 +72,41 @@
              :product/special false
              :product/title "ALADDIN WORLD"}]))))
 
+(deftest select-all-products-by-prod-id
+  (let [ir (select-stmt->ir "select where product.prod-id > 0")
+        prod-ids #{1298 1567
+                   2290 2926
+                   4402 4936
+                   5130
+                   6127 6376 6879
+                   8293
+                   9990}]
+    (is (= (->> (sel/run-select *db* ir)
+                :entities
+                (map :product/prod-id)
+                (into #{}))
+           prod-ids))))
+
+(deftest select-prod-id-6k-products
+  (let [ir (select-stmt->ir
+            "select where product.prod-id between 6000 and 6999")
+        prod-ids #{6127 6376 6879}]
+    (is (= (->> (sel/run-select *db* ir)
+                :entities
+                (map :product/prod-id)
+                (into #{}))
+           prod-ids))))
+
+(deftest select-no-products-by-prod-id
+  (let [ir (select-stmt->ir
+            "select where product.prod-id >= 10000")
+        prod-ids #{}]
+    (is (= (->> (sel/run-select *db* ir)
+                :entities
+                (map :product/prod-id)
+                (into #{}))
+           prod-ids))))
+
 (comment
 
   (defn pp-ent [eid]
