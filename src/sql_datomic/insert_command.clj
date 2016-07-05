@@ -6,7 +6,7 @@
 
 (defn run-insert
   ([conn ir] (run-insert conn ir {}))
-  ([conn ir {:keys [debug pretend] :as opts}]
+  ([conn ir {:keys [debug pretend silent] :as opts}]
    {:pre [(= :insert (:type ir))]}
 
    (let [tx-data (dat/insert-ir->tx-data ir)]
@@ -18,8 +18,9 @@
           :pretend pretend})
        (let [result @(d/transact conn tx-data)
              ids (dat/scrape-inserted-eids result)]
-         (println)
-         (prn ids)
+         (when-not silent
+           (println)
+           (prn ids))
          (when debug
            (squawk "Entities after Transaction")
            (util/-debug-display-entities-by-ids (d/db conn) ids))

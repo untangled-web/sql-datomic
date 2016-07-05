@@ -4,6 +4,7 @@
             sql-datomic.types  ;; necessary for reader literals
             [sql-datomic.parser :as par]
             [sql-datomic.select-command :as sel]
+            [sql-datomic.insert-command :as ins]
             [datomic.api :as d]
             [clojure.string :as str]))
 
@@ -31,6 +32,13 @@
 
 (defn -select-resultset [{:keys [entities attrs]}]
   (into #{} (map (partial -select-keys attrs) entities)))
+
+(defn count-entities [db primary-attr]
+  (d/q '[:find (count ?e) .
+         :in $ ?attr
+         :where [?e ?attr]]
+       db
+       primary-attr))
 
 (defn db-fixture [f]
   (let [sys (.start (dat/system {}))]
@@ -254,6 +262,44 @@
              {:product/prod-id 8293}
              {:product/prod-id 6879}}))))
 
+;;;; INSERT TESTS ;;;;
+
+(deftest insert-traditional-form
+  (let [db *db*
+        cnt (count-entities db :customer/customerid)
+        stmt "insert into customer (
+                 customerid,
+                 firstname, lastname,    email,  address-1,
+                      city,    state,      zip,    country
+              )
+              values (
+                  12345,
+                  'Foo', 'Bar', 'foobar@example.org', '123 Some Place',
+                  'Thousand Oaks', 'CA', '91362', 'USA'
+              )"
+        ir (->> stmt par/parser par/transform)
+        _got (ins/run-insert *conn* ir {:silent true})
+        db' (d/db *conn*)
+        cnt' (count-entities db' :customer/customerid)
+        ids (d/q '[:find [?e ...]
+                   :where [?e :customer/email "foobar@example.org"]]
+                 db')
+        ents (->> ids
+                  (map (fn [id] (entity->map db' id)))
+                  (map (fn [m] (dissoc m :db/id)))
+                  (into #{}))]
+    (is (= (inc cnt) cnt'))
+    (is (= ents
+           #{{:customer/customerid 12345
+              :customer/firstname "Foo"
+              :customer/lastname "Bar"
+              :customer/email "foobar@example.org"
+              :customer/address-1 "123 Some Place"
+              :customer/city "Thousand Oaks"
+              :customer/state "CA"
+              :customer/zip "91362"
+              :customer/country "USA"}}))))
+
 (comment
 
   (defn pp-ent [eid]
@@ -266,7 +312,7 @@
   )
 
 #_(deftest parser-tests
-  
+
 
   (testing "INSERT statements"
     (parsable?
