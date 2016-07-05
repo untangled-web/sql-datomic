@@ -4,7 +4,8 @@
             sql-datomic.types  ;; necessary for reader literals
             [sql-datomic.parser :as par]
             [sql-datomic.select-command :as sel]
-            [datomic.api :as d]))
+            [datomic.api :as d]
+            [clojure.string :as str]))
 
 (def ^:dynamic *conn* :not-a-connection)
 
@@ -234,6 +235,20 @@
               :product/price 15.99M
               :product/category :product.category/documentary
               :product/man-hours 103N}}))))
+
+(deftest select-by-db-id
+  (let [db-ids (d/q '[:find [?e ...]
+                      :where
+                      [?e :product/prod-id ?pid]
+                      [(> ?pid 6500)]]
+                    *db*)
+        stmt (str "select product.prod-id where #attr :db/id "
+                  (str/join " " db-ids))
+        ir (select-stmt->ir stmt)]
+    (is (= (-select-resultset (sel/run-select *db* ir))
+           #{{:product/prod-id 9990}
+             {:product/prod-id 8293}
+             {:product/prod-id 6879}}))))
 
 (comment
 
