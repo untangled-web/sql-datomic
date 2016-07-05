@@ -21,6 +21,10 @@
      (->> e d/touch (into {:db/id (:db/id e)}))
      {})))
 
+(defn product-map->comparable [m]
+  ;; cannot compare byte arrays and :db/id changes per db refresh
+  (dissoc m :db/id :product/blob))
+
 (defn db-fixture [f]
   (let [sys (.start (dat/system {}))]
     #_(do (println "=== db set-up") (flush))
@@ -33,9 +37,7 @@
 (use-fixtures :each db-fixture)
 
 (deftest product-entity-present
-  (is (= (dissoc (entity->map *db* [:product/prod-id 8293])
-                 :db/id :product/blob ;; cannot compare byte arrays
-                 )
+  (is (= (product-map->comparable (entity->map *db* [:product/prod-id 8293]))
          {:product/url #uri "http://example.com/products/8293"
           :product/prod-id 8293
           :product/uuid #uuid "57607472-0bd8-4ed3-98d3-586e9e9c9683"
@@ -49,20 +51,37 @@
           :product/special false
           :product/title "ALABAMA EXORCIST"})))
 
-(comment
-  (def sys (.start (dat/system {})))
-  (def conn (->> sys :datomic :connection))
-  (def db (d/db conn))
+(defn select-stmt->ir [stmt]
+  (->> stmt par/parser par/transform))
 
-  (let [stmt "select where product.prod-id = 9990"
-        ir (->> stmt par/parser par/transform)]
-    (->>
-     (sel/run-select db ir #_{:debug true})
-     :entities
-     pp/pprint))
+(deftest select-product-by-prod-id
+  (let [ir (select-stmt->ir "select where product.prod-id = 9990")]
+    (is (= (->> (sel/run-select *db* ir)
+                :entities
+                (map product-map->comparable))
+           [{:product/url #uri "http://example.com/products/9990"
+             :product/prod-id 9990
+             :product/uuid #uuid "57607426-cdd4-49fa-aecb-0a2572976db9"
+             :product/common-prod-id 6584
+             :product/man-hours 60100200300N
+             :product/price 25.99M
+             :product/category :product.category/music
+             :product/tag :aladdin-world-music
+             :product/actor "HUMPHREY DENCH"
+             :product/rating #float 2.0
+             :product/special false
+             :product/title "ALADDIN WORLD"}]))))
+
+(comment
+
+  (defn pp-ent [eid]
+    (db-fixture
+     (fn []
+       (->> (entity->map *db* eid)
+            clojure.pprint/pprint))))
+  (pp-ent [:product/prod-id 9990])
 
   )
-
 
 #_(deftest parser-tests
   (testing "SELECT statements"
