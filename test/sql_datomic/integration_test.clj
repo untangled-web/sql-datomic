@@ -2,11 +2,9 @@
   (:require [clojure.test :refer :all]
             [sql-datomic.datomic :as dat]
             sql-datomic.types
-            [datomic.api :as d]
-            ;; [clj-time.core :as tm]
-            ;; [clojure.instant :as inst]
             [sql-datomic.parser :as par]
-            [sql-datomic.select-command :as sel]))
+            [sql-datomic.select-command :as sel]
+            [datomic.api :as d]))
 
 (def ^:dynamic *conn* :not-a-connection)
 
@@ -24,6 +22,9 @@
 (defn product-map->comparable [m]
   ;; cannot compare byte arrays and :db/id changes per db refresh
   (dissoc m :db/id :product/blob))
+
+(defn -select-keys [ks m]
+  (select-keys m ks))
 
 (defn db-fixture [f]
   (let [sys (.start (dat/system {}))]
@@ -106,6 +107,20 @@
                 (map :product/prod-id)
                 (into #{}))
            prod-ids))))
+
+(deftest select-order-between-dates
+  (let [ir (select-stmt->ir
+            "select where
+             order.orderdate between #inst \"2004-01-01\"
+                                 and #inst \"2004-01-05\" ")
+        expected #{{:order/orderid 2
+                    :order/orderdate #inst "2004-01-01T08:00:00.000-00:00"}}]
+    (is (= (->> (sel/run-select *db* ir)
+                :entities
+                (map (partial -select-keys
+                              [:order/orderid :order/orderdate]))
+                (into #{}))
+           expected))))
 
 (comment
 
