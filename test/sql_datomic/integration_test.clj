@@ -172,6 +172,69 @@
               :product/category :product.category/action
               :orderline/quantity 3}}))))
 
+;; | :product/prod-id | :product/rating | :product/price |             :product/category | :product/man-hours | cat | pr | mh | ??
+;; |------------------+-----------------+----------------+-------------------------------+--------------------|            
+;; |             2926 |      #float 1.6 |         22.99M |       :product.category/music |       40100200300N | t     f    f    t
+;; |             5130 |      #float 1.8 |         14.99M |      :product.category/action |       50100200300N | t     t    f    t
+;; |             9990 |      #float 2.0 |         25.99M |       :product.category/music |       60100200300N | t     f    f    t
+;; |             1567 |      #float 2.2 |         25.99M |         :product.category/new |       70100200300N | f     f    f    f
+;; |             6376 |      #float 2.4 |         21.99M |       :product.category/drama |       80100200300N | f     f    f    f
+;; |             8293 |      #float 2.6 |         13.99M |      :product.category/family |               100N | t     t    t    t
+;; |             4402 |      #float 2.8 |         11.99M |    :product.category/children |               101N | f     t    t    t
+;; |             6879 |      #float 3.0 |         12.99M |      :product.category/action |               102N | t     t    t    t
+;; |             2290 |      #float 3.2 |         15.99M | :product.category/documentary |               103N | f     t    t    t
+(deftest select-and-or-not-oh-my
+  (let [ir (select-stmt->ir
+            "select product.prod-id,
+                    product.category,
+                    product.price,
+                    product.man-hours,
+                    product.rating
+              where (   product.category in (
+                          :product.category/music,
+                          :product.category/action,
+                          :product.category/family,
+                          :product.category/horror)
+                     or (    (not (product.price between 20.0M and 30.0M))
+                         and (not (product.man-hours > 1000N))))
+                and product.rating > 1.5f")]
+    (is (= (-select-resultset (sel/run-select *db* ir))
+           #{{:product/prod-id 2926
+              :product/rating #float 1.6
+              :product/price 22.99M
+              :product/category :product.category/music
+              :product/man-hours 40100200300N}
+             {:product/prod-id 5130
+              :product/rating #float 1.8
+              :product/price 14.99M
+              :product/category :product.category/action
+              :product/man-hours 50100200300N}
+             {:product/prod-id 9990
+              :product/rating #float 2.0
+              :product/price 25.99M
+              :product/category :product.category/music
+              :product/man-hours 60100200300N}
+             {:product/prod-id 8293
+              :product/rating #float 2.6
+              :product/price 13.99M
+              :product/category :product.category/family
+              :product/man-hours 100N}
+             {:product/prod-id 4402
+              :product/rating #float 2.8
+              :product/price 11.99M
+              :product/category :product.category/children
+              :product/man-hours 101N}
+             {:product/prod-id 6879
+              :product/rating #float 3.0
+              :product/price 12.99M
+              :product/category :product.category/action
+              :product/man-hours 102N}
+             {:product/prod-id 2290
+              :product/rating #float 3.2
+              :product/price 15.99M
+              :product/category :product.category/documentary
+              :product/man-hours 103N}}))))
+
 (comment
 
   (defn pp-ent [eid]
