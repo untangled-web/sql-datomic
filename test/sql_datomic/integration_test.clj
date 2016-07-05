@@ -7,6 +7,8 @@
             [datomic.api :as d]
             [clojure.string :as str]))
 
+;;;; SETUP and HELPER FUNCTIONS ;;;;
+
 (def ^:dynamic *conn* :not-a-connection)
 
 (def ^:dynamic *db* :not-a-db)
@@ -40,6 +42,8 @@
     #_(do (println "=== db tear-down") (flush))))
 
 (use-fixtures :each db-fixture)
+
+;;;; SELECT TESTS ;;;;
 
 (deftest product-entity-present
   (is (= (product-map->comparable (entity->map *db* [:product/prod-id 8293]))
@@ -262,204 +266,7 @@
   )
 
 #_(deftest parser-tests
-  (testing "SELECT statements"
-    (parsable? "SELECT a_table.name FROM a_table"
-               "allows simple queries")
-    (parsable? "SELECT a_table.name, a_table.age FROM a_table"
-               "allows multiple columns in select list")
-    (parsable? "SELECT a_table.* FROM a_table"
-               "allows qualified star in select list")
-    (parsable? "SELECT a_table.name FROM a_table, b_table"
-               "allows implicit cartesian product in from list")
-    (parsable?
-     "SELECT a_table.foo
-      FROM   a_table
-     " "tolerant of newlines")
-    (parsable?
-     "SELECT a_table.foo,\r
-		a_table.bar,\r
-             a_table.baz\r
-      FROM   a_table\r
-     " "tolerant of tabs and carriage returns")
-    (parsable?
-     "
-         SELECT a_table.foo FROM   a_table
-     " "tolerant of newlines at beginning and end")
-    (parsable? "SELECT a_table.name FROM a_table WHERE a_table.name = 'foo'"
-               "allows string literals")
-    (parsable?
-     "SELECT a_table.*, b_table.zebra_id
-      FROM a_table
-         , b_table
-      WHERE a_table.id = b_table.a_id
-        AND b_table.zebra_id > 9000"
-     "supports where clause conjoined by and")
-    (parsable?
-     "SELECT a_table.*, b_table.zebra_id
-      FROM a_table, b_table
-      WHERE a_table.id = b_table.a_id
-      ")
-    (parsable?
-     "SELECT a_table.*, b_table.zebra_id
-      FROM a_table, b_table
-      WHERE a_table.id = b_table.a_id
-        AND b_table.zebra_id > 9000
-      ")
-    (parsable?
-     "SELECT a_table.*
-      FROM a_table
-      WHERE a_table.foo <> 0"
-     "supports <> as binary comparison in where clauses")
-    (parsable?
-     "SELECT a_table.*, b_table.zebra_id
-      FROM a_table
-         , b_table
-      WHERE a_table.id = b_table.a_id
-        AND b_table.zebra_id != 0
-      " "supports != as binary comparison in where clauses")
-    (parsable?
-     "select
-                        a_table.*
-                      , b_table.zebra_id
-      from
-                        a_table
-                      , b_table
-      where
-                        a_table.id = b_table.a_id
-                 and    b_table.zebra_id > 0
-      " "tolerant of lowercase res words and exotic whitespace formatting")
-    (parsable?
-     "SELECT a_table.*, b_table.zebra_id
-      FROM a_table, b_table
-      WHERE  a_table.id = b_table.a_id
-        AND  b_table.zebra_id > 9000")
-    (parsable?
-     "SELECT a_table.*
-      FROM a_table
-      WHERE a_table.created_on BETWEEN DATE '2007-02-01'
-                                   AND DATE '2010-10-10'"
-     "supports between with date literals")
-    (parsable?
-     "select foo.name
-        from foo
-       where foo.title = 'git-\\'r-dun maestro'
-         and foo.hired_on <= date '2000-01-01'"
-     "allows string literals with embedded single quote")
-    (parsable?
-     "select foo.id, foo.name, foo.title
-        from foo
-       where foo.is_active = true
-         and foo.group_id >= 3"
-     "supports boolean literals in where clause")
-    (parsable?
-     "select survey-request.email,
-             survey-request.completion-status
-        from survey-request
-       where survey-request.sent-date between date '2014-04-01'
-                                          and date '2014-05-01'
-     "
-     "supports hyphenation in table/column identifiers")
-    (parsable?
-     "SELECT a_table.*
-      FROM a_table
-      WHERE a_table.created_on BETWEEN DATETIME '2007-02-01T10:11:12'
-                               AND #inst \"2010-10-10T01:02:03.001-07:00\""
-     "supports #inst literals used alongside datetime literal")
-    (parsable?
-     "select foo.* from foo
-      where product.prod-id between 4000 and 6000 and
-            product.category <> :product.category/action"
-     "supports namespaced keyword literals as value in where clause")
-    (parsable?
-     "select foo.bar from foo where product.tag = :alabama-exorcist-family"
-     "supports non-namespaced keyword literals as value in where")
-    (parsable?
-     "select foo.bar from foo where
-        product.uuid between
-              #uuid \"576073c3-24c5-4461-9b84-dfe65774d41b\"
-          and #uuid \"5760745a-5bb5-4768-96f7-0f8aeb1a84f0\""
-     "supports #uuid literals")
-    (parsable?
-     "select foo.bar from foo where
-        product.url = #uri \"http://example.com/products/2290\""
-     "supports #uri literals")
-    (parsable?
-     "select foo.bar, #bytes \"QURBUFRBVElPTiBVTlRPVUNIQUJMRVM=\"
-      from foo where product.prod-id between 2000 and 3000"
-     "supports #bytes (byte array) literals in select list")
-    (parsable?
-     "select foo.bar from foo where
-          #attr :product/url = #uri \"http://example.com/products/2290\"
-      and #attr :product/category = :product.category/documentary"
-     "supports namespaced keyword as column (attr) in where clause")
-    (is (= (prs/parser
-            "select #attr :foo/bar from foo
-              where #attr :foo/quux = :xyzzy.baz/foo")
-           [:sql_data_statement
-            [:select_statement
-             [:select_list [:column_name "foo" "bar"]]
-             [:from_clause [:table_ref [:table_name "foo"]]]
-             [:where_clause
-              [:search_condition
-               [:boolean_term
-                [:boolean_factor
-                 [:boolean_test
-                  [:binary_comparison
-                   [:column_name "foo" "quux"]
-                   "="
-                   [:keyword_literal "xyzzy.baz/foo"]]]]]]]]])
-        "ns-keyword in select list maps to column_name")
-    (parsable? "select foo.bar from product
-                where #attr :db/id = 17592186045445"
-               "supports :db/id")
-    (is (= (prs/parser
-            "select 42, 1234N, -12, -69N, 3.14159, 6.626E34, 1e-2, 2.7182M,
-                    1.6182F, #float 99.99999
-             from foobar")
-           [:sql_data_statement
-            [:select_statement
-             [:select_list
-              [:long_literal "42"]
-              [:bigint_literal "1234N"]
-              [:long_literal "-12"]
-              [:bigint_literal "-69N"]
-              [:double_literal "3.14159"]
-              [:double_literal "6.626E34"]
-              [:double_literal "1e-2"]
-              [:bigdec_literal "2.7182M"]
-              [:float_literal "1.6182F"]
-              [:float_literal "99.99999"]]
-             [:from_clause [:table_ref [:table_name "foobar"]]]]])
-        "supports long, float, double, bigint, bigdec literals")
-    (parsable? "select where #attr :product/prod-id between 1567 and 6000"
-               "allow shortened where-only select statement")
-    (parsable?
-     "select #attr :product/title
-      from product
-      where #attr :product/actor in (
-        'GENE WILLIS', 'RIP DOUGLAS', 'KIM RYDER')"
-     "supports IN clauses")
-    (parsable?
-     "select where
-             #attr :product/rating > 2.5f
-          or (#attr :product/category = :product.category/new
-              and #attr :product/prod-id < 5000)
-         and #attr :product/price > 22.0M
-          or #attr :product/prod-id between 6000 and 7000"
-     "supports nested AND-OR trees in WHERE")
-    (parsable?
-     "select where
-              #attr :product/rating > 2.5f
-           or (#attr :product/category = :product.category/new
-               or (not (
-                         (#attr :product/prod-id < 5000
-                           or (not #attr :product/category in (
-                                   :product.category/action,
-                                   :product.category/comedy
-                               ))
-                           or #attr :product/price > 20.0M
-                        and #attr :product/prod-id >= 2000))))"
-     "supports nested AND-OR-NOT trees in WHERE"))
+  
 
   (testing "INSERT statements"
     (parsable?
