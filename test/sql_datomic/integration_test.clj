@@ -1,7 +1,7 @@
 (ns sql-datomic.integration-test
   (:require [clojure.test :refer :all]
             [sql-datomic.datomic :as dat]
-            sql-datomic.types
+            sql-datomic.types  ;; necessary for reader literals
             [sql-datomic.parser :as par]
             [sql-datomic.select-command :as sel]
             [datomic.api :as d]))
@@ -121,6 +121,18 @@
                               [:order/orderid :order/orderdate]))
                 (into #{}))
            expected))))
+
+(deftest select-cols-of-product-by-prod-id
+  (let [ir (select-stmt->ir
+            "select product.prod-id, #attr :product/tag, product.title
+             where product.prod-id = 9990")]
+    (let [got (sel/run-select *db* ir)
+          expected [{:product/prod-id 9990
+                     :product/tag :aladdin-world-music
+                     :product/title "ALADDIN WORLD"}]]
+      (is (= (->> (:entities got)
+                  (map (partial -select-keys (:attrs got))))
+             expected)))))
 
 (comment
 
