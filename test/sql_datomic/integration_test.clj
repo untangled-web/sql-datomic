@@ -8,7 +8,8 @@
             [sql-datomic.update-command :as upd]
             [sql-datomic.delete-command :as del]
             [datomic.api :as d]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.set :as set]))
 
 
 ;;;; SETUP and HELPER FUNCTIONS ;;;;
@@ -579,6 +580,36 @@
         "the number of products has decreased to zero")
     (is (empty? (d/q query db'))
         "no products are present in db")))
+
+(deftest delete-products-by-db-id
+  (let [stmt "delete from product where db.id "
+        db *db*
+        e->m (partial entity->map db)
+        product-cnt (count-entities db :product/prod-id)
+        query '[:find [?e ...]
+                :where
+                [?e :product/prod-id ?pid]
+                [(<= ?pid 7000)]
+                [(<= 4000 ?pid)]]
+        ids (d/q query db)
+        stmt' (str stmt (str/join " " ids))
+        ir (->> stmt' par/parser par/transform)
+        _got (del/run-delete *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')
+        query' '[:find [?e ...] :where [?e :product/prod-id]]
+        ids' (d/q query' db')
+        products' (map e->m' ids')]
+    (is (= (count-entities db' :product/prod-id)
+           (- product-cnt (count ids)))
+        "the number of products has decreased appropriately")
+    (is (empty? (set/intersection
+                 (into #{} ids')
+                 (into #{} ids)))
+        "targeted :db/ids no longer present in db")
+    (is (not-any? (fn [{:keys [product/prod-id]}]
+                    (<= 4000 prod-id 7000))
+                  products'))))
 
 
 (comment
