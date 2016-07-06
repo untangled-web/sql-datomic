@@ -6,6 +6,7 @@
             [sql-datomic.select-command :as sel]
             [sql-datomic.insert-command :as ins]
             [sql-datomic.update-command :as upd]
+            [sql-datomic.delete-command :as del]
             [datomic.api :as d]
             [clojure.string :as str]))
 
@@ -515,6 +516,28 @@
         "the number of customers has not changed")))
 
 
+;;;; DELETE TESTS ;;;;
+
+(deftest delete-targeting-no-rows-has-no-effect
+  (let [actor "homer simpson"
+        stmt (format "delete from product where product.actor = '%s'"
+                     actor)
+        db *db*
+        product-cnt (count-entities db :product/prod-id)
+        ;; should be empty
+        ids (d/q '[:find [?e ...]
+                   :in $ ?doh!
+                   :where [?e :product/actor ?doh!]]
+                 db actor)
+        ir (->> stmt par/parser par/transform)
+        _got (del/run-delete *conn* db ir {:silent true})
+        db' (d/db *conn*)]
+    (is (empty? ids) "assumption: where clause matched no rows")
+    (is (= (count-entities db' :product/prod-id)
+           product-cnt)
+        "the number of products has not changed")
+    (is (= db db') "the db itself has not changed")))
+
 (comment
 
   (defn pp-ent [eid]
@@ -529,8 +552,7 @@
 #_(deftest parser-tests
 
   (testing "DELETE statements"
-    (parsable?
-     "delete from products where products.actor = 'homer simpson'")
+
     (parsable?
      "delete from drop_bear_attacks"
      "allows where clause to be optional")
