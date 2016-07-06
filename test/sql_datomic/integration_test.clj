@@ -485,6 +485,35 @@
     (is (= (count-entities db' :product/prod-id) cnt)
         "the number of products has not changed")))
 
+(deftest update-customer-order-join-short-form
+  (let [stmt "update #attr :customer/age = 45
+                   , customer.income = 70000M
+               where customer.customerid = order.customerid
+                 and order.orderid = 5"
+        ;; this works so long as all attrs in the assignment pair list
+        ;; refer to one (and only one) namespace/table.
+        db *db*
+        e->m (partial entity->map db)
+        the-order (e->m [:order/orderid 5])
+        the-cust  (:order/customer the-order)
+        order-cnt (count-entities db :order/orderid)
+        cust-cnt (count-entities db :customer/customerid)
+        ir (->> stmt par/parser par/transform)
+        _got (upd/run-update *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')]
+    (is (= (e->m' [:order/orderid 5])
+           the-order)
+        "the order was unaffected")
+    (is (= (e->m' (:db/id the-cust))
+           (assoc (e->m (:db/id the-cust))
+                  :customer/age 45
+                  :customer/income 70000M)))
+    (is (= (count-entities db' :order/orderid) order-cnt)
+        "the number of orders has not changed")
+    (is (= (count-entities db' :customer/customerid) cust-cnt)
+        "the number of customers has not changed")))
+
 
 (comment
 
