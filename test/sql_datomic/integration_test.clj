@@ -611,6 +611,51 @@
                     (<= 4000 prod-id 7000))
                   products'))))
 
+(deftest delete-order-cascading-orderlines-by-orderid
+  (let [stmt "delete from order where order.orderid = 5"
+        db *db*
+        e->m (partial entity->map db)
+        ;; an order has many orderlines (as components)
+        ;; an orderline has a product (not component)
+        ;; deleting an order should delete the orderlines but not the products
+        order-cnt (count-entities db :order/orderid)
+        orderline-cnt (count-entities db :orderline/orderlineid)
+        product-cnt (count-entities db :product/prod-id)
+        oid (d/q '[:find ?e . :where [?e :order/orderid 5]] db)
+        order (e->m oid)
+        olids (d/q '[:find [?e ...] :where [?e :orderline/orderid 5]] db)
+        orderlines (map e->m olids)
+        pids (d/q '[:find [?e ...]
+                    :where
+                    [?o :orderline/orderid 5]
+                    [?o :orderline/prod-id ?pid]
+                    [?e :product/prod-id ?pid]] db)
+        products (map e->m pids)
+        prod-ids (map :product/prod-id products)
+        ir (->> stmt par/parser par/transform)
+        _got (del/run-delete *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')]
+    (is (empty? (d/q '[:find ?e :where [?e :order/orderid 5]] db'))
+        "targeted order is no longer present in db")
+    (is (empty? (d/q '[:find ?e :where [?e :orderline/orderid 5]] db'))
+        "targeted order's orderlines are no longer present in db")
+    (is (not-empty
+         (d/q '[:find ?e
+                :in $ [?pid ...]
+                :where [?e :product/prod-id ?pid]]
+              db' prod-ids))
+        "targeted order's orderlines' products are still present in db")
+    (is (= (count-entities db' :order/orderid)
+           (dec order-cnt))
+        "the number of orders has decreased by one")
+    (is (= (count-entities db' :orderline/orderlineid)
+           (- orderline-cnt (count olids)))
+        "the number of orderlines has decreased appropriately")
+    (is (= (count-entities db' :product/prod-id)
+           product-cnt)
+        "the number of products has not changed")))
+
 
 (comment
 
