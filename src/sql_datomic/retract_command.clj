@@ -6,12 +6,13 @@
             [clojure.pprint :as pp]))
 
 (defn -run-harness [{:keys [conn db ir options ids]}]
-  (let [{:keys [debug pretend]} options
+  (let [{:keys [debug pretend silent]} options
         {:keys [attrs]} ir
         entities (->> (util/get-entities-by-eids db ids)
                       dat/keep-genuine-entities)]
     (when debug (squawk "Entities Targeted for Attr Retraction"))
-    (println (if (seq entities) ids "None"))
+    (when-not silent
+      (println (if (seq entities) ids "None")))
     (when debug (-debug-display-entities entities))
 
     (if-not (seq entities)
@@ -30,8 +31,9 @@
              :pretend pretend})
 
           (let [result @(d/transact conn tx-data)]
-            (println)
-            (println result)
+            (when-not silent
+              (println)
+              (println result))
             (let [entities' (util/get-entities-by-eids (d/db conn) ids)]
               (when debug
                 (squawk "Entities after Transaction")

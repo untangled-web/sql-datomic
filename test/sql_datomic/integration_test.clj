@@ -7,6 +7,7 @@
             [sql-datomic.insert-command :as ins]
             [sql-datomic.update-command :as upd]
             [sql-datomic.delete-command :as del]
+            [sql-datomic.retract-command :as rtr]
             [datomic.api :as d]
             [clojure.string :as str]
             [clojure.set :as set]))
@@ -746,6 +747,34 @@
         "all of the non-targeted orderlines are still present")))
 
 
+;;;; RETRACT TESTS ;;;;
+
+(deftest retract-product-attr-by-db-id
+  (let [stmt-fmt "RETRACT product.uuid WHERE db.id = %d"
+        db *db*
+        e->m (partial entity->map db)
+        product-cnt (count-entities db :product/prod-id)
+        prod-id 8293
+        id (d/q '[:find ?e .
+                  :in $ ?pid
+                  :where [?e :product/prod-id ?pid]]
+                db prod-id)
+        stmt (format stmt-fmt id)
+        ir (->> stmt par/parser par/transform)
+        _got (rtr/run-retract *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')
+        product' (e->m' id)
+        attrs' (->> product' keys (into #{}))]
+    (is (= (get attrs' :product/uuid :nope) :nope)
+        "the retracted attr is no longer present on target product")
+    (is (= (count-entities db' :product/uuid)
+           (dec product-cnt))
+        "number of products with uuid attr decreased by one")
+    (is (= (count-entities db' :product/prod-id)
+           product-cnt)
+        "number of products remains unchanged")))
+
 (comment
 
   (defn pp-ent [eid]
@@ -759,24 +788,8 @@
 
 #_(deftest parser-tests
 
-  (testing "DELETE statements"
-
-    (parsable?
-     "
-     DELETE FROM
-         lineitems
-     WHERE
-         lineitems.user_id = 42
-     AND lineitems.created_at BETWEEN
-         DATETIME '2013-11-15T00:00:00'
-           AND
-         DATETIME '2014-01-15T08:00:00'
-     ")
-    (parsable? "delete where #attr :product/prod-id = 1567"
-               "allow shortened where-only form"))
-
   (testing "RETRACT statements"
-    (parsable? "RETRACT product.uuid WHERE db.id = 12345")
+
     (parsable?
      "retract #attr :product/actor,
               #attr :product/rating,
