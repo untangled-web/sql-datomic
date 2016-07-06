@@ -775,6 +775,47 @@
            product-cnt)
         "number of products remains unchanged")))
 
+(deftest retract-product-attrs-for-many-db-ids
+  (let [stmt "retract #attr :product/actor,
+                      #attr :product/rating,
+                      #attr :product/url
+                where db.id "
+        db *db*
+        e->m (partial entity->map db)
+        retracted-attrs [:product/actor :product/rating :product/url]
+        product-cnt (count-entities db :product/prod-id)
+        ids (d/q '[:find [?e ...]
+                   :where
+                   [?e :product/prod-id ?pid]
+                   [(> ?pid 6000)]]
+                 db)
+        remain-ids (d/q '[:find [?e ...]
+                          :where
+                          [?e :product/prod-id ?pid]
+                          [(<= ?pid 6000)]]
+                        db)
+        remain-products (->> remain-ids (map e->m))
+        all-attrs (->> remain-products first keys (into #{}))
+        kept-attrs (set/difference all-attrs (into #{} retracted-attrs))
+        stmt' (str stmt (str/join " " ids))
+        ir (->> stmt' par/parser par/transform)
+        _got (rtr/run-retract *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')
+        products' (->> ids (map e->m'))
+        remain-products' (->> remain-ids (map e->m'))]
+    (is (= (count-entities db' :product/prod-id)
+           product-cnt)
+        "number of products remains unchanged")
+    (is (= (into #{} remain-products')
+           (into #{} remain-products))
+        "the non-targeted products remain unchanged")
+    (is (every? (fn [p]
+                  (let [attrs (->> p keys (into #{}))]
+                    (= kept-attrs attrs)))
+                products')
+        "the retracted attrs are no longer present on target products")))
+
 (comment
 
   (defn pp-ent [eid]
@@ -785,18 +826,3 @@
   (pp-ent [:product/prod-id 9990])
 
   )
-
-#_(deftest parser-tests
-
-  (testing "RETRACT statements"
-
-    (parsable?
-     "retract #attr :product/actor,
-              #attr :product/rating,
-              #attr :product/url
-      where db.id 12345 54321 42")
-    (parsable?
-     "retract #attr :customer/email,
-              #attr :customer/zip,
-              #attr :customer/firstname
-      where db.id in (11111 22222 33333)")))
