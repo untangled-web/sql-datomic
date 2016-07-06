@@ -5,6 +5,7 @@
             [sql-datomic.parser :as par]
             [sql-datomic.select-command :as sel]
             [sql-datomic.insert-command :as ins]
+            [sql-datomic.update-command :as upd]
             [datomic.api :as d]
             [clojure.string :as str]))
 
@@ -331,6 +332,25 @@
               :product/rating #float 4.5
               :product/man-hours 9001N
               :product/price 21.99M}}))))
+
+(deftest update-customer-where-customerid
+  (let [db *db*
+        id (d/q '[:find ?e . :where [?e :customer/customerid 4858]] db)
+        ent (entity->map db id)
+        stmt "update      customer
+              set         customer.city = 'Springfield'
+                        , customer.state = 'VA'
+                        , customer.zip = '22150'
+              where       customer.customerid = 4858"
+        ir (->> stmt par/parser par/transform)
+        _got (upd/run-update *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        ent' (entity->map db' id)]
+    (is (= ent'
+           (assoc ent
+                  :customer/city "Springfield"
+                  :customer/state "VA"
+                  :customer/zip "22150")))))
 
 (comment
 

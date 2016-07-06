@@ -5,12 +5,13 @@
             [clojure.pprint :as pp]))
 
 (defn -run-harness [{:keys [conn db ir options ids]}]
-  (let [{:keys [debug pretend]} options
+  (let [{:keys [debug pretend silent]} options
         entities (->> (util/get-entities-by-eids db ids)
                       dat/keep-genuine-entities)]
     (when debug (squawk "Entities Targeted for Delete"))
     ;; Always give indication of what will be deleted.
-    (println (if (seq entities) ids "None"))
+    (when-not silent
+      (println (if (seq entities) ids "None")))
     (when debug (util/-debug-display-entities entities))
 
     (if-not (seq entities)
@@ -30,8 +31,9 @@
 
           ;; else
           (let [result @(d/transact conn tx-data)]
-            (println)
-            (println result)
+            (when-not silent
+              (println)
+              (println result))
             (when debug
               (squawk "Entities after Transaction")
               (util/-debug-display-entities-by-ids (d/db conn) ids))
