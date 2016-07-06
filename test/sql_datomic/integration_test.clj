@@ -460,6 +460,31 @@
     (is (= (count-entities db' :product/prod-id) cnt)
         "the number of products has not changed")))
 
+(deftest update-product-short-form-by-db-id
+  (let [stmt "update #attr :product/rating = 3.5f
+               where #attr :db/id in ("
+        db *db*
+        e->m (partial entity->map db)
+        ids (d/q '[:find [?e ...]
+                   :where
+                   [?e :product/prod-id ?pid]
+                   [(< ?pid 6000)]]
+                 db)
+        stmt' (str stmt (str/join ", " ids) ")")
+        products (->> ids (map e->m) (into #{}))
+        cnt (count-entities db :product/prod-id)
+        ir (->> stmt' par/parser par/transform)
+        _got (upd/run-update *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')
+        products' (->> ids (map e->m') (into #{}))]
+    (is (= products'
+           (->> products
+                (map (fn [p] (assoc p :product/rating #float 3.5)))
+                (into #{}))))
+    (is (= (count-entities db' :product/prod-id) cnt)
+        "the number of products has not changed")))
+
 
 (comment
 
