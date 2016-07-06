@@ -9,6 +9,7 @@
             [datomic.api :as d]
             [clojure.string :as str]))
 
+
 ;;;; SETUP and HELPER FUNCTIONS ;;;;
 
 (def ^:dynamic *conn* :not-a-connection)
@@ -59,6 +60,7 @@
     #_(do (println "=== db tear-down") (flush))))
 
 (use-fixtures :each db-fixture)
+
 
 ;;;; SELECT TESTS ;;;;
 
@@ -271,6 +273,7 @@
              {:product/prod-id 8293}
              {:product/prod-id 6879}}))))
 
+
 ;;;; INSERT TESTS ;;;;
 
 (deftest insert-traditional-form
@@ -289,12 +292,13 @@
         ir (->> stmt par/parser par/transform)
         _got (ins/run-insert *conn* ir {:silent true})
         db' (d/db *conn*)
+        e->m' (partial entity->map db')
         cnt' (count-entities db' :customer/customerid)
         ids (d/q '[:find [?e ...]
                    :where [?e :customer/email "foobar@example.org"]]
                  db')
         ents (->> ids
-                  (map (fn [id] (entity->map db' id)))
+                  (map e->m')
                   (map (fn [m] (dissoc m :db/id)))
                   (into #{}))]
     (is (= (inc cnt) cnt'))
@@ -323,12 +327,13 @@
         ir (->> stmt par/parser par/transform)
         _got (ins/run-insert *conn* ir {:silent true})
         db' (d/db *conn*)
+        e->m' (partial entity->map db')
         cnt' (count-entities db' :product/prod-id)
         ids (d/q '[:find [?e ...]
                    :where [?e :product/prod-id 9999]]
                  db')
         ents (->> ids
-                  (map (fn [id] (entity->map db' id)))
+                  (map e->m')
                   (map (fn [m] (dissoc m :db/id)))
                   (into #{}))]
     (is (= (inc cnt) cnt'))
@@ -341,16 +346,19 @@
               :product/man-hours 9001N
               :product/price 21.99M}}))))
 
+
+;;;; UPDATE TESTS ;;;;
+
 (deftest update-customer-where-customerid
-  (let [db *db*
-        id (d/q '[:find ?e . :where [?e :customer/customerid 4858]] db)
-        ent (entity->map db id)
-        cnt (count-entities db :customer/customerid)
-        stmt "update      customer
+  (let [stmt "update      customer
               set         customer.city = 'Springfield'
                         , customer.state = 'VA'
                         , customer.zip = '22150'
               where       customer.customerid = 4858"
+        db *db*
+        id (d/q '[:find ?e . :where [?e :customer/customerid 4858]] db)
+        ent (entity->map db id)
+        cnt (count-entities db :customer/customerid)
         ir (->> stmt par/parser par/transform)
         _got (upd/run-update *conn* db ir {:silent true})
         db' (d/db *conn*)
@@ -366,11 +374,12 @@
 (deftest update-products-where-db-id
   (let [db *db*
         ids (d/q '[:find [?e ...]
-                  :where
-                  [?e :product/prod-id ?pid]
-                  [(> ?pid 6000)]]
-                db)
-        ents (->> ids (map (partial entity->map db)) (into #{}))
+                   :where
+                   [?e :product/prod-id ?pid]
+                   [(> ?pid 6000)]]
+                 db)
+        e->m (partial entity->map db)
+        ents (->> ids (map e->m) (into #{}))
         cnt (count-entities db :product/prod-id)
         stmt "update      product
               set         product.tag = :all-the-things
@@ -381,7 +390,8 @@
         ir (->> stmt' par/parser par/transform)
         _got (upd/run-update *conn* db ir {:silent true})
         db' (d/db *conn*)
-        ents' (->> ids (map (partial entity->map db')) (into #{}))]
+        e->m' (partial entity->map db')
+        ents' (->> ids (map e->m') (into #{}))]
     (is (= ents'
            (->> ents
                 (map (fn [ent]
@@ -391,37 +401,65 @@
                               :product/price 1.50M)))
                 (into #{}))))
     ;; ensure we did not add or remove product entities
-    (is (= (count-entities db' :product/prod-id) cnt))
+    (is (= (count-entities db' :product/prod-id) cnt)
+        "the number of products has not changed")
     ;; assumption: all products originally have special set to false
     (when (zero? (count-entities db :product/special true))
       (is (= (count ents')
              (count-entities db' :product/special true))))))
 
 (deftest update-customer-order-join
-  (let [db *db*
-        the-order (entity->map db [:order/orderid 5])
-        the-cust  (:order/customer the-order)
-        order-cnt (count-entities db :order/orderid)
-        cust-cnt (count-entities db :customer/customerid)
-        stmt "update customer
+  (let [stmt "update customer
               set    #attr :customer/age = 45
                    , customer.income = 70000M
               where  customer.customerid = order.customerid
                  and order.orderid = 5"
+        db *db*
+        e->m (partial entity->map db)
+        the-order (e->m [:order/orderid 5])
+        the-cust  (:order/customer the-order)
+        order-cnt (count-entities db :order/orderid)
+        cust-cnt (count-entities db :customer/customerid)
         ir (->> stmt par/parser par/transform)
         _got (upd/run-update *conn* db ir {:silent true})
-        db' (d/db *conn*)]
-    (is (= (entity->map db' [:order/orderid 5])
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')]
+    (is (= (e->m' [:order/orderid 5])
            the-order)
         "the order was unaffected")
-    (is (= (entity->map db' (:db/id the-cust))
-           (assoc (entity->map db (:db/id the-cust))
+    (is (= (e->m' (:db/id the-cust))
+           (assoc (e->m (:db/id the-cust))
                   :customer/age 45
                   :customer/income 70000M)))
     (is (= (count-entities db' :order/orderid) order-cnt)
         "the number of orders has not changed")
     (is (= (count-entities db' :customer/customerid) cust-cnt)
         "the number of customers has not changed")))
+
+(deftest update-product-short-form
+  (let [stmt "update #attr :product/rating = 3.5f
+               where #attr :product/prod-id > 6000"
+        db *db*
+        e->m (partial entity->map db)
+        ids (d/q '[:find [?e ...]
+                   :where
+                   [?e :product/prod-id ?pid]
+                   [(> ?pid 6000)]]
+                 db)
+        products (->> ids (map e->m) (into #{}))
+        cnt (count-entities db :product/prod-id)
+        ir (->> stmt par/parser par/transform)
+        _got (upd/run-update *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')
+        products' (->> ids (map e->m') (into #{}))]
+    (is (= products'
+           (->> products
+                (map (fn [p] (assoc p :product/rating #float 3.5)))
+                (into #{}))))
+    (is (= (count-entities db' :product/prod-id) cnt)
+        "the number of products has not changed")))
+
 
 (comment
 
@@ -435,27 +473,6 @@
   )
 
 #_(deftest parser-tests
-
-  (testing "UPDATE statements"
-    (parsable?
-     "update      customers
-      set         customers.city = 'Springfield'
-                , customers.state = 'VA'
-                , customers.zip = '22150'
-      where       customers.id = 123454321")
-    (parsable?
-     "update employees
-      set    employees.salary = 40000.00
-      where  employees.salary < 38000.00
-        and  employees.hired_on < date '2010-01-01'")
-    (parsable?
-     "update #attr :product/rating = 3.5f
-       where #attr :product/prod-id = 1567"
-     "allow SET and table to be optional; requires WHERE")
-    (parsable?
-     "update set #attr :product/rating = 2.4F
-       where #attr :product/prod-id = 1567"
-     "allow table to be optional; requires WHERE"))
 
   (testing "DELETE statements"
     (parsable?
