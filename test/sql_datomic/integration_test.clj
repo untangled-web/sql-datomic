@@ -627,8 +627,8 @@
         orderlines (map e->m olids)
         pids (d/q '[:find [?e ...]
                     :where
-                    [?o :orderline/orderid 5]
-                    [?o :orderline/prod-id ?pid]
+                    [?ol :orderline/orderid 5]
+                    [?ol :orderline/prod-id ?pid]
                     [?e :product/prod-id ?pid]] db)
         products (map e->m pids)
         prod-ids (map :product/prod-id products)
@@ -678,6 +678,72 @@
         "the number of products has decreased by one")
     (is (empty? (d/q query db' prod-id))
         "product targeted for deletion was retracted")))
+
+(deftest delete-orderlines-join-by-orderid
+  (let [stmt "delete from orderline
+               where orderline.orderid = order.orderid
+                 and order.orderid = 2
+                 and orderline.quantity = 1"
+        ;; note that we are targeting orderlines for deletion, not order
+        db *db*
+        e->m (partial entity->map db)
+        order-cnt (count-entities db :order/orderid)
+        orderline-cnt (count-entities db :orderline/orderlineid)
+        product-cnt (count-entities db :product/prod-id)
+        target-olids (d/q '[:find [?e ...]
+                            :where
+                            [?e :orderline/orderid 2]
+                            [?e :orderline/quantity 1]] db)
+        target-orderline-ids (->> target-olids
+                                  (map e->m)
+                                  (map :orderline/orderlineid))
+        remain-olids (d/q '[:find [?e ...]
+                            :where
+                            [?e :orderline/orderid 2]
+                            [?e :orderline/quantity ?n]
+                            [(not= ?n 1)]] db)
+        pids (d/q '[:find [?e ...]
+                    :where
+                    [?ol :orderline/orderid 2]
+                    [?ol :orderline/prod-id ?pid]
+                    [?e :product/prod-id ?pid]] db)
+        prod-ids (->> pids
+                      (map e->m)
+                      (map :product/prod-id))
+        ir (->> stmt par/parser par/transform)
+        _got (del/run-delete *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')
+        orderlines' (->> (d/q '[:find [?e ...]
+                                :where [?e :orderline/orderid 2]] db')
+                         (map e->m'))]
+    (is (= (count-entities db' :order/orderid)
+           order-cnt)
+        "the number of orders has not changed")
+    (is (= (count-entities db' :orderline/orderlineid)
+           (- orderline-cnt (count target-olids)))
+        "the number of orderlines has decreased appropriately")
+    (is (= (count-entities db' :product/prod-id)
+           product-cnt)
+        "the number of products has not changed")
+    (is (not-empty (d/q '[:find ?e :where [?e :order/orderid 2]] db'))
+        "the associated order is still present")
+    (is (empty?
+         (d/q '[:find ?e
+                :in $ [?olid ...]
+                :where
+                [?e :orderline/orderid 2]
+                [?e :orderline/orderlineid ?olid]]
+              db' target-orderline-ids))
+        "targeted orderlines of given order were retracted")
+    (is (not-any? (fn [{:keys [orderline/quantity]}]
+                    (= 1 quantity))
+                  orderlines')
+        "none of the quantity orderlines of given order are present")
+    (is (= (->> (d/q '[:find [?e ...] :where [?e :orderline/orderid 2]] db')
+                (into #{}))
+           (->> remain-olids (into #{})))
+        "all of the non-targeted orderlines are still present")))
 
 
 (comment
