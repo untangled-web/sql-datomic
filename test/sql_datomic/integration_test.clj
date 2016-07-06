@@ -38,11 +38,12 @@
 
 (defn count-entities
   ([db primary-attr]
-   (d/q '[:find (count ?e) .
-          :in $ ?attr
-          :where [?e ?attr]]
-        db
-        primary-attr))
+   (let [n (d/q '[:find (count ?e) .
+                  :in $ ?attr
+                  :where [?e ?attr]]
+                db
+                primary-attr)]
+     (if (nil? n) 0 n)))
   ([db attr v]
    (let [n (d/q '[:find (count ?e) .
                   :in $ ?attr ?v
@@ -537,6 +538,48 @@
            product-cnt)
         "the number of products has not changed")
     (is (= db db') "the db itself has not changed")))
+
+(deftest delete-product-by-prod-id
+  (let [prod-id 9990
+        stmt (format "delete from product where product.prod-id = %d"
+                     prod-id)
+        db *db*
+        e->m (partial entity->map db)
+        query '[:find ?e
+                :in $ ?pid
+                :where [?e :product/prod-id ?pid]]
+        product (e->m [:product/prod-id prod-id])
+        product-cnt (count-entities db :product/prod-id)
+        ir (->> stmt par/parser par/transform)
+        _got (del/run-delete *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')]
+    (is (not-empty (d/q query db prod-id))
+        "assumption: product targeted for deletion was present initially")
+    (is (= (count-entities db' :product/prod-id)
+           (dec product-cnt))
+        "the number of products has decreased by one")
+    (is (empty? (d/q query db' prod-id))
+        "product targeted for deletion was retracted")))
+
+(deftest delete-all-products-by-prod-id
+  ;; chose products here because they have no component attrs,
+  ;; i.e., they will not trigger a cascading delete.
+  (let [stmt "delete from product where product.prod-id > 0"
+        db *db*
+        query '[:find [?e ...]
+                :where [?e :product/prod-id]]
+        ids (d/q query db)
+        ir (->> stmt par/parser par/transform)
+        _got (del/run-delete *conn* db ir {:silent true})
+        db' (d/db *conn*)]
+    (is (pos? (count-entities db :product/prod-id))
+        "assumption: initially, db had products present")
+    (is (zero? (count-entities db' :product/prod-id))
+        "the number of products has decreased to zero")
+    (is (empty? (d/q query db'))
+        "no products are present in db")))
+
 
 (comment
 
