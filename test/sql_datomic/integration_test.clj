@@ -300,6 +300,38 @@
               :customer/zip "91362"
               :customer/country "USA"}}))))
 
+(deftest insert-short-form
+  (let [db *db*
+        cnt (count-entities db :product/prod-id)
+        stmt "insert into
+              #attr :product/prod-id = 9999,
+              #attr :product/actor = 'Naomi Watts',
+              #attr :product/title = 'The Ring',
+                     product.category = :product.category/horror,
+                     product.rating = 4.5f,
+                     product.man-hours = 9001N,
+                     product.price = 21.99M"
+        ir (->> stmt par/parser par/transform)
+        _got (ins/run-insert *conn* ir {:silent true})
+        db' (d/db *conn*)
+        cnt' (count-entities db' :product/prod-id)
+        ids (d/q '[:find [?e ...]
+                   :where [?e :product/prod-id 9999]]
+                 db')
+        ents (->> ids
+                  (map (fn [id] (entity->map db' id)))
+                  (map (fn [m] (dissoc m :db/id)))
+                  (into #{}))]
+    (is (= (inc cnt) cnt'))
+    (is (= ents
+           #{{:product/prod-id 9999
+              :product/actor "Naomi Watts"
+              :product/title "The Ring"
+              :product/category :product.category/horror
+              :product/rating #float 4.5
+              :product/man-hours 9001N
+              :product/price 21.99M}}))))
+
 (comment
 
   (defn pp-ent [eid]
@@ -312,35 +344,6 @@
   )
 
 #_(deftest parser-tests
-
-
-  (testing "INSERT statements"
-    (parsable?
-     "insert into customers (
-          firstname, lastname, address1, address2,
-          city, state, zip, country
-      ) values (
-          'Foo', 'Bar', '123 Some Place', '',
-          'Thousand Oaks', 'CA', '91362', 'USA'
-      )
-      ")
-    (parsable?
-     "INSERT INTO
-        foo
-      (name, age, balance, joined_on)
-      VALUES
-      ('foo', 42, 1234.56, date '2016-04-01')"
-     "allows string, integral, float, and date literals as values")
-    (parsable?
-     "insert into
-        #attr :product/prod-id = 9999,
-        #attr :product/actor = 'Naomi Watts',
-        #attr :product/title = 'The Ring',
-        #attr :product/category = :product.category/horror,
-        #attr :product/rating = 4.5f,
-        #attr :product/man-hours = 9001N,
-        #attr :product/price = 21.99M")
-    "allows shortened assignment-pairs version of insert")
 
   (testing "UPDATE statements"
     (parsable?
