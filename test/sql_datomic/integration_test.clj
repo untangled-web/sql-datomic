@@ -656,6 +656,29 @@
            product-cnt)
         "the number of products has not changed")))
 
+(deftest delete-product-by-prod-id-short-form
+  (let [prod-id 1567
+        stmt (format "delete where #attr :product/prod-id = %d"
+                     prod-id)
+        db *db*
+        e->m (partial entity->map db)
+        query '[:find ?e
+                :in $ ?pid
+                :where [?e :product/prod-id ?pid]]
+        product (e->m [:product/prod-id prod-id])
+        product-cnt (count-entities db :product/prod-id)
+        ir (->> stmt par/parser par/transform)
+        _got (del/run-delete *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        e->m' (partial entity->map db')]
+    (is (not-empty (d/q query db prod-id))
+        "assumption: product targeted for deletion was present initially")
+    (is (= (count-entities db' :product/prod-id)
+           (dec product-cnt))
+        "the number of products has decreased by one")
+    (is (empty? (d/q query db' prod-id))
+        "product targeted for deletion was retracted")))
+
 
 (comment
 
@@ -672,9 +695,6 @@
 
   (testing "DELETE statements"
 
-    (parsable?
-     "delete from drop_bear_attacks"
-     "allows where clause to be optional")
     (parsable?
      "
      DELETE FROM
