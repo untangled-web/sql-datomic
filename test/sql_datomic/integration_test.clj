@@ -34,12 +34,20 @@
 (defn -select-resultset [{:keys [entities attrs]}]
   (into #{} (map (partial -select-keys attrs) entities)))
 
-(defn count-entities [db primary-attr]
-  (d/q '[:find (count ?e) .
-         :in $ ?attr
-         :where [?e ?attr]]
-       db
-       primary-attr))
+(defn count-entities
+  ([db primary-attr]
+   (d/q '[:find (count ?e) .
+          :in $ ?attr
+          :where [?e ?attr]]
+        db
+        primary-attr))
+  ([db attr v]
+   (let [n (d/q '[:find (count ?e) .
+                  :in $ ?attr ?v
+                  :where [?e ?attr ?v]]
+                db
+                attr v)]
+     (if (nil? n) 0 n))))
 
 (defn db-fixture [f]
   (let [sys (.start (dat/system {}))]
@@ -337,6 +345,7 @@
   (let [db *db*
         id (d/q '[:find ?e . :where [?e :customer/customerid 4858]] db)
         ent (entity->map db id)
+        cnt (count-entities db :customer/customerid)
         stmt "update      customer
               set         customer.city = 'Springfield'
                         , customer.state = 'VA'
@@ -350,7 +359,43 @@
            (assoc ent
                   :customer/city "Springfield"
                   :customer/state "VA"
-                  :customer/zip "22150")))))
+                  :customer/zip "22150")))
+    ;; ensure we did not add or remove customer entities
+    (is (= (count-entities db' :customer/customerid) cnt))))
+
+(deftest update-products-where-db-id
+  (let [db *db*
+        ids (d/q '[:find [?e ...]
+                  :where
+                  [?e :product/prod-id ?pid]
+                  [(> ?pid 6000)]]
+                db)
+        ents (->> ids (map (partial entity->map db)) (into #{}))
+        cnt (count-entities db :product/prod-id)
+        stmt "update      product
+              set         product.tag = :all-the-things
+                        , product.special = true
+                        , product.price = 1.50M
+              where       db.id "
+        stmt' (str stmt (str/join " " ids))
+        ir (->> stmt' par/parser par/transform)
+        _got (upd/run-update *conn* db ir {:silent true})
+        db' (d/db *conn*)
+        ents' (->> ids (map (partial entity->map db')) (into #{}))]
+    (is (= ents'
+           (->> ents
+                (map (fn [ent]
+                       (assoc ent
+                              :product/tag :all-the-things
+                              :product/special true
+                              :product/price 1.50M)))
+                (into #{}))))
+    ;; ensure we did not add or remove product entities
+    (is (= (count-entities db' :product/prod-id) cnt))
+    ;; assumption: all products originally have special set to false
+    (when (zero? (count-entities db :product/special true))
+      (is (= (count ents')
+             (count-entities db' :product/special true))))))
 
 (comment
 
