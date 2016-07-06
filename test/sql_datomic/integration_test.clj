@@ -397,6 +397,32 @@
       (is (= (count ents')
              (count-entities db' :product/special true))))))
 
+(deftest update-customer-order-join
+  (let [db *db*
+        the-order (entity->map db [:order/orderid 5])
+        the-cust  (:order/customer the-order)
+        order-cnt (count-entities db :order/orderid)
+        cust-cnt (count-entities db :customer/customerid)
+        stmt "update customer
+              set    #attr :customer/age = 45
+                   , customer.income = 70000M
+              where  customer.customerid = order.customerid
+                 and order.orderid = 5"
+        ir (->> stmt par/parser par/transform)
+        _got (upd/run-update *conn* db ir {:silent true})
+        db' (d/db *conn*)]
+    (is (= (entity->map db' [:order/orderid 5])
+           the-order)
+        "the order was unaffected")
+    (is (= (entity->map db' (:db/id the-cust))
+           (assoc (entity->map db (:db/id the-cust))
+                  :customer/age 45
+                  :customer/income 70000M)))
+    (is (= (count-entities db' :order/orderid) order-cnt)
+        "the number of orders has not changed")
+    (is (= (count-entities db' :customer/customerid) cust-cnt)
+        "the number of customers has not changed")))
+
 (comment
 
   (defn pp-ent [eid]

@@ -126,7 +126,7 @@ double_literal ::= #"(?:(?i)[-+]?(?:\d(?:\.\d*)?[Ee][-+]?\d+|\d+\.\d*))"
 float_literal ::= #"(?:(?i)[-+]?(?:\d(?:\.\d*)?[Ee][-+]?\d+|\d+\.\d*))[Ff]"
     | <"#float"> #"(?:(?i)[-+]?(?:\d(?:\.\d*)?[Ee][-+]?\d+|\d+\.\d*))"
 
-bigdec_literal ::= #"(?:(?i)[-+]?(?:\d(?:\.\d*)?[Ee][-+]?\d+|\d+\.\d*))M"
+bigdec_literal ::= #"(?:(?i)[-+]?(?:\d(?:\.\d*)?[Ee][-+]?\d+|\d+(?:\.\d*)?))M"
 
 boolean_literal ::= true | false
 
