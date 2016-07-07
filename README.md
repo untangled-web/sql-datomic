@@ -24,6 +24,21 @@ To run the tests, run:
   $ lein test
 ```
 
+For a list of command-line flags available to the interpreter, run:
+```
+  $ bin/repl --help
+```
+or equivalently:
+```
+  $ lein run -- --help
+```
+
+For a list of supported in-interpreter commands, run:
+```
+  sql> help
+```
+from within a running interpreter.
+
 ## Differences from standard SQL
 
 The SQL used by this tool is largely a subset of ANSI SQL-92, with the
@@ -49,9 +64,9 @@ following deviations:
   or any functions.
 - Hyphens are permitted in table names and column names:
   `survey-request.sent-date`.  (Helps with Datomic interop.)
-- Aliases are permitted on table names:
-    - `select "la la la".foo from bar "la la la"`
-    - `select lalala.foo from bar as lalala`
+- ~~Aliases are permitted on table names:~~
+    - ~~`select "la la la".foo from bar "la la la"`~~
+    - ~~`select lalala.foo from bar as lalala`~~
 - `FROM` clauses must consist of table names only (no subselects).
 - `WHERE` clauses support `AND`, `OR`, and `NOT` terms.
 - `IN` clauses are supported in `WHERE`s.
@@ -114,6 +129,42 @@ For more about Tagged Literals, please
     - `delete where #attr :product/prod-id between 1567 and 6000`
 - update:
     - `update product.rating = 3.5f where product.prod-id = 1567`
+
+## Currently supported command-line flags:
+
+```
+ Switches                       Default     Desc
+ --------                       -------     ----
+ -h, --no-help, --help          false       Print this help
+ -d, --no-debug, --debug        false       Write debug info to stderr
+ -p, --no-pretend, --pretend    false       Run without transacting; turns on debug
+ -x, --no-expanded, --expanded  false       Display resultsets in expanded output format
+ -u, --connection-uri                       URI to Datomic DB; if missing, uses default mem db
+ -s, --default-schema-name      :dellstore  :dellstore or :starfighter, for default in-mem db
+```
+
+## Currently supported interpreter commands:
+
+```
+type `exit` or `quit` or ^D to exit
+type `debug` to toggle debug mode
+type `pretend` to toggle pretend mode
+type `expanded` or `\x` to toggle expanded display mode
+type `show tables` or `\d` to show Datomic "tables"
+type `show schema` or `\dn` to show all user Datomic schema
+type `describe $table` or `\d $table` to describe a Datomic "table"
+type `describe $dbid` or `\d $dbid` to describe the schema of an entity
+type `status` to show toggle values, conn strings, etc.
+type `\?`, `?`, `h` or `help` to see this listing
+```
+
+## TODO
+
+- Finish support for aliases on table names; they parse correctly, but
+  the query engine does not yet understand them.
+- Support some kind of multiline statement input from within the
+  interpreter; the parser and the query engine have no trouble with
+  multiline input (see the tests).
 
 ## License
 
