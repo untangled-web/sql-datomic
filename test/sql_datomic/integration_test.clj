@@ -66,7 +66,7 @@
 (use-fixtures :each db-fixture)
 
 
-;;;; SELECT TESTS ;;;;
+;;;; SELECT statements ;;;;
 
 (deftest product-entity-present
   (is (= (product-map->comparable (entity->map *db* [:product/prod-id 8293]))
@@ -83,11 +83,11 @@
           :product/special false
           :product/title "ALABAMA EXORCIST"})))
 
-(defn select-stmt->ir [stmt]
+(defn stmt->ir [stmt]
   (->> stmt par/parser par/transform))
 
 (deftest select-product-by-prod-id
-  (let [ir (select-stmt->ir "select where product.prod-id = 9990")]
+  (let [ir (stmt->ir "select where product.prod-id = 9990")]
     (is (= (->> (sel/run-select *db* ir)
                 :entities
                 (map product-map->comparable))
@@ -105,7 +105,7 @@
              :product/title "ALADDIN WORLD"}]))))
 
 (deftest select-all-products-by-prod-id
-  (let [ir (select-stmt->ir "select where product.prod-id > 0")
+  (let [ir (stmt->ir "select where product.prod-id > 0")
         prod-ids #{1298 1567
                    2290 2926
                    4402 4936
@@ -120,7 +120,7 @@
            prod-ids))))
 
 (deftest select-prod-id-6k-products
-  (let [ir (select-stmt->ir
+  (let [ir (stmt->ir
             "select where product.prod-id between 6000 and 6999")
         prod-ids #{6127 6376 6879}]
     (is (= (->> (sel/run-select *db* ir)
@@ -130,7 +130,7 @@
            prod-ids))))
 
 (deftest select-no-products-by-prod-id
-  (let [ir (select-stmt->ir
+  (let [ir (stmt->ir
             "select where product.prod-id >= 10000")
         prod-ids #{}]
     (is (= (->> (sel/run-select *db* ir)
@@ -140,7 +140,7 @@
            prod-ids))))
 
 (deftest select-order-between-dates
-  (let [ir (select-stmt->ir
+  (let [ir (stmt->ir
             "select where
              order.orderdate between #inst \"2004-01-01\"
                                  and #inst \"2004-01-05\" ")]
@@ -153,7 +153,7 @@
                :order/orderdate #inst "2004-01-01T08:00:00.000-00:00"}}))))
 
 (deftest select-cols-of-product-by-prod-id
-  (let [ir (select-stmt->ir
+  (let [ir (stmt->ir
             "select product.prod-id, #attr :product/tag, product.title
              where product.prod-id = 9990")]
     (is (= (-select-resultset (sel/run-select *db* ir))
@@ -162,7 +162,7 @@
               :product/title "ALADDIN WORLD"}}))))
 
 (deftest select-join
-  (let [ir (select-stmt->ir
+  (let [ir (stmt->ir
             "select order.orderid,
                     order.totalamount,
                     order.customerid,
@@ -212,7 +212,7 @@
 ;; |             6879 |      #float 3.0 |         12.99M |      :product.category/action |               102N | t     t    t    t
 ;; |             2290 |      #float 3.2 |         15.99M | :product.category/documentary |               103N | f     t    t    t
 (deftest select-and-or-not-oh-my
-  (let [ir (select-stmt->ir
+  (let [ir (stmt->ir
             "select product.prod-id,
                     product.category,
                     product.price,
@@ -271,14 +271,14 @@
                     *db*)
         stmt (str "select product.prod-id where #attr :db/id "
                   (str/join " " db-ids))
-        ir (select-stmt->ir stmt)]
+        ir (stmt->ir stmt)]
     (is (= (-select-resultset (sel/run-select *db* ir))
            #{{:product/prod-id 9990}
              {:product/prod-id 8293}
              {:product/prod-id 6879}}))))
 
 
-;;;; INSERT TESTS ;;;;
+;;;; INSERT statements ;;;;
 
 (deftest insert-traditional-form
   (let [db *db*
@@ -293,7 +293,7 @@
                   'Foo', 'Bar', 'foobar@example.org', '123 Some Place',
                   'Thousand Oaks', 'CA', '91362', 'USA'
               )"
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (ins/run-insert *conn* ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
@@ -328,7 +328,7 @@
                      product.rating = 4.5f,
                      product.man-hours = 9001N,
                      product.price = 21.99M"
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (ins/run-insert *conn* ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
@@ -351,7 +351,7 @@
               :product/price 21.99M}}))))
 
 
-;;;; UPDATE TESTS ;;;;
+;;;; UPDATE statements ;;;;
 
 (deftest update-customer-where-customerid
   (let [stmt "update      customer
@@ -363,7 +363,7 @@
         id (d/q '[:find ?e . :where [?e :customer/customerid 4858]] db)
         ent (entity->map db id)
         cnt (count-entities db :customer/customerid)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (upd/run-update *conn* db ir {:silent true})
         db' (d/db *conn*)
         ent' (entity->map db' id)]
@@ -372,8 +372,8 @@
                   :customer/city "Springfield"
                   :customer/state "VA"
                   :customer/zip "22150")))
-    ;; ensure we did not add or remove customer entities
-    (is (= (count-entities db' :customer/customerid) cnt))))
+    (is (= (count-entities db' :customer/customerid) cnt)
+        "number of customers remains unchanged")))
 
 (deftest update-products-where-db-id
   (let [db *db*
@@ -391,7 +391,7 @@
                         , product.price = 1.50M
               where       db.id "
         stmt' (str stmt (str/join " " ids))
-        ir (->> stmt' par/parser par/transform)
+        ir (stmt->ir stmt')
         _got (upd/run-update *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
@@ -404,7 +404,6 @@
                               :product/special true
                               :product/price 1.50M)))
                 (into #{}))))
-    ;; ensure we did not add or remove product entities
     (is (= (count-entities db' :product/prod-id) cnt)
         "the number of products has not changed")
     ;; assumption: all products originally have special set to false
@@ -424,7 +423,7 @@
         the-cust  (:order/customer the-order)
         order-cnt (count-entities db :order/orderid)
         cust-cnt (count-entities db :customer/customerid)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (upd/run-update *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')]
@@ -452,7 +451,7 @@
                  db)
         products (->> ids (map e->m) (into #{}))
         cnt (count-entities db :product/prod-id)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (upd/run-update *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
@@ -477,7 +476,7 @@
         stmt' (str stmt (str/join ", " ids) ")")
         products (->> ids (map e->m) (into #{}))
         cnt (count-entities db :product/prod-id)
-        ir (->> stmt' par/parser par/transform)
+        ir (stmt->ir stmt')
         _got (upd/run-update *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
@@ -502,7 +501,7 @@
         the-cust  (:order/customer the-order)
         order-cnt (count-entities db :order/orderid)
         cust-cnt (count-entities db :customer/customerid)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (upd/run-update *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')]
@@ -519,7 +518,7 @@
         "the number of customers has not changed")))
 
 
-;;;; DELETE TESTS ;;;;
+;;;; DELETE statements ;;;;
 
 (deftest delete-targeting-no-rows-has-no-effect
   (let [actor "homer simpson"
@@ -532,7 +531,7 @@
                    :in $ ?doh!
                    :where [?e :product/actor ?doh!]]
                  db actor)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (del/run-delete *conn* db ir {:silent true})
         db' (d/db *conn*)]
     (is (empty? ids) "assumption: where clause matched no rows")
@@ -552,7 +551,7 @@
                 :where [?e :product/prod-id ?pid]]
         product (e->m [:product/prod-id prod-id])
         product-cnt (count-entities db :product/prod-id)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (del/run-delete *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')]
@@ -572,7 +571,7 @@
         query '[:find [?e ...]
                 :where [?e :product/prod-id]]
         ids (d/q query db)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (del/run-delete *conn* db ir {:silent true})
         db' (d/db *conn*)]
     (is (pos? (count-entities db :product/prod-id))
@@ -594,7 +593,7 @@
                 [(<= 4000 ?pid)]]
         ids (d/q query db)
         stmt' (str stmt (str/join " " ids))
-        ir (->> stmt' par/parser par/transform)
+        ir (stmt->ir stmt')
         _got (del/run-delete *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
@@ -618,7 +617,7 @@
         e->m (partial entity->map db)
         ;; an order has many orderlines (as components)
         ;; an orderline has a product (not component)
-        ;; deleting an order should delete the orderlines but not the products
+        ;; deleting an order should delete its orderlines but not the products
         order-cnt (count-entities db :order/orderid)
         orderline-cnt (count-entities db :orderline/orderlineid)
         product-cnt (count-entities db :product/prod-id)
@@ -633,7 +632,7 @@
                     [?e :product/prod-id ?pid]] db)
         products (map e->m pids)
         prod-ids (map :product/prod-id products)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (del/run-delete *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')]
@@ -668,7 +667,7 @@
                 :where [?e :product/prod-id ?pid]]
         product (e->m [:product/prod-id prod-id])
         product-cnt (count-entities db :product/prod-id)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (del/run-delete *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')]
@@ -711,7 +710,7 @@
         prod-ids (->> pids
                       (map e->m)
                       (map :product/prod-id))
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (del/run-delete *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
@@ -747,7 +746,7 @@
         "all of the non-targeted orderlines are still present")))
 
 
-;;;; RETRACT TESTS ;;;;
+;;;; RETRACT statements ;;;;
 
 (deftest retract-product-attr-by-db-id
   (let [stmt-fmt "RETRACT product.uuid WHERE db.id = %d"
@@ -760,7 +759,7 @@
                   :where [?e :product/prod-id ?pid]]
                 db prod-id)
         stmt (format stmt-fmt id)
-        ir (->> stmt par/parser par/transform)
+        ir (stmt->ir stmt)
         _got (rtr/run-retract *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
@@ -798,7 +797,7 @@
         all-attrs (->> remain-products first keys (into #{}))
         kept-attrs (set/difference all-attrs (into #{} retracted-attrs))
         stmt' (str stmt (str/join " " ids))
-        ir (->> stmt' par/parser par/transform)
+        ir (stmt->ir stmt')
         _got (rtr/run-retract *conn* db ir {:silent true})
         db' (d/db *conn*)
         e->m' (partial entity->map db')
