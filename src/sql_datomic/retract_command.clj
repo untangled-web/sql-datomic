@@ -34,7 +34,7 @@
             (when-not silent
               (println)
               (println result))
-            (let [entities' (util/get-entities-by-eids (d/db conn) ids)]
+            (let [entities' (util/get-entities-by-eids (:db-after result) ids)]
               (when debug
                 (squawk "Entities after Transaction")
                 (-debug-display-entities entities'))

@@ -23,7 +23,7 @@
            (prn ids))
          (when debug
            (squawk "Entities after Transaction")
-           (util/-debug-display-entities-by-ids (d/db conn) ids))
+           (util/-debug-display-entities-by-ids (:db-after result) ids))
          {:tx-data tx-data
           :ids ids
           :result result})))))

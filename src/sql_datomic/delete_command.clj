@@ -36,7 +36,7 @@
               (println result))
             (when debug
               (squawk "Entities after Transaction")
-              (util/-debug-display-entities-by-ids (d/db conn) ids))
+              (util/-debug-display-entities-by-ids (:db-after result) ids))
             {:ids ids
              :entities entities
              :tx-data tx-data
