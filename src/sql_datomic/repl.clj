@@ -267,7 +267,7 @@
                  ["-u" "--connection-uri"
                   "URI to Datomic DB; if missing, uses default mem db"]
                  ["-s" "--default-schema-name"
-                  ":dellstore or :starfighter, for default in-mem db"
+                  ":dellstore or :starfighter or :seattle, for default in-mem db"
                   :parse-fn (fn [s]
                               (if-let [m (re-matches #"^:+(.+)$" s)]
                                 (keyword (second m))

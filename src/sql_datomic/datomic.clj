@@ -56,9 +56,24 @@
                         slurp
                         (edn/read-string {:readers *data-readers*})))
         schema-tx (load-edn "resources/starfighter-schema.edn")
-        starfighter-tx (load-edn "resources/starfighter-data.edn")]
+        data-tx (load-edn "resources/starfighter-data.edn")]
     @(d/transact connection schema-tx)
-    @(d/transact connection starfighter-tx)
+    @(d/transact connection data-tx)
+    connection))
+
+(defn -create-seattle-db []
+  (d/create-database default-connection-uri)
+  (let [connection (d/connect default-connection-uri)
+        load-edn (fn [path]
+                   (->> path
+                        slurp
+                        (edn/read-string {:readers *data-readers*})))
+        schema-tx (load-edn "resources/seattle-schema.edn")
+        data0-tx (load-edn "resources/seattle-data0.edn")
+        data1-tx (load-edn "resources/seattle-data1.edn")]
+    @(d/transact connection schema-tx)
+    @(d/transact connection data0-tx)
+    @(d/transact connection data1-tx)
     connection))
 
 (defn create-default-db
@@ -66,6 +81,7 @@
   ([which-schema]
    (case which-schema
      :starfighter (-create-starfighter-db)
+     :seattle (-create-seattle-db)
      :dellstore (-create-dellstore-db)
      ;; else
      (-create-dellstore-db))))
