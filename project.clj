@@ -1,8 +1,8 @@
-(defproject sql-datomic "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+(defproject sql-datomic "0.1.0"
+  :description "Interpreter of a SQL-ish dialect that runs against Datomic databases."
+  :url "https://github.com/untangled-web/sql-datomic"
+  :license {:name "The MIT License"
+            :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [instaparse "1.4.2"]
                  [clj-time "0.12.0"]
@@ -13,8 +13,6 @@
                  [com.datastax.cassandra/cassandra-driver-core "2.0.6"
                   :exclusions [com.google.guava/guava
                                org.slf4j/slf4j-api]]]
-  :repositories
-  [["releases" "https://artifacts.buehner-fry.com/artifactory/release"]]
   :main sql-datomic.repl
   ;; :aot [sql-datomic.repl]
   )

@@ -158,6 +158,18 @@ type `status` to show toggle values, conn strings, etc.
 type `\?`, `?`, `h` or `help` to see this listing
 ```
 
+## Running the test suite
+
+```
+  $ lein test
+```
+
+## Caveats
+
+This is a rather sharp tool (although the `pretend` flag helps).  It will carry out
+all mutating statements immediately (i.e., behaves as if run in an AUTOCOMMIT mode).
+Again, judicious use of `pretend` can help immensely.
+
 ## TODO
 
 - Finish support for aliases on table names; they parse correctly, but
@@ -168,7 +180,4 @@ type `\?`, `?`, `h` or `help` to see this listing
 
 ## License
 
-Copyright © 2016 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+The MIT License (MIT) Copyright © 2016 NAVIS
