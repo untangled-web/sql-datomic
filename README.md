@@ -13,10 +13,16 @@ convention for all attributes.
 To use the interpreter (REPL), run:
 ```
   $ bin/repl
+  ## connects to a default mem db.
 ```
 or even:
 ```
   $ rlwrap lein run
+```
+To run it against a non-mem Datomic db, run:
+```
+  $ bin/repl -u $datomic_connect_uri
+  ## same kind of URI you would hand to datomic.api/connect.
 ```
 
 To run the tests, run:
@@ -38,6 +44,48 @@ For a list of supported in-interpreter commands, run:
   sql> help
 ```
 from within a running interpreter.
+
+## Sample session
+
+```
+  sql> \d
+  sql> \dn
+  sql> \x
+  sql> select where product.prod-id = 9990
+  sql> \x
+  sql> debug
+  sql> select where order.orderdate between #inst "2004-01-01" and #inst "2004-01-05"
+  sql> select product.prod-id, #attr :product/tag, product.title where product.prod-id = 9990
+  sql> select db.id, customer.city, customer.state, customer.zip from customer where customer.customerid = 4858
+  sql> debug
+  sql> update customer set customer.city = 'Springfield', customer.state = 'VA', customer.zip = '22150' where customer.customerid = 4858
+  sql> select db.id, customer.city, customer.state, customer.zip from customer where customer.customerid = 4858
+  sql> \x
+  sql> select where product.prod-id = 9999
+  sql> insert into #attr :product/prod-id = 9999, #attr :product/actor = 'Naomi Watts', #attr :product/title = 'The Ring', product.category = :product.category/horror, product.rating = 4.5f, product.man-hours = 9001N, product.price = 21.99M
+  sql> select where product.prod-id = 9999
+  sql> delete from product where product.prod-id = 9999
+  sql> select where product.prod-id = 9999
+  sql> \d order
+  sql> \d orderline
+  sql> select where order.orderid > 0
+  sql> select where orderline.orderlineid > 0
+  sql> delete from order where order.orderid > 0
+  sql> \d order
+  sql> \d orderline
+  sql> select where order.orderid > 0
+  sql> select where orderline.orderlineid > 0
+  sql> \x
+  sql> \d customer
+  sql> select db.id, #attr :customer/customerid, #attr :customer/username, #attr :customer/password from customer where customer.customerid > 0
+  sql> pretend
+  sql> update customer set customer.username = 'donald.duck', customer.password = 'somethingclever' where customer.customerid = 14771
+  sql> pretend
+  sql> debug
+  sql> select db.id, #attr :customer/customerid, #attr :customer/username, #attr :customer/password from customer where customer.customerid > 0
+  sql> update customer set customer.username = 'donald.duck', customer.password = 'somethingclever' where customer.customerid = 14771
+  sql> select db.id, #attr :customer/customerid, #attr :customer/username, #attr :customer/password from customer where customer.customerid > 0
+```
 
 ## Differences from standard SQL
 
